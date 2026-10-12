@@ -15,7 +15,6 @@
             padding: 0;
             height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f2f2f2;
         }
         #map {
             width: 100%;
@@ -53,19 +52,19 @@
             outline: none;
             cursor: pointer;
         }
-        /* 樹名標籤樣式：當放大到 Zoom 19+ 時自動顯示 */
+        /* 更精緻、更緊湊的標籤樣式，避免佔用太大空間 */
         .tree-label {
             background: rgba(255, 255, 255, 0.95);
             border: 1px solid #2e7d32;
             border-radius: 3px;
-            padding: 1px 3px;
-            font-size: 10px;
+            padding: 1px 2px;
+            font-size: 9px;
             font-weight: bold;
             color: #1b5e20;
             white-space: nowrap;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
         }
-        /* 右下角 GPS 按鈕 */
+        /* 將「我的位置」按鈕固定在右下角 */
         .gps-btn {
             position: absolute;
             bottom: 30px;
@@ -84,7 +83,7 @@
         .gps-btn:hover {
             background: #f1f8e9;
         }
-        /* 左下角資料來源 */
+        /* 左下角資料來源方塊 */
         .source-box {
             position: absolute;
             bottom: 20px;
@@ -133,17 +132,15 @@
             maxZoom: 22
         }).setView([22.3193, 114.1694], 12);
 
-        // 使用 OpenStreetMap 官方底圖
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 22,
             maxNativeZoom: 19,
-            detectRetina: true,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true,
-            disableClusteringAtZoom: 19,
+            disableClusteringAtZoom: 19, // 提高到 19 級（更貼地時）才徹底散開，減少密集區重疊
             spiderfyOnMaxZoom: false,
             showCoverageOnHover: false
         });
@@ -166,36 +163,25 @@
                         speciesSet.add(row.Chinese_Name.trim());
                     }
 
-                    // 顏色分組邏輯：賞花粉紫、秋葉橙黃、常綠綠色
-                    let color = "#2e7d32"; 
-                    if (['大花紫薇', '洋紫荊', '紫荊花'].includes(treeName)) {
-                        color = "#ab47bc"; 
-                    } else if (['楓香', '黃鐘木'].includes(treeName)) {
-                        color = "#fb8c00"; 
-                    }
-
                     var marker = L.circleMarker([lat, lng], {
                         radius: 5,
-                        fillColor: color,
+                        fillColor: "#2e7d32",
                         color: "#ffffff",
                         weight: 1,
                         opacity: 1,
                         fillOpacity: 0.85
                     });
 
-                    // 你指定的精簡 Popup 格式
-                    var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
                     var popupContent = `
-                        <div style="min-width: 180px; font-family: sans-serif;">
-                            <h3 style="margin: 0 0 4px 0; color: #2e7d32; font-size: 15px;">${treeName}</h3>
-                            <p style="margin: 0 0 6px 0; font-style: italic; color: #666; font-size: 12px;">${row.Scientific_Name || ''}</p>
-                            <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
-                            <p style="margin: 3px 0; font-size: 12px;"><b>地點：</b>${locationName}</p>
+                        <div style="min-width: 200px;">
+                            <h3 style="margin: 0 0 5px 0; color: #2e7d32; font-size: 16px;">${treeName}</h3>
+                            <p style="margin: 0 0 5px 0; font-style: italic; color: #666; font-size: 13px;">${row.Scientific_Name || ''}</p>
+                            <hr style="border:0; border-top:1px solid #eee; margin:5px 0;">
+                            <p style="margin: 3px 0; font-size: 13px;"><b>地點：</b>${row.Location_in_Chinese || row.Location_in_English || '不詳'}</p>
                         </div>
                     `;
                     marker.bindPopup(popupContent);
                     
-                    // 綁定長期固定標籤（Zoom >= 19 時自動顯示名稱）
                     marker.bindTooltip(treeName, { 
                         direction: 'right', 
                         offset: [5, 0],
@@ -224,7 +210,7 @@
             }
         });
 
-        // 控制標籤在 Zoom >= 19 時自動顯示
+        // 提升至 Zoom >= 19 時才顯示標籤，並縮小字體與間距，減輕視覺凌亂
         function updateLabelsVisibility() {
             var currentZoom = map.getZoom();
             var bounds = map.getBounds();
