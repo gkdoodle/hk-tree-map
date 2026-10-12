@@ -7,56 +7,22 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-        #map {
-            width: 100%;
-            height: 100vh;
-        }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        #map { width: 100%; height: 100vh; }
         .loading-overlay {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 1000;
-            background: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            font-size: 14px;
-            font-weight: bold;
-            color: #333;
+            position: absolute; top: 10px; right: 10px; z-index: 1000;
+            background: white; padding: 10px 15px; border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2); font-size: 14px; font-weight: bold; color: #333;
         }
         .gps-btn {
-            position: absolute;
-            bottom: 30px;
-            right: 20px;
-            z-index: 1000;
-            background: white;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 50px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: bold;
-            color: #2e7d32;
+            position: absolute; bottom: 30px; right: 20px; z-index: 1000;
+            background: white; border: none; padding: 10px 14px; border-radius: 50px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3); font-size: 16px; cursor: pointer; font-weight: bold; color: #2e7d32;
         }
-        .gps-btn:hover {
-            background: #f1f8e9;
-        }
+        .gps-btn:hover { background: #f1f8e9; }
         .source-box {
-            background: rgba(255, 255, 255, 0.92);
-            padding: 10px 14px;
-            font-size: 12px;
-            color: #444;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            line-height: 1.5;
-            max-width: 300px;
+            background: rgba(255, 255, 255, 0.92); padding: 10px 14px; font-size: 12px;
+            color: #444; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); max-width: 300px;
         }
     </style>
 </head>
@@ -68,27 +34,28 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!--高效能 Canvas Marker 渲染插件 -->
+    <script src="https://unpkg.com/leaflet-canvas-markers@1.0.3/dist/leaflet-canvas-markers.js"></script>
     <!-- PapaParse -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
         var map = L.map('map').setView([22.3193, 114.1694], 12);
 
-        // 使用免費、無需 API Key 的 OpenStreetMap 官方底圖
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // 使用普通 LayerGroup，完全沒有 Marker Cluster，每棵樹獨立顯示
-        var treesLayer = L.layerGroup().addTo(map);
+        // 使用 Canvas MarkerLayer，完全沒有 Marker Cluster，每棵樹獨立顯示且效能極高
+        var treesLayer = L.canvasMarkerLayer().addTo(map);
 
-        // 樹木 Icon 設定（未來你畫好 PNG/SVG 只需要換走呢度即可）
-        var treeEmojiIcon = L.divIcon({
-            html: '<span style="font-size: 16px;">🌳</span>',
-            className: 'custom-emoji-icon',
+        // 臨時樹木 Icon (日後畫好 PNG/SVG 只需要換走呢度路徑即可)
+        var treeIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/3233/3233858.png', // 临时小绿圆Icon
             iconSize: [20, 20],
-            iconAnchor: [10, 10]
+            iconAnchor: [10, 10],
+            popupAnchor: [0, -10]
         });
 
         // 載入精選命名樹木 CSV 檔案
@@ -101,8 +68,6 @@
                 var lat = parseFloat(row.GeometryLatitude);
                 var lng = parseFloat(row.GeometryLongitude);
                 if (!isNaN(lat) && !isNaN(lng)) {
-                    var marker = L.marker([lat, lng], { icon: treeEmojiIcon });
-
                     var treeName = row.Chinese_Name || '未命名樹木';
                     var popupContent = `
                         <div style="min-width: 200px;">
@@ -113,12 +78,25 @@
                             <p style="margin: 3px 0; font-size: 13px;"><b>來源：</b>${row.Source || '官方資料'}</p>
                         </div>
                     `;
-                    marker.bindPopup(popupContent);
-                    
-                    // 滑鼠懸停顯示樹名，點擊顯示詳細資料
-                    marker.bindTooltip(treeName, { direction: 'top', offset: [0, -10] });
 
-                    treesLayer.addLayer(marker);
+                    // 建立 Marker，使用 CanvasLayer 添加
+                    var marker = L.canvasMarker([lat, lng], {
+                        icon: treeIcon,
+                        popupContent: popupContent, // 自定義Popup內容
+                        treeName: treeName // 自定義Tooltip內容
+                    }).addTo(treesLayer);
+
+                    // 滑鼠懸停顯示樹名，點擊顯示詳細資料
+                    // 注意：Canvas插件通常需要自定義事件綁定
+                    marker.on('mouseover', function(e){
+                        map.openTooltip(this.options.treeName, e.latlng, { direction: 'top', offset: [0, -10] });
+                    });
+                    marker.on('mouseout', function(){
+                        map.closeTooltip();
+                    });
+                    marker.on('click', function(e){
+                        L.popup().setLatLng(e.latlng).setContent(this.options.popupContent).openOn(map);
+                    });
                 }
             },
             complete: function() {
@@ -126,7 +104,6 @@
             }
         });
 
-        // GPS 定位功能
         function locateUser() {
             if (!navigator.geolocation) {
                 alert("你的瀏覽器不支援定位功能。");
@@ -136,7 +113,6 @@
                 var lat = position.coords.latitude;
                 var lng = position.coords.longitude;
                 map.setView([lat, lng], 17);
-                
                 L.marker([lat, lng], {
                     icon: L.divIcon({
                         html: '<div style="background-color: #1976d2; width: 14px; height: 14px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>',
@@ -151,14 +127,6 @@
         var sourceControl = L.control({ position: 'bottomleft' });
         sourceControl.onAdd = function (map) {
             var div = L.DomUtil.create('div', 'source-box');
-            div.innerHTML = `
-                <b>🌲 香港城市樹木分佈地圖：</b><br>
-                • 獨立顯示每棵樹的真實位置<br>
-                • 滑鼠懸停看樹名，點擊看詳情
-            `;
+            div.innerHTML = `<b>🌲 香港城市樹木分佈地圖：</b><br>• 獨立顯示每棵樹的真實位置<br>• 滑鼠懸停看樹名，點擊看詳情`;
             return div;
         };
-        sourceControl.addTo(map);
-    </script>
-</body>
-</html>
