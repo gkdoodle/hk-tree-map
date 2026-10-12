@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>香港樹木地圖</title>
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Marker Cluster CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <!-- MapLibre GL CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.css" />
     <style>
         body, html {
             margin: 0;
@@ -52,22 +49,10 @@
             outline: none;
             cursor: pointer;
         }
-        /* 更精緻、更緊湊的標籤樣式，避免佔用太大空間 */
-        .tree-label {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid #2e7d32;
-            border-radius: 3px;
-            padding: 1px 3px;
-            font-size: 10px;
-            font-weight: bold;
-            color: #1b5e20;
-            white-space: nowrap;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
         .gps-btn {
             position: absolute;
             bottom: 30px;
-木            right: 20px;
+            right: 20px;
             z-index: 1000;
             background: white;
             border: none;
@@ -83,6 +68,10 @@
             background: #f1f8e9;
         }
         .source-box {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
             background: rgba(255, 255, 255, 0.92);
             padding: 10px 14px;
             font-size: 12px;
@@ -108,131 +97,106 @@
     <div id="map"></div>
     <button class="gps-btn" onclick="locateUser()" title="顯示我的位置">📍 我的位置</button>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Marker Cluster JS -->
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <div class="source-box">
+        <b>🌲 資料來源：</b><br>
+        空間數據共享平台 (CSDI) 開放數據
+    </div>
+
+    <!-- MapLibre GL JS -->
+    <script src="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.js"></script>
+    <!-- Hong Kong Open Map UMD Bundle -->
+    <script src="https://unpkg.com/hong-kong-open-map/dist/vanilla.umd.js"></script>
     <!-- PapaParse -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
-        var map = L.map('map', {
-            renderer: L.canvas(),
-            maxZoom: 22 // 允許放大到更深層級
-        }).setView([22.3193, 114.1694], 12);
-
-        // 支援超高放大倍率 (maxZoom 22)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 22,
-            maxNativeZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-
-        var markersCluster = L.markerClusterGroup({ 
-            chunkedLoading: true,
-            disableClusteringAtZoom: 18, // 提高到 18 級才散開，確保在大範圍時保持聚落整潔
-            spiderfyOnMaxZoom: false,
-            showCoverageOnHover: false
+        // 初始化 HKMap (使用矢量底圖，放大絕不起格)
+        const mapInstance = new HKMap('map', {
+            center: [114.1694, 22.3193], // 註：MapLibre 格式為 [lng, lat]
+            zoom: 12,
+            theme: 'light'
         });
-        map.addLayer(markersCluster);
 
-        var allMarkers = []; 
-        var speciesSet = new Set(); 
+        // 由於底圖載入需要少許時間，我們等待 map load 完成後再加載樹木 Marker
+        let allMarkers = [];
+        let speciesSet = new Set();
+        let currentMarkersOnMap = [];
 
-        Papa.parse('csdi_gov_trees_named.csv', {
-            download: true,
-            header: true,
-            skipEmptyLines: true,
-            step: function(results) {
-                var row = results.data;
-                var lat = parseFloat(row.GeometryLatitude);
-                var lng = parseFloat(row.GeometryLongitude);
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    var treeName = row.Chinese_Name || '未命名樹木';
-                    if (row.Chinese_Name) {
-                        speciesSet.add(row.Chinese_Name.trim());
+        mapInstance.onLoad((map) => {
+            Papa.parse('csdi_gov_trees_named.csv', {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                step: function(results) {
+                    var row = results.data;
+                    var lat = parseFloat(row.GeometryLatitude);
+                    var lng = parseFloat(row.GeometryLongitude);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        var treeName = row.Chinese_Name || '未命名樹木';
+                        if (row.Chinese_Name) {
+                            speciesSet.add(row.Chinese_Name.trim());
+                        }
+
+                        var popupContent = `
+                            <div style="min-width: 180px; font-family: sans-serif;">
+                                <h3 style="margin: 0 0 5px 0; color: #2e7d32; font-size: 15px;">${treeName}</h3>
+                                <p style="margin: 0 0 5px 0; font-style: italic; color: #666; font-size: 12px;">${row.Scientific_Name || ''}</p>
+                                <hr style="border:0; border-top:1px solid #eee; margin:5px 0;">
+                                <p style="margin: 3px 0; font-size: 12px;"><b>地點：</b>${row.Location_in_Chinese || row.Location_in_English || '不詳'}</p>
+                            </div>
+                        `;
+
+                        allMarkers.push({
+                            lngLat: [lng, lat],
+                            title: treeName,
+                            popup: popupContent,
+                            species: treeName
+                        });
                     }
-
-                    var marker = L.circleMarker([lat, lng], {
-                        radius: 5,
-                        fillColor: "#2e7d32",
-                        color: "#ffffff",
-                        weight: 1,
-                        opacity: 1,
-                        fillOpacity: 0.85
-                    });
-
-                    var popupContent = `
-                        <div style="min-width: 200px;">
-                            <h3 style="margin: 0 0 5px 0; color: #2e7d32; font-size: 16px;">${treeName}</h3>
-                            <p style="margin: 0 0 5px 0; font-style: italic; color: #666; font-size: 13px;">${row.Scientific_Name || ''}</p>
-                            <hr style="border:0; border-top:1px solid #eee; margin:5px 0;">
-                            <p style="margin: 3px 0; font-size: 13px;"><b>地點：</b>${row.Location_in_Chinese || row.Location_in_English || '不詳'}</p>
-                            <p style="margin: 3px 0; font-size: 13px;"><b>來源：</b>${row.Source || '官方資料'}</p>
-                        </div>
-                    `;
-                    marker.bindPopup(popupContent);
+                },
+                complete: function() {
+                    document.getElementById('loading').style.display = 'none';
                     
-                    marker.bindTooltip(treeName, { 
-                        direction: 'right', 
-                        offset: [5, 0],
-                        className: 'tree-label',
-                        permanent: false 
+                    // 填入下拉選單
+                    var selectElement = document.getElementById('speciesSelect');
+                    var sortedSpecies = Array.from(speciesSet).sort();
+                    sortedSpecies.forEach(function(species) {
+                        var opt = document.createElement('option');
+                        opt.value = species;
+                        opt.textContent = species;
+                        selectElement.appendChild(opt);
                     });
 
-                    marker.speciesName = treeName;
-                    allMarkers.push(marker);
-                    markersCluster.addLayer(marker);
+                    // 初始渲染全部樹木
+                    renderMarkers(allMarkers);
                 }
-            },
-            complete: function() {
-                document.getElementById('loading').style.display = 'none';
-                
-                var selectElement = document.getElementById('speciesSelect');
-                var sortedSpecies = Array.from(speciesSet).sort();
-                sortedSpecies.forEach(function(species) {
-                    var opt = document.createElement('option');
-                    opt.value = species;
-                    opt.textContent = species;
-                    selectElement.appendChild(opt);
-                });
-
-                updateLabelsVisibility();
-            }
+            });
         });
 
-        // 提升至 Zoom >= 18 時才顯示標籤，確保在足夠大的近鏡下才展開名稱
-        function updateLabelsVisibility() {
-            var currentZoom = map.getZoom();
-            var bounds = map.getBounds();
+        function renderMarkers(markersToRender) {
+            // 清除地圖上現有的 Marker (根據實際函式庫 API 調整)
+            currentMarkersOnMap.forEach(m => m.remove());
+            currentMarkersOnMap = [];
 
-            allMarkers.forEach(function(marker) {
-                if (markersCluster.hasLayer(marker)) {
-                    if (currentZoom >= 18 && bounds.contains(marker.getLatLng())) {
-                        if (!marker.isTooltipOpen()) {
-                            marker.openTooltip();
-                        }
-                    } else {
-                        if (marker.isTooltipOpen()) {
-                            marker.closeTooltip();
-                        }
-                    }
-                }
+            // 批量加入 Marker
+            markersToRender.forEach(item => {
+                const marker = new HKMarker({
+                    position: item.lngLat,
+                    title: item.title,
+                    popup: item.popup
+                });
+                mapInstance.addMarker(marker);
+                currentMarkersOnMap.push(marker);
             });
         }
 
-        map.on('moveend zoomend', updateLabelsVisibility);
-
         function filterSpecies(selectedSpecies) {
-            markersCluster.clearLayers();
-            var filteredMarkers = [];
-            allMarkers.forEach(function(marker) {
-                if (selectedSpecies === 'ALL' || marker.speciesName === selectedSpecies) {
-                    filteredMarkers.push(marker);
-                }
-            });
-            markersCluster.addLayers(filteredMarkers);
-            updateLabelsVisibility();
+            if (selectedSpecies === 'ALL') {
+                renderMarkers(allMarkers);
+            } else {
+                const filtered = allMarkers.filter(m => m.species === selectedSpecies);
+                renderMarkers(filtered);
+            }
         }
 
         function locateUser() {
@@ -243,29 +207,11 @@
             navigator.geolocation.getCurrentPosition(function(position) {
                 var lat = position.coords.latitude;
                 var lng = position.coords.longitude;
-                map.setView([lat, lng], 18);
-                
-                L.marker([lat, lng], {
-                    icon: L.divIcon({
-                        html: '<div style="background-color: #1976d2; width: 14px; height: 14px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>',
-                        className: 'user-gps-marker'
-                    })
-                }).addTo(map).bindPopup("<b>你在這裡！</b>").openPopup();
+                mapInstance.flyTo([lng, lat], 17);
             }, function() {
                 alert("無法取得你的 GPS 位置。");
             });
         }
-
-        var sourceControl = L.control({ position: 'bottomleft' });
-        sourceControl.onAdd = function (map) {
-            var div = L.DomUtil.create('div', 'source-box');
-            div.innerHTML = `
-                <b>🌲 資料來源：</b><br>
-                空間數據共享平台 (CSDI) 開放數據
-            `;
-            return div;
-        };
-        sourceControl.addTo(map);
     </script>
 </body>
 </html>
