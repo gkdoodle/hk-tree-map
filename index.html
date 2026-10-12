@@ -52,16 +52,17 @@
             outline: none;
             cursor: pointer;
         }
+        /* 極速輕量標籤樣式，避免 DOM 負荷過重 */
         .tree-label {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.92);
             border: 1px solid #2e7d32;
-            border-radius: 4px;
-            padding: 1px 4px;
-            font-size: 11px;
+            border-radius: 3px;
+            padding: 1px 3px;
+            font-size: 10px;
             font-weight: bold;
             color: #1b5e20;
             white-space: nowrap;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
         }
         .gps-btn {
             position: absolute;
@@ -115,7 +116,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
-        var map = L.map('map').setView([22.3193, 114.1694], 12);
+        var map = L.map('map', {
+            // 啟用 Canvas 渲染引擎，大幅提升地圖順暢度
+            renderer: L.canvas()
+        }).setView([22.3193, 114.1694], 12);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
@@ -124,7 +128,7 @@
 
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true,
-            disableClusteringAtZoom: 16,
+            disableClusteringAtZoom: 17, // 提高到 17 級（街道級）才解散，確保宏觀時極度順暢
             spiderfyOnMaxZoom: false,
             showCoverageOnHover: false
         });
@@ -167,6 +171,7 @@
                     `;
                     marker.bindPopup(popupContent);
                     
+                    // 固定名稱標籤（僅在 Zoom >= 17 時才載入，防止一次過負荷）
                     marker.bindTooltip(treeName, { 
                         direction: 'right', 
                         offset: [5, 0],
@@ -195,14 +200,14 @@
             }
         });
 
-        // 效能優化：只渲染當前視野範圍（Bounds）內的標籤，徹底消除 Lag
+        // 嚴格的視角過濾：只在當前視野範圍內且 Zoom >= 17 時顯示標籤，保證如 Google Maps 般順暢
         function updateLabelsVisibility() {
             var currentZoom = map.getZoom();
             var bounds = map.getBounds();
 
             allMarkers.forEach(function(marker) {
-                if (map.hasLayer(marker)) {
-                    if (currentZoom >= 16 && bounds.contains(marker.getLatLng())) {
+                if (markersCluster.hasLayer(marker)) {
+                    if (currentZoom >= 17 && bounds.contains(marker.getLatLng())) {
                         if (!marker.isTooltipOpen()) {
                             marker.openTooltip();
                         }
