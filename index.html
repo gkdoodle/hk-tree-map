@@ -94,20 +94,20 @@
         .map-btn:hover {
             background: #f1f8e9;
         }
-        /* 左下角資料來源方塊 */
+        /* 左下角備註與資料來源方塊 */
         .source-box {
             position: absolute;
             bottom: 20px;
             left: 20px;
             z-index: 1000;
-            background: rgba(255, 255, 255, 0.92);
+            background: rgba(255, 255, 255, 0.95);
             padding: 10px 14px;
             font-size: 12px;
             color: #444;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            line-height: 1.5;
-            max-width: 300px;
+            line-height: 1.6;
+            max-width: 250px;
         }
     </style>
 </head>
@@ -130,7 +130,14 @@
         <button class="map-btn" onclick="locateUser()">📍 我的位置</button>
     </div>
 
+    <!-- 左下角備註與來源 -->
     <div class="source-box">
+        <b>📌 備註：</b><br>
+        🟡 OVT 古樹：黃色<br>
+        🟤 SWT 石牆樹：啡色<br>
+        🟠 兼備 (OVT&SWT)：橙色<br>
+        🟢 花樹/常綠樹：綠色<br>
+        <hr style="border:0; border-top:1px solid #ddd; margin:4px 0;">
         <b>🌲 資料來源：</b><br>
         空間數據共享平台 (CSDI) 開放數據
     </div>
@@ -182,6 +189,7 @@
 
                     var treeType = (row.Type || '').trim();
                     var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
+                    var treeId = row.OVTNo || row.TR_no_ || row.TMCP_ID || '';
                     
                     // 顏色分組邏輯
                     let color = "#2e7d32"; // 預設綠色 (花樹/常綠樹)
@@ -207,13 +215,15 @@
                         fillOpacity: 0.9
                     });
 
-                    // 簡潔版 Popup 詳情
+                    // 簡潔版 Popup 詳情（如有編號則自動顯示）
+                    var idHtml = treeId ? `<p style="margin: 3px 0; font-size: 12px;"><b>樹木編號：</b>${treeId}</p>` : '';
                     var popupContent = `
                         <div style="min-width: 180px; font-family: sans-serif;">
                             <h3 style="margin: 0 0 4px 0; color: #2e7d32; font-size: 15px;">${treeName}</h3>
                             <p style="margin: 0 0 6px 0; font-style: italic; color: #666; font-size: 12px;">${row.Scientific_Name || ''}</p>
                             <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
                             <p style="margin: 3px 0; font-size: 12px;"><b>地點：</b>${locationName}</p>
+                            ${idHtml}
                         </div>
                     `;
                     marker.bindPopup(popupContent);
