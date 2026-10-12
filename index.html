@@ -23,7 +23,7 @@
         .loading-overlay {
             position: absolute;
             top: 10px;
-            right: 140px;
+            right: 20px;
             z-index: 1000;
             background: white;
             padding: 10px 15px;
@@ -33,7 +33,7 @@
             font-weight: bold;
             color: #333;
         }
-        /* 頂部篩選器 */
+        /* 頂部篩選與搜尋列 */
         .filter-control {
             position: absolute;
             top: 15px;
@@ -44,33 +44,23 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
-        .filter-control select {
+        .filter-control select, .filter-control input {
             padding: 5px 8px;
             border-radius: 4px;
             border: 1px solid #ccc;
             font-size: 14px;
             outline: none;
-            cursor: pointer;
         }
-        /* 標籤開關按鈕 (右上角) */
-        .toggle-label-btn {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            z-index: 1000;
-            background: white;
-            border: 1px solid #ccc;
-            padding: 8px 12px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            color: #2e7d32;
+        .filter-control input {
+            width: 150px;
         }
-        .toggle-label-btn:hover {
-            background: #f1f8e9;
+        .filter-control select {
+            cursor: pointer;
         }
         /* 樹名標籤樣式 */
         .tree-label {
@@ -84,23 +74,33 @@
             white-space: nowrap;
             box-shadow: 0 1px 2px rgba(0,0,0,0.15);
         }
-        /* 右下角 GPS 按鈕 */
-        .gps-btn {
+        /* 右下角按鈕群組（「我的位置」與「標籤開關」） */
+        .control-group {
             position: absolute;
             bottom: 30px;
             right: 20px;
             z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .map-btn {
             background: white;
             border: none;
             padding: 10px 14px;
-            border-radius: 50px;
+            border-radius: 30px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
             font-weight: bold;
             color: #2e7d32;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: background 0.2s;
         }
-        .gps-btn:hover {
+        .map-btn:hover {
             background: #f1f8e9;
         }
         /* 左下角資料來源方塊 */
@@ -125,17 +125,25 @@
     <div id="loading" class="loading-overlay">正在載入數據...</div>
     
     <div class="filter-control">
-        <label for="speciesSelect"><b>🌳 篩選品種：</b></label>
-        <select id="speciesSelect" onchange="filterSpecies(this.value)">
-            <option value="ALL">全部品種（顯示全部）</option>
-        </select>
+        <div>
+            <label for="speciesSelect"><b>🌳 品種：</b></label>
+            <select id="speciesSelect" onchange="filterSpecies()">
+                <option value="ALL">全部品種</option>
+            </select>
+        </div>
+        <div>
+            <label for="searchInput"><b>🔍 搜尋地點：</b></label>
+            <input type="text" id="searchInput" placeholder="輸入地點/街道..." oninput="filterSpecies()">
+        </div>
     </div>
 
-    <!-- 標籤開關按鈕 -->
-    <button class="toggle-label-btn" id="toggleLabelBtn" onclick="toggleLabels()">🏷️ 隱藏文字標籤</button>
-
     <div id="map"></div>
-    <button class="gps-btn" onclick="locateUser()" title="顯示我的位置">📍 我的位置</button>
+
+    <!-- 右下角按鈕群組 -->
+    <div class="control-group">
+        <button class="map-btn" id="toggleLabelBtn" onclick="toggleLabels()">🏷️ 隱藏標籤</button>
+        <button class="map-btn" onclick="locateUser()">📍 我的位置</button>
+    </div>
 
     <div class="source-box">
         <b>🌲 資料來源：</b><br>
@@ -171,7 +179,7 @@
 
         var allMarkers = []; 
         var speciesSet = new Set(); 
-        var labelsEnabled = true; // 預設開啟標籤
+        var labelsEnabled = true; 
 
         Papa.parse('csdi_gov_trees_named.csv', {
             download: true,
@@ -188,24 +196,21 @@
                     }
 
                     var treeType = (row.Type || '').trim();
+                    var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
                     
-                    // 顏色分組邏輯（完美對應你提供的 Type 備註圖例）
-                    let color = "#2e7d32"; // 預設常綠樹 (綠色)
+                    // 你指定的顏色分組邏輯
+                    let color = "#2e7d32"; // 預設綠色 (花樹/常綠樹)
                     let radiusSize = 5;
 
                     if (treeType === 'OVT') {
-                        color = "#c62828"; // 古樹名木 (深紅/棗紅)
+                        color = "#fbc02d"; // OVT 傳統古樹：黃色
                         radiusSize = 6;
                     } else if (treeType === 'SWT') {
-                        color = "#1565c0"; // 石牆樹 (藍色)
+                        color = "#795548"; // SWT 石牆樹：啡色
                         radiusSize = 6;
                     } else if (treeType.includes('OVT') && treeType.includes('SWT')) {
-                        color = "#424242"; // 古樹名木及石牆樹 (深灰)
+                        color = "#fb8c00"; // OVT & SWT 兼備：橙色
                         radiusSize = 7;
-                    } else if (['大花紫薇', '洋紫荊', '紫荊花'].includes(treeName)) {
-                        color = "#ab47bc"; // 賞花樹 (粉紫)
-                    } else if (['楓香', '黃鐘木'].includes(treeName)) {
-                        color = "#fb8c00"; // 秋葉 (橙黃)
                     }
 
                     var marker = L.circleMarker([lat, lng], {
@@ -218,7 +223,6 @@
                     });
 
                     // 簡潔版 Popup 詳情
-                    var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
                     var popupContent = `
                         <div style="min-width: 180px; font-family: sans-serif;">
                             <h3 style="margin: 0 0 4px 0; color: #2e7d32; font-size: 15px;">${treeName}</h3>
@@ -229,7 +233,6 @@
                     `;
                     marker.bindPopup(popupContent);
                     
-                    // 綁定動態顯示的標籤
                     marker.bindTooltip(treeName, { 
                         direction: 'right', 
                         offset: [5, 0],
@@ -238,6 +241,7 @@
                     });
 
                     marker.speciesName = treeName;
+                    marker.locationName = locationName;
                     allMarkers.push(marker);
                     markersCluster.addLayer(marker);
                 }
@@ -258,7 +262,7 @@
             }
         });
 
-        // 智能標籤顯示邏輯 (配合開關按鈕與 Zoom 19+)
+        // 標籤顯示控制
         function updateLabelsVisibility() {
             var currentZoom = map.getZoom();
             var bounds = map.getBounds();
@@ -278,15 +282,14 @@
             });
         }
 
-        // 用戶手動點擊按鈕開關標籤
         function toggleLabels() {
             labelsEnabled = !labelsEnabled;
             var btn = document.getElementById('toggleLabelBtn');
             if (labelsEnabled) {
-                btn.innerHTML = '🏷️ 隱藏文字標籤';
+                btn.innerHTML = '🏷️ 隱藏標籤';
                 btn.style.color = '#2e7d32';
             } else {
-                btn.innerHTML = '🏷️ 顯示文字標籤';
+                btn.innerHTML = '🏷️ 顯示標籤';
                 btn.style.color = '#666';
             }
             updateLabelsVisibility();
@@ -294,14 +297,23 @@
 
         map.on('moveend zoomend', updateLabelsVisibility);
 
-        function filterSpecies(selectedSpecies) {
+        // 複合篩選（品種 + 地點搜尋）
+        function filterSpecies() {
+            var selectedSpecies = document.getElementById('speciesSelect').value;
+            var searchText = document.getElementById('searchInput').value.trim().toLowerCase();
+
             markersCluster.clearLayers();
             var filteredMarkers = [];
+
             allMarkers.forEach(function(marker) {
-                if (selectedSpecies === 'ALL' || marker.speciesName === selectedSpecies) {
+                var matchSpecies = (selectedSpecies === 'ALL' || marker.speciesName === selectedSpecies);
+                var matchSearch = (searchText === '' || marker.locationName.toLowerCase().includes(searchText) || marker.speciesName.toLowerCase().includes(searchText));
+
+                if (matchSpecies && matchSearch) {
                     filteredMarkers.push(marker);
                 }
             });
+
             markersCluster.addLayers(filteredMarkers);
             updateLabelsVisibility();
         }
