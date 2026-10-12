@@ -33,7 +33,6 @@
             font-weight: bold;
             color: #333;
         }
-        /* 自訂資料來源面板樣式 */
         .source-box {
             background: rgba(255, 255, 255, 0.92);
             padding: 10px 14px;
@@ -63,16 +62,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
-        // 初始化地圖，中心點設為香港
         var map = L.map('map').setView([22.3193, 114.1694], 12);
 
-        // 加入 CartoDB 靚靚地圖底圖
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{z}.png', {
+        // 使用免費、無需 API Key 的 OpenStreetMap 官方底圖
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; <a href="https://carto.com/">CARTO</a> | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // 建立圖層群組 (Marker Clusters)
         var namedTreesCluster = L.markerClusterGroup({ chunkedLoading: true });
         var unnamedTreesCluster = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 50 });
 
@@ -82,36 +79,18 @@
             "⚪ 工程/斜坡樹木 (副圖層)": unnamedTreesCluster
         };
 
-        // 預設將命名樹木加入地圖
         map.addLayer(namedTreesCluster);
-
-        // 加入圖層控制開關
         L.control.layers(baseLayers, overlayLayers, { position: 'topright', collapsed: false }).addTo(map);
-
-        // 加入資料來源說明面板 (放在左下角)
-        var sourceControl = L.control({ position: 'bottomleft' });
-        sourceControl.onAdd = function (map) {
-            var div = L.DomUtil.create('div', 'source-box');
-            div.innerHTML = `
-                <b>🌲 香港樹木地圖資料來源：</b><br>
-                • 空間數據共享平台 (CSDI) 開放數據<br>
-                • 康文署（主要公園及休閒場地樹木）<br>
-                • 房屋委員會（公屋綠化樹木）<br>
-                • 建築署（斜坡樹木）及路政署（行道樹）
-            `;
-            return div;
-        };
-        sourceControl.addTo(map);
 
         var loadedFiles = 0;
         function checkLoadingStatus() {
             loadedFiles++;
-            if (loadedFiles === 4) { // 總共有 4 個 CSV 檔案需要載入
+            if (loadedFiles === 4) { // 1個 named + 3個 unnamed 檔案
                 document.getElementById('loading').style.display = 'none';
             }
         }
 
-        // 1. 載入 csdi_gov_trees_named.csv (有名字的精選樹木)
+        // 1. 載入 named 樹木
         Papa.parse('csdi_gov_trees_named.csv', {
             download: true,
             header: true,
@@ -143,13 +122,10 @@
                     namedTreesCluster.addLayer(marker);
                 }
             },
-            complete: function() {
-                console.log("Named trees loaded.");
-                checkLoadingStatus();
-            }
+            complete: function() { checkLoadingStatus(); }
         });
 
-        // 2, 3, 4. 載入三個 unamed 檔案 (csdi_gov_trees_unnamed_01.csv, 02.csv, 03.csv)
+        // 2, 3, 4. 載入 3 個 unnamed 檔案
         ['csdi_gov_trees_unnamed_01.csv', 'csdi_gov_trees_unnamed_02.csv', 'csdi_gov_trees_unnamed_03.csv'].forEach(function(filename) {
             Papa.parse(filename, {
                 download: true,
@@ -180,12 +156,23 @@
                         unnamedTreesCluster.addLayer(marker);
                     }
                 },
-                complete: function() {
-                    console.log(filename + " loaded.");
-                    checkLoadingStatus();
-                }
+                complete: function() { checkLoadingStatus(); }
             });
         });
+
+        var sourceControl = L.control({ position: 'bottomleft' });
+        sourceControl.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'source-box');
+            div.innerHTML = `
+                <b>🌲 香港樹木地圖資料來源：</b><br>
+                • 空間數據共享平台 (CSDI) 開放數據<br>
+                • 康文署（主要公園及休閒場地樹木）<br>
+                • 房屋委員會（公屋綠化樹木）<br>
+                • 建築署（斜坡樹木）及路政署（行道樹）
+            `;
+            return div;
+        };
+        sourceControl.addTo(map);
     </script>
 </body>
 </html>
