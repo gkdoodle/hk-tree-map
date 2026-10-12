@@ -16,6 +16,7 @@
         #map {
             width: 100%;
             height: 100vh;
+            position: relative; /* 關鍵修復：必須設定相對定位，否則地圖會變白畫面 */
         }
         .loading-overlay {
             position: absolute;
@@ -110,7 +111,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
-        // 初始化地圖 (中心點經緯度格式為 [lng, lat])
         const map = new HKMap('map', {
             center: [114.1694, 22.3193],
             zoom: 12,
@@ -123,7 +123,6 @@
         let speciesSet = new Set();
 
         map.onLoad((mapInstance) => {
-            // 讀取 CSV 數據
             Papa.parse('csdi_gov_trees_named.csv', {
                 download: true,
                 header: true,
@@ -148,7 +147,7 @@
                         `;
 
                         allMarkersData.push({
-                            position: [lng, lat], // MapLibre 規定 [经度, 纬度]
+                            position: [lng, lat],
                             title: treeName,
                             popup: popupContent,
                             species: treeName
@@ -158,7 +157,6 @@
                 complete: function() {
                     document.getElementById('loading').style.display = 'none';
 
-                    // 填充下拉選單
                     var selectElement = document.getElementById('speciesSelect');
                     var sortedSpecies = Array.from(speciesSet).sort();
                     sortedSpecies.forEach(function(species) {
@@ -168,19 +166,15 @@
                         selectElement.appendChild(opt);
                     });
 
-                    // 初始渲染全部樹木點位
                     renderMarkers(allMarkersData);
                 }
             });
         });
 
-        // 渲染 Marker 的函數
         function renderMarkers(markersData) {
-            // 清除現有 Marker
             currentMarkers.forEach(m => m.remove());
             currentMarkers = [];
 
-            // 批量建立新 Marker
             markersData.forEach(data => {
                 const marker = new HKMarker({
                     position: data.position,
@@ -192,7 +186,6 @@
             });
         }
 
-        // 品種篩選功能
         function filterSpecies(selectedSpecies) {
             if (selectedSpecies === 'ALL') {
                 renderMarkers(allMarkersData);
@@ -202,7 +195,6 @@
             }
         }
 
-        // GPS 定位功能
         function locateUser() {
             if (!navigator.geolocation) {
                 alert("你的瀏覽器不支援定位功能。");
@@ -211,7 +203,6 @@
             navigator.geolocation.getCurrentPosition(function(position) {
                 var lat = position.coords.latitude;
                 var lng = position.coords.longitude;
-                // 注意此庫使用 [lng, lat]
                 map.flyTo([lng, lat], 17);
             }, function() {
                 alert("無法取得你的 GPS 位置。");
