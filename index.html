@@ -23,7 +23,7 @@
         .loading-overlay {
             position: absolute;
             top: 10px;
-            right: 10px;
+            right: 140px;
             z-index: 1000;
             background: white;
             padding: 10px 15px;
@@ -33,6 +33,7 @@
             font-weight: bold;
             color: #333;
         }
+        /* 頂部篩選器 */
         .filter-control {
             position: absolute;
             top: 15px;
@@ -52,7 +53,26 @@
             outline: none;
             cursor: pointer;
         }
-        /* 更精緻、更緊湊的標籤樣式，避免佔用太大空間 */
+        /* 標籤開關按鈕 (右上角) */
+        .toggle-label-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #2e7d32;
+        }
+        .toggle-label-btn:hover {
+            background: #f1f8e9;
+        }
+        /* 樹名標籤樣式 */
         .tree-label {
             background: rgba(255, 255, 255, 0.95);
             border: 1px solid #2e7d32;
@@ -64,7 +84,7 @@
             white-space: nowrap;
             box-shadow: 0 1px 2px rgba(0,0,0,0.15);
         }
-        /* 將「我的位置」按鈕固定在右下角 */
+        /* 右下角 GPS 按鈕 */
         .gps-btn {
             position: absolute;
             bottom: 30px;
@@ -102,14 +122,17 @@
 </head>
 <body>
 
-    <div id="loading" class="loading-overlay">正在載入精選樹木數據，請稍候...</div>
+    <div id="loading" class="loading-overlay">正在載入數據...</div>
     
     <div class="filter-control">
-        <label for="speciesSelect"><b>🌳 篩選樹木品種：</b></label>
+        <label for="speciesSelect"><b>🌳 篩選品種：</b></label>
         <select id="speciesSelect" onchange="filterSpecies(this.value)">
             <option value="ALL">全部品種（顯示全部）</option>
         </select>
     </div>
+
+    <!-- 標籤開關按鈕 -->
+    <button class="toggle-label-btn" id="toggleLabelBtn" onclick="toggleLabels()">🏷️ 隱藏文字標籤</button>
 
     <div id="map"></div>
     <button class="gps-btn" onclick="locateUser()" title="顯示我的位置">📍 我的位置</button>
@@ -140,7 +163,7 @@
 
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true,
-            disableClusteringAtZoom: 19, // 提高到 19 級（更貼地時）才徹底散開，減少密集區重疊
+            disableClusteringAtZoom: 19,
             spiderfyOnMaxZoom: false,
             showCoverageOnHover: false
         });
@@ -148,6 +171,7 @@
 
         var allMarkers = []; 
         var speciesSet = new Set(); 
+        var labelsEnabled = true; // 預設開啟標籤
 
         Papa.parse('csdi_gov_trees_named.csv', {
             download: true,
@@ -163,25 +187,49 @@
                         speciesSet.add(row.Chinese_Name.trim());
                     }
 
+                    var treeType = (row.Type || '').trim();
+                    
+                    // 顏色分組邏輯（完美對應你提供的 Type 備註圖例）
+                    let color = "#2e7d32"; // 預設常綠樹 (綠色)
+                    let radiusSize = 5;
+
+                    if (treeType === 'OVT') {
+                        color = "#c62828"; // 古樹名木 (深紅/棗紅)
+                        radiusSize = 6;
+                    } else if (treeType === 'SWT') {
+                        color = "#1565c0"; // 石牆樹 (藍色)
+                        radiusSize = 6;
+                    } else if (treeType.includes('OVT') && treeType.includes('SWT')) {
+                        color = "#424242"; // 古樹名木及石牆樹 (深灰)
+                        radiusSize = 7;
+                    } else if (['大花紫薇', '洋紫荊', '紫荊花'].includes(treeName)) {
+                        color = "#ab47bc"; // 賞花樹 (粉紫)
+                    } else if (['楓香', '黃鐘木'].includes(treeName)) {
+                        color = "#fb8c00"; // 秋葉 (橙黃)
+                    }
+
                     var marker = L.circleMarker([lat, lng], {
-                        radius: 5,
-                        fillColor: "#2e7d32",
+                        radius: radiusSize,
+                        fillColor: color,
                         color: "#ffffff",
-                        weight: 1,
+                        weight: 1.5,
                         opacity: 1,
-                        fillOpacity: 0.85
+                        fillOpacity: 0.9
                     });
 
+                    // 簡潔版 Popup 詳情
+                    var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
                     var popupContent = `
-                        <div style="min-width: 200px;">
-                            <h3 style="margin: 0 0 5px 0; color: #2e7d32; font-size: 16px;">${treeName}</h3>
-                            <p style="margin: 0 0 5px 0; font-style: italic; color: #666; font-size: 13px;">${row.Scientific_Name || ''}</p>
-                            <hr style="border:0; border-top:1px solid #eee; margin:5px 0;">
-                            <p style="margin: 3px 0; font-size: 13px;"><b>地點：</b>${row.Location_in_Chinese || row.Location_in_English || '不詳'}</p>
+                        <div style="min-width: 180px; font-family: sans-serif;">
+                            <h3 style="margin: 0 0 4px 0; color: #2e7d32; font-size: 15px;">${treeName}</h3>
+                            <p style="margin: 0 0 6px 0; font-style: italic; color: #666; font-size: 12px;">${row.Scientific_Name || ''}</p>
+                            <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
+                            <p style="margin: 3px 0; font-size: 12px;"><b>地點：</b>${locationName}</p>
                         </div>
                     `;
                     marker.bindPopup(popupContent);
                     
+                    // 綁定動態顯示的標籤
                     marker.bindTooltip(treeName, { 
                         direction: 'right', 
                         offset: [5, 0],
@@ -210,14 +258,14 @@
             }
         });
 
-        // 提升至 Zoom >= 19 時才顯示標籤，並縮小字體與間距，減輕視覺凌亂
+        // 智能標籤顯示邏輯 (配合開關按鈕與 Zoom 19+)
         function updateLabelsVisibility() {
             var currentZoom = map.getZoom();
             var bounds = map.getBounds();
 
             allMarkers.forEach(function(marker) {
                 if (markersCluster.hasLayer(marker)) {
-                    if (currentZoom >= 19 && bounds.contains(marker.getLatLng())) {
+                    if (labelsEnabled && currentZoom >= 19 && bounds.contains(marker.getLatLng())) {
                         if (!marker.isTooltipOpen()) {
                             marker.openTooltip();
                         }
@@ -228,6 +276,20 @@
                     }
                 }
             });
+        }
+
+        // 用戶手動點擊按鈕開關標籤
+        function toggleLabels() {
+            labelsEnabled = !labelsEnabled;
+            var btn = document.getElementById('toggleLabelBtn');
+            if (labelsEnabled) {
+                btn.innerHTML = '🏷️ 隱藏文字標籤';
+                btn.style.color = '#2e7d32';
+            } else {
+                btn.innerHTML = '🏷️ 顯示文字標籤';
+                btn.style.color = '#666';
+            }
+            updateLabelsVisibility();
         }
 
         map.on('moveend zoomend', updateLabelsVisibility);
