@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>香港樹木地圖</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Marker Cluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+        .loading-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+        /* 自訂資料來源面板樣式 */
+        .source-box {
+            background: rgba(255, 255, 255, 0.92);
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #444;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            line-height: 1.5;
+            max-width: 300px;
+        }
+        .source-box b {
+            color: #2e7d32;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading" class="loading-overlay">正在載入全港樹木數據，請稍候...</div>
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Marker Cluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <!-- PapaParse for CSV parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <script>
+        // 初始化地圖，中心點設為香港
+        var map = L.map('map').setView([22.3193, 114.1694], 12);
+
+        // 加入 CartoDB 靚靚地圖底圖
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{z}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://carto.com/">CARTO</a> | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // 建立圖層群組 (Marker Clusters)
+        var namedTreesCluster = L.markerClusterGroup({ chunkedLoading: true });
+        var unnamedTreesCluster = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 50 });
+
+        var baseLayers = {};
+        var overlayLayers = {
+            "🟢 精選命名樹木 (主圖層)": namedTreesCluster,
+            "⚪ 工程/斜坡樹木 (副圖層)": unnamedTreesCluster
+        };
+
+        // 預設將命名樹木加入地圖
+        map.addLayer(namedTreesCluster);
+
+        // 加入圖層控制開關
+        L.control.layers(baseLayers, overlayLayers, { position: 'topright', collapsed: false }).addTo(map);
+
+        // 加入資料來源說明面板 (放在左下角)
+        var sourceControl = L.control({ position: 'bottomleft' });
+        sourceControl.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'source-box');
+            div.innerHTML = `
+                <b>🌲 香港樹木地圖資料來源：</b><br>
+                • 空間數據共享平台 (CSDI) 開放數據<br>
+                • 康文署（主要公園及休閒場地樹木）<br>
+                • 房屋委員會（公屋綠化樹木）<br>
+                • 建築署（斜坡樹木）及路政署（行道樹）
+            `;
+            return div;
+        };
+        sourceControl.addTo(map);
+
+        var loadedFiles = 0;
+        function checkLoadingStatus() {
+            loadedFiles++;
+            if (loadedFiles === 4) { // 總共有 4 個 CSV 檔案需要載入
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // 1. 載入 csdi_gov_trees_named.csv (有名字的精選樹木)
+        Papa.parse('csdi_gov_trees_named.csv', {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            step: function(results) {
+                var row = results.data;
+                var lat = parseFloat(row.GeometryLatitude);
+                var lng = parseFloat(row.GeometryLongitude);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    var marker = L.circleMarker([lat, lng], {
+                        radius: 6,
+                        fillColor: "#2e7d32",
+                        color: "#fff",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+
+                    var popupContent = `
+                        <div style="min-width: 200px;">
+                            <h3 style="margin: 0 0 5px 0; color: #2e7d32; font-size: 16px;">${row.Chinese_Name || '未命名樹木'}</h3>
+                            <p style="margin: 0 0 5px 0; font-style: italic; color: #666; font-size: 13px;">${row.Scientific_Name || ''}</p>
+                            <hr style="border:0; border-top:1px solid #eee; margin:5px 0;">
+                            <p style="margin: 3px 0; font-size: 13px;"><b>地點：</b>${row.Location_in_Chinese || row.Location_in_English || '不詳'}</p>
+                            <p style="margin: 3px 0; font-size: 13px;"><b>來源：</b>${row.Source || '官方資料'}</p>
+                        </div>
+                    `;
+                    marker.bindPopup(popupContent);
+                    namedTreesCluster.addLayer(marker);
+                }
+            },
+            complete: function() {
+                console.log("Named trees loaded.");
+                checkLoadingStatus();
+            }
+        });
+
+        // 2, 3, 4. 載入三個 unamed 檔案 (csdi_gov_trees_unnamed_01.csv, 02.csv, 03.csv)
+        ['csdi_gov_trees_unnamed_01.csv', 'csdi_gov_trees_unnamed_02.csv', 'csdi_gov_trees_unnamed_03.csv'].forEach(function(filename) {
+            Papa.parse(filename, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                step: function(results) {
+                    var row = results.data;
+                    var lat = parseFloat(row.GeometryLatitude);
+                    var lng = parseFloat(row.GeometryLongitude);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        var marker = L.circleMarker([lat, lng], {
+                            radius: 4,
+                            fillColor: "#78909c",
+                            color: "#fff",
+                            weight: 0.5,
+                            opacity: 0.8,
+                            fillOpacity: 0.5
+                        });
+
+                        var popupContent = `
+                            <div style="min-width: 180px;">
+                                <h3 style="margin: 0 0 5px 0; color: #455a64; font-size: 15px;">${row.Chinese_Name || '工程樹木'}</h3>
+                                <p style="margin: 3px 0; font-size: 13px;"><b>來源：</b>${row.Source || '工程數據'}</p>
+                                <p style="margin: 3px 0; font-size: 13px;"><b>位置：</b>${row.Location_in_English || row.Location_in_Chinese || '斜坡/路段'}</p>
+                            </div>
+                        `;
+                        marker.bindPopup(popupContent);
+                        unnamedTreesCluster.addLayer(marker);
+                    }
+                },
+                complete: function() {
+                    console.log(filename + " loaded.");
+                    checkLoadingStatus();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
