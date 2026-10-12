@@ -6,6 +6,9 @@
     <title>香港城市樹木分佈與品種研究地圖</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Marker Cluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <style>
         body, html {
             margin: 0;
@@ -109,6 +112,8 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Marker Cluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <!-- PapaParse -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
@@ -121,8 +126,14 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
+        // 設定 Cluster：當放大到 Zoom 16 時，自動解散群集並顯示獨立圓點
+        var markersCluster = L.markerClusterGroup({ 
+            chunkedLoading: true,
+            disableClusteringAtZoom: 16 
+        });
+        map.addLayer(markersCluster);
+
         var allMarkers = []; 
-        var treesLayer = L.layerGroup().addTo(map);
         var speciesSet = new Set(); 
 
         // 載入精選命名樹木 CSV 檔案
@@ -161,7 +172,7 @@
                     `;
                     marker.bindPopup(popupContent);
                     
-                    // 綁定 Tooltip（預設不開啟 permanent，透過 zoom 控制）
+                    // 綁定 Tooltip 作為長期顯示的樹名標籤
                     marker.bindTooltip(treeName, { 
                         direction: 'right', 
                         offset: [5, 0],
@@ -171,7 +182,7 @@
 
                     marker.speciesName = treeName;
                     allMarkers.push(marker);
-                    treesLayer.addLayer(marker);
+                    markersCluster.addLayer(marker);
                 }
             },
             complete: function() {
@@ -186,12 +197,11 @@
                     selectElement.appendChild(opt);
                 });
 
-                // 初始化檢查一次當前縮放級別
                 updateLabelsOnZoom();
             }
         });
 
-        // 智能縮放監聽：當 Zoom >= 16 時自動顯示樹名標籤，縮小時隱藏
+        // 智能縮放監聽：當 Zoom >= 16 且點位已解散時，顯示樹名標籤
         function updateLabelsOnZoom() {
             var currentZoom = map.getZoom();
             allMarkers.forEach(function(marker) {
@@ -211,16 +221,15 @@
 
         // 品種篩選功能
         function filterSpecies(selectedSpecies) {
-            treesLayer.clearLayers();
-            var currentZoom = map.getZoom();
+            markersCluster.clearLayers();
+            var filteredMarkers = [];
             allMarkers.forEach(function(marker) {
                 if (selectedSpecies === 'ALL' || marker.speciesName === selectedSpecies) {
-                    treesLayer.addLayer(marker);
-                    if (currentZoom >= 16) {
-                        marker.openTooltip();
-                    }
+                    filteredMarkers.push(marker);
                 }
             });
+            markersCluster.addLayers(filteredMarkers);
+            updateLabelsOnZoom();
         }
 
         // GPS 定位功能
@@ -232,7 +241,7 @@
             navigator.geolocation.getCurrentPosition(function(position) {
                 var lat = position.coords.latitude;
                 var lng = position.coords.longitude;
-                map.setView([lat, lng], 17); // 自動放大到 17 級（會直接見到樹名）
+                map.setView([lat, lng], 17); // 自動放大到 17 級（進入街道/公園級別，顯示樹名）
                 
                 L.marker([lat, lng], {
                     icon: L.divIcon({
@@ -250,8 +259,8 @@
             var div = L.DomUtil.create('div', 'source-box');
             div.innerHTML = `
                 <b>🌲 香港城市樹木分佈研究：</b><br>
-                • 縮小呈乾淨圓點，放大（>=16級）自動顯示樹名<br>
-                • 可於左上角選單篩選單一樹木品種
+                • 總覽視角顯示數字叢集 (Cluster)<br>
+                • 放大至公園/街道級別自動顯示樹名標籤
             `;
             return div;
         };
