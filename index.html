@@ -57,17 +57,18 @@
             background: rgba(255, 255, 255, 0.95);
             border: 1px solid #2e7d32;
             border-radius: 3px;
-            padding: 1px 3px;
-            font-size: 10px;
+            padding: 1px 2px;
+            font-size: 9px;
             font-weight: bold;
             color: #1b5e20;
             white-space: nowrap;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
         }
+        /* 將「我的位置」按鈕固定在右下角 */
         .gps-btn {
             position: absolute;
             bottom: 30px;
-木            right: 20px;
+            right: 20px;
             z-index: 1000;
             background: white;
             border: none;
@@ -82,7 +83,12 @@
         .gps-btn:hover {
             background: #f1f8e9;
         }
+        /* 左下角資料來源方塊 */
         .source-box {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
             background: rgba(255, 255, 255, 0.92);
             padding: 10px 14px;
             font-size: 12px;
@@ -108,6 +114,11 @@
     <div id="map"></div>
     <button class="gps-btn" onclick="locateUser()" title="顯示我的位置">📍 我的位置</button>
 
+    <div class="source-box">
+        <b>🌲 資料來源：</b><br>
+        空間數據共享平台 (CSDI) 開放數據
+    </div>
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Marker Cluster JS -->
@@ -118,10 +129,9 @@
     <script>
         var map = L.map('map', {
             renderer: L.canvas(),
-            maxZoom: 22 // 允許放大到更深層級
+            maxZoom: 22
         }).setView([22.3193, 114.1694], 12);
 
-        // 支援超高放大倍率 (maxZoom 22)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 22,
             maxNativeZoom: 19,
@@ -130,7 +140,7 @@
 
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true,
-            disableClusteringAtZoom: 18, // 提高到 18 級才散開，確保在大範圍時保持聚落整潔
+            disableClusteringAtZoom: 19, // 提高到 19 級（更貼地時）才徹底散開，減少密集區重疊
             spiderfyOnMaxZoom: false,
             showCoverageOnHover: false
         });
@@ -168,7 +178,6 @@
                             <p style="margin: 0 0 5px 0; font-style: italic; color: #666; font-size: 13px;">${row.Scientific_Name || ''}</p>
                             <hr style="border:0; border-top:1px solid #eee; margin:5px 0;">
                             <p style="margin: 3px 0; font-size: 13px;"><b>地點：</b>${row.Location_in_Chinese || row.Location_in_English || '不詳'}</p>
-                            <p style="margin: 3px 0; font-size: 13px;"><b>來源：</b>${row.Source || '官方資料'}</p>
                         </div>
                     `;
                     marker.bindPopup(popupContent);
@@ -201,14 +210,14 @@
             }
         });
 
-        // 提升至 Zoom >= 18 時才顯示標籤，確保在足夠大的近鏡下才展開名稱
+        // 提升至 Zoom >= 19 時才顯示標籤，並縮小字體與間距，減輕視覺凌亂
         function updateLabelsVisibility() {
             var currentZoom = map.getZoom();
             var bounds = map.getBounds();
 
             allMarkers.forEach(function(marker) {
                 if (markersCluster.hasLayer(marker)) {
-                    if (currentZoom >= 18 && bounds.contains(marker.getLatLng())) {
+                    if (currentZoom >= 19 && bounds.contains(marker.getLatLng())) {
                         if (!marker.isTooltipOpen()) {
                             marker.openTooltip();
                         }
@@ -243,7 +252,7 @@
             navigator.geolocation.getCurrentPosition(function(position) {
                 var lat = position.coords.latitude;
                 var lng = position.coords.longitude;
-                map.setView([lat, lng], 18);
+                map.setView([lat, lng], 19);
                 
                 L.marker([lat, lng], {
                     icon: L.divIcon({
@@ -255,17 +264,6 @@
                 alert("無法取得你的 GPS 位置。");
             });
         }
-
-        var sourceControl = L.control({ position: 'bottomleft' });
-        sourceControl.onAdd = function (map) {
-            var div = L.DomUtil.create('div', 'source-box');
-            div.innerHTML = `
-                <b>🌲 資料來源：</b><br>
-                空間數據共享平台 (CSDI) 開放數據
-            `;
-            return div;
-        };
-        sourceControl.addTo(map);
     </script>
 </body>
 </html>
