@@ -52,9 +52,9 @@
             outline: none;
             cursor: pointer;
         }
-        /* 極速輕量標籤樣式，避免 DOM 負荷過重 */
+        /* 更精緻、更緊湊的標籤樣式，避免佔用太大空間 */
         .tree-label {
-            background: rgba(255, 255, 255, 0.92);
+            background: rgba(255, 255, 255, 0.95);
             border: 1px solid #2e7d32;
             border-radius: 3px;
             padding: 1px 3px;
@@ -62,12 +62,12 @@
             font-weight: bold;
             color: #1b5e20;
             white-space: nowrap;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
         .gps-btn {
             position: absolute;
             bottom: 30px;
-            right: 20px;
+木            right: 20px;
             z-index: 1000;
             background: white;
             border: none;
@@ -117,18 +117,20 @@
 
     <script>
         var map = L.map('map', {
-            // 啟用 Canvas 渲染引擎，大幅提升地圖順暢度
-            renderer: L.canvas()
+            renderer: L.canvas(),
+            maxZoom: 22 // 允許放大到更深層級
         }).setView([22.3193, 114.1694], 12);
 
+        // 支援超高放大倍率 (maxZoom 22)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
+            maxZoom: 22,
+            maxNativeZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true,
-            disableClusteringAtZoom: 17, // 提高到 17 級（街道級）才解散，確保宏觀時極度順暢
+            disableClusteringAtZoom: 18, // 提高到 18 級才散開，確保在大範圍時保持聚落整潔
             spiderfyOnMaxZoom: false,
             showCoverageOnHover: false
         });
@@ -171,7 +173,6 @@
                     `;
                     marker.bindPopup(popupContent);
                     
-                    // 固定名稱標籤（僅在 Zoom >= 17 時才載入，防止一次過負荷）
                     marker.bindTooltip(treeName, { 
                         direction: 'right', 
                         offset: [5, 0],
@@ -200,14 +201,14 @@
             }
         });
 
-        // 嚴格的視角過濾：只在當前視野範圍內且 Zoom >= 17 時顯示標籤，保證如 Google Maps 般順暢
+        // 提升至 Zoom >= 18 時才顯示標籤，確保在足夠大的近鏡下才展開名稱
         function updateLabelsVisibility() {
             var currentZoom = map.getZoom();
             var bounds = map.getBounds();
 
             allMarkers.forEach(function(marker) {
                 if (markersCluster.hasLayer(marker)) {
-                    if (currentZoom >= 17 && bounds.contains(marker.getLatLng())) {
+                    if (currentZoom >= 18 && bounds.contains(marker.getLatLng())) {
                         if (!marker.isTooltipOpen()) {
                             marker.openTooltip();
                         }
@@ -242,7 +243,7 @@
             navigator.geolocation.getCurrentPosition(function(position) {
                 var lat = position.coords.latitude;
                 var lng = position.coords.longitude;
-                map.setView([lat, lng], 17);
+                map.setView([lat, lng], 18);
                 
                 L.marker([lat, lng], {
                     icon: L.divIcon({
