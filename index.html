@@ -15,12 +15,11 @@
             padding: 0;
             height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f2f2f2; /* 徹底解決灰色背景：用淺灰底色包底 */
+            background-color: #f2f2f2;
         }
         #map {
             width: 100%;
             height: 100vh;
-            background-color: #f2f2f2;
         }
         .loading-overlay {
             position: absolute;
@@ -66,6 +65,7 @@
             white-space: nowrap;
             box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
+        /* 右下角 GPS 按鈕 */
         .gps-btn {
             position: absolute;
             bottom: 30px;
@@ -84,6 +84,7 @@
         .gps-btn:hover {
             background: #f1f8e9;
         }
+        /* 左下角資料來源 */
         .source-box {
             position: absolute;
             bottom: 20px;
@@ -132,16 +133,17 @@
             maxZoom: 22
         }).setView([22.3193, 114.1694], 12);
 
-        // 改用 Esri 世界街景底圖（極高穩定度、載入速度極快、絕不輕易出現灰色空白塊）
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        // 使用 OpenStreetMap 官方底圖
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 22,
-            maxNativeZoom: 18,
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, and the GIS User Community'
+            maxNativeZoom: 19,
+            detectRetina: true,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true,
-            disableClusteringAtZoom: 19, // Zoom 19 時散開
+            disableClusteringAtZoom: 19,
             spiderfyOnMaxZoom: false,
             showCoverageOnHover: false
         });
@@ -164,12 +166,12 @@
                         speciesSet.add(row.Chinese_Name.trim());
                     }
 
-                    // 顏色分組邏輯
-                    let color = "#2e7d32"; // 預設綠色 (常綠)
+                    // 顏色分組邏輯：賞花粉紫、秋葉橙黃、常綠綠色
+                    let color = "#2e7d32"; 
                     if (['大花紫薇', '洋紫荊', '紫荊花'].includes(treeName)) {
-                        color = "#ab47bc"; // 粉紅/紫色 (賞花)
+                        color = "#ab47bc"; 
                     } else if (['楓香', '黃鐘木'].includes(treeName)) {
-                        color = "#fb8c00"; // 橙色/黃色 (秋葉/黃花)
+                        color = "#fb8c00"; 
                     }
 
                     var marker = L.circleMarker([lat, lng], {
@@ -181,7 +183,7 @@
                         fillOpacity: 0.85
                     });
 
-                    // 你指定嘅精簡 Popup 格式
+                    // 你指定的精簡 Popup 格式
                     var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
                     var popupContent = `
                         <div style="min-width: 180px; font-family: sans-serif;">
@@ -193,7 +195,7 @@
                     `;
                     marker.bindPopup(popupContent);
                     
-                    // 綁定長期固定標籤（當 Zoom >= 19 且進入視野範圍時自動顯示）
+                    // 綁定長期固定標籤（Zoom >= 19 時自動顯示名稱）
                     marker.bindTooltip(treeName, { 
                         direction: 'right', 
                         offset: [5, 0],
