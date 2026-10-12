@@ -6,9 +6,6 @@
     <title>香港城市樹木分佈與品種研究地圖</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Marker Cluster CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <style>
         body, html {
             margin: 0;
@@ -53,7 +50,7 @@
             outline: none;
             cursor: pointer;
         }
-        /* 樹木名稱標籤樣式 (僅在放大時顯示) */
+        /* 樹木名稱標籤樣式 (僅在放大到一定級別時顯示) */
         .tree-label {
             background: rgba(255, 255, 255, 0.9);
             border: 1px solid #2e7d32;
@@ -112,8 +109,6 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Marker Cluster JS -->
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <!-- PapaParse -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
@@ -126,12 +121,8 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // 設定 Cluster：當放大到 Zoom 16 時，自動解散群集並顯示獨立圓點
-        var markersCluster = L.markerClusterGroup({ 
-            chunkedLoading: true,
-            disableClusteringAtZoom: 16 
-        });
-        map.addLayer(markersCluster);
+        // 完全不使用 Marker Cluster，改用普通 LayerGroup，徹底消滅任何蜘蛛網/Spiderfy效果
+        var treesLayer = L.layerGroup().addTo(map);
 
         var allMarkers = []; 
         var speciesSet = new Set(); 
@@ -172,7 +163,7 @@
                     `;
                     marker.bindPopup(popupContent);
                     
-                    // 綁定 Tooltip 作為長期顯示的樹名標籤
+                    // 綁定 Tooltip 作為樹名標籤
                     marker.bindTooltip(treeName, { 
                         direction: 'right', 
                         offset: [5, 0],
@@ -182,7 +173,7 @@
 
                     marker.speciesName = treeName;
                     allMarkers.push(marker);
-                    markersCluster.addLayer(marker);
+                    treesLayer.addLayer(marker);
                 }
             },
             complete: function() {
@@ -201,17 +192,20 @@
             }
         });
 
-        // 智能縮放監聽：當 Zoom >= 16 且點位已解散時，顯示樹名標籤
+        // 智能縮放監聽：當 Zoom >= 16 時，自動顯示每棵樹的樹名標籤；縮小時計隱藏以保持畫面清爽
         function updateLabelsOnZoom() {
             var currentZoom = map.getZoom();
             allMarkers.forEach(function(marker) {
-                if (currentZoom >= 16) {
-                    if (!marker.isTooltipOpen()) {
-                        marker.openTooltip();
-                    }
-                } else {
-                    if (marker.isTooltipOpen()) {
-                        marker.closeTooltip();
+                // 確保 marker 當前有被加載到圖層中才處理
+                if (map.hasLayer(marker)) {
+                    if (currentZoom >= 16) {
+                        if (!marker.isTooltipOpen()) {
+                            marker.openTooltip();
+                        }
+                    } else {
+                        if (marker.isTooltipOpen()) {
+                            marker.closeTooltip();
+                        }
                     }
                 }
             });
@@ -219,17 +213,18 @@
 
         map.on('zoomend', updateLabelsOnZoom);
 
-        // 品種篩選功能
+        // 品種篩選功能（完全獨立，無任何 Cluster 幹擾）
         function filterSpecies(selectedSpecies) {
-            markersCluster.clearLayers();
-            var filteredMarkers = [];
+            treesLayer.clearLayers();
+            var currentZoom = map.getZoom();
             allMarkers.forEach(function(marker) {
                 if (selectedSpecies === 'ALL' || marker.speciesName === selectedSpecies) {
-                    filteredMarkers.push(marker);
+                    treesLayer.addLayer(marker);
+                    if (currentZoom >= 16) {
+                        marker.openTooltip();
+                    }
                 }
             });
-            markersCluster.addLayers(filteredMarkers);
-            updateLabelsOnZoom();
         }
 
         // GPS 定位功能
@@ -241,7 +236,7 @@
             navigator.geolocation.getCurrentPosition(function(position) {
                 var lat = position.coords.latitude;
                 var lng = position.coords.longitude;
-                map.setView([lat, lng], 17); // 自動放大到 17 級（進入街道/公園級別，顯示樹名）
+                map.setView([lat, lng], 17); // 自動放大到 17 級（進入街道/公園級別，顯示獨立樹名）
                 
                 L.marker([lat, lng], {
                     icon: L.divIcon({
@@ -259,8 +254,8 @@
             var div = L.DomUtil.create('div', 'source-box');
             div.innerHTML = `
                 <b>🌲 香港城市樹木分佈研究：</b><br>
-                • 總覽視角顯示數字叢集 (Cluster)<br>
-                • 放大至公園/街道級別自動顯示樹名標籤
+                • <b>絕無 Spiderfy 蜘蛛網效果</b><br>
+                • 放大至 16 級以上自動顯示獨立樹名
             `;
             return div;
         };
