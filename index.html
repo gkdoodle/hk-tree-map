@@ -15,10 +15,12 @@
             padding: 0;
             height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f2f2f2; /* 徹底解決灰色背景：用淺灰底色包底 */
         }
         #map {
             width: 100%;
             height: 100vh;
+            background-color: #f2f2f2;
         }
         .loading-overlay {
             position: absolute;
@@ -51,6 +53,18 @@
             font-size: 14px;
             outline: none;
             cursor: pointer;
+        }
+        /* 樹名標籤樣式：當放大到 Zoom 19+ 時自動顯示 */
+        .tree-label {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #2e7d32;
+            border-radius: 3px;
+            padding: 1px 3px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #1b5e20;
+            white-space: nowrap;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
         .gps-btn {
             position: absolute;
@@ -118,17 +132,16 @@
             maxZoom: 22
         }).setView([22.3193, 114.1694], 12);
 
-        // 關鍵修復：加入 maxNativeZoom: 19，徹底解決放大後出現灰色背景嘅問題
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // 改用 Esri 世界街景底圖（極高穩定度、載入速度極快、絕不輕易出現灰色空白塊）
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
             maxZoom: 22,
-            maxNativeZoom: 19,
-            detectRetina: true,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            maxNativeZoom: 18,
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, and the GIS User Community'
         }).addTo(map);
 
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true,
-            disableClusteringAtZoom: 19,
+            disableClusteringAtZoom: 19, // Zoom 19 時散開
             spiderfyOnMaxZoom: false,
             showCoverageOnHover: false
         });
@@ -151,7 +164,7 @@
                         speciesSet.add(row.Chinese_Name.trim());
                     }
 
-                    // 顏色分組邏輯：花樹粉紫、秋葉橙黃、古樹金色邊圈、其他常綠綠色
+                    // 顏色分組邏輯
                     let color = "#2e7d32"; // 預設綠色 (常綠)
                     if (['大花紫薇', '洋紫荊', '紫荊花'].includes(treeName)) {
                         color = "#ab47bc"; // 粉紅/紫色 (賞花)
@@ -159,40 +172,34 @@
                         color = "#fb8c00"; // 橙色/黃色 (秋葉/黃花)
                     }
 
-                    // 檢查是否為古樹 (支援常見欄位名稱)
-                    var isOldTree = (row['珍貴古樹'] === '是' || row['珍貴古樹'] === 'TRUE' || row['OVTNo']);
-                    
-                    let markerOptions = {
-                        radius: isOldTree ? 6 : 5,
+                    var marker = L.circleMarker([lat, lng], {
+                        radius: 5,
                         fillColor: color,
-                        color: isOldTree ? "#ffb300" : "#ffffff", // 古樹用醒目金邊
-                        weight: isOldTree ? 2 : 1,
+                        color: "#ffffff",
+                        weight: 1,
                         opacity: 1,
                         fillOpacity: 0.85
-                    };
+                    });
 
-                    var marker = L.circleMarker([lat, lng], markerOptions);
-
-                    // 提取對應的欄位資料
-                    var treeId = row.TMCP_ID || row.OVTNo || row.TR_no_ || '不詳';
+                    // 你指定嘅精簡 Popup 格式
                     var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
-                    var treeType = row.Type || row.Category || 'SWT';
-                    var dataSource = row.Source || '空間數據共享平台 (CSDI) 開放數據';
-
-                    // 你指定的 Popup 詳情排版格式
                     var popupContent = `
-                        <div style="min-width: 210px; font-family: sans-serif;">
-                            <h3 style="margin: 0 0 4px 0; color: #2e7d32; font-size: 16px;">${treeName}</h3>
-                            <p style="margin: 0 0 6px 0; font-style: italic; color: #666; font-size: 13px;">${row.Scientific_Name || ''}</p>
+                        <div style="min-width: 180px; font-family: sans-serif;">
+                            <h3 style="margin: 0 0 4px 0; color: #2e7d32; font-size: 15px;">${treeName}</h3>
+                            <p style="margin: 0 0 6px 0; font-style: italic; color: #666; font-size: 12px;">${row.Scientific_Name || ''}</p>
                             <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
-                            <p style="margin: 3px 0; font-size: 13px;"><b>地點：</b>${locationName}</p>
-                            <p style="margin: 3px 0; font-size: 13px;"><b>樹木編號：</b>${treeId}</p>
-                            <p style="margin: 3px 0; font-size: 13px;"><b>種類：</b>${treeType}</p>
-                            <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
-                            <p style="margin: 3px 0; font-size: 12px; color: #555;"><b>來源：</b>${dataSource}</p>
+                            <p style="margin: 3px 0; font-size: 12px;"><b>地點：</b>${locationName}</p>
                         </div>
                     `;
                     marker.bindPopup(popupContent);
+                    
+                    // 綁定長期固定標籤（當 Zoom >= 19 且進入視野範圍時自動顯示）
+                    marker.bindTooltip(treeName, { 
+                        direction: 'right', 
+                        offset: [5, 0],
+                        className: 'tree-label',
+                        permanent: false 
+                    });
 
                     marker.speciesName = treeName;
                     allMarkers.push(marker);
@@ -210,8 +217,32 @@
                     opt.textContent = species;
                     selectElement.appendChild(opt);
                 });
+
+                updateLabelsVisibility();
             }
         });
+
+        // 控制標籤在 Zoom >= 19 時自動顯示
+        function updateLabelsVisibility() {
+            var currentZoom = map.getZoom();
+            var bounds = map.getBounds();
+
+            allMarkers.forEach(function(marker) {
+                if (markersCluster.hasLayer(marker)) {
+                    if (currentZoom >= 19 && bounds.contains(marker.getLatLng())) {
+                        if (!marker.isTooltipOpen()) {
+                            marker.openTooltip();
+                        }
+                    } else {
+                        if (marker.isTooltipOpen()) {
+                            marker.closeTooltip();
+                        }
+                    }
+                }
+            });
+        }
+
+        map.on('moveend zoomend', updateLabelsVisibility);
 
         function filterSpecies(selectedSpecies) {
             markersCluster.clearLayers();
@@ -222,6 +253,7 @@
                 }
             });
             markersCluster.addLayers(filteredMarkers);
+            updateLabelsVisibility();
         }
 
         function locateUser() {
