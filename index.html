@@ -284,4 +284,45 @@
                 btn.style.color = '#2e7d32';
             } else {
                 btn.innerHTML = '🏷️ 顯示標籤';
-                btn.style.
+                btn.style.color = '#666';
+            }
+            updateLabelsVisibility();
+        }
+
+        map.on('moveend zoomend', updateLabelsVisibility);
+
+        function filterSpecies(selectedSpecies) {
+            markersCluster.clearLayers();
+            var filteredMarkers = [];
+            allMarkers.forEach(function(marker) {
+                if (selectedSpecies === 'ALL' || marker.speciesName === selectedSpecies) {
+                    filteredMarkers.push(marker);
+                }
+            });
+            markersCluster.addLayers(filteredMarkers);
+            updateLabelsVisibility();
+        }
+
+        function locateUser() {
+            if (!navigator.geolocation) {
+                alert("你的瀏覽器不支援定位功能。");
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var lat = position.coords.latitude;
+                var lng = position.coords.longitude;
+                map.setView([lat, lng], 19);
+                
+                L.marker([lat, lng], {
+                    icon: L.divIcon({
+                        html: '<div style="background-color: #1976d2; width: 14px; height: 14px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>',
+                        className: 'user-gps-marker'
+                    })
+                }).addTo(map).bindPopup("<b>你在這裡！</b>").openPopup();
+            }, function() {
+                alert("無法取得你的 GPS 位置。");
+            });
+        }
+    </script>
+</body>
+</html>
