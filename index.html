@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>香港樹木地圖</title>
+    <title>香港城市樹木分佈地圖</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Marker Cluster CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <style>
         body, html {
             margin: 0;
@@ -71,8 +68,6 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Marker Cluster JS -->
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <!-- PapaParse -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
@@ -85,18 +80,18 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        var namedTreesCluster = L.markerClusterGroup({ chunkedLoading: true });
-        map.addLayer(namedTreesCluster);
+        // 使用普通 LayerGroup，完全沒有 Marker Cluster，每棵樹獨立顯示
+        var treesLayer = L.layerGroup().addTo(map);
 
-        // 暫時使用 Emoji 樹木 Icon（日後畫好 PNG/SVG 後，只需將呢度換成 iconUrl 即可）
+        // 樹木 Icon 設定（未來你畫好 PNG/SVG 只需要換走呢度即可）
         var treeEmojiIcon = L.divIcon({
-            html: '<span style="font-size: 18px;">🌳</span>',
+            html: '<span style="font-size: 16px;">🌳</span>',
             className: 'custom-emoji-icon',
             iconSize: [20, 20],
             iconAnchor: [10, 10]
         });
 
-        // 只載入精選命名樹木檔案
+        // 載入精選命名樹木 CSV 檔案
         Papa.parse('csdi_gov_trees_named.csv', {
             download: true,
             header: true,
@@ -119,9 +114,11 @@
                         </div>
                     `;
                     marker.bindPopup(popupContent);
+                    
+                    // 滑鼠懸停顯示樹名，點擊顯示詳細資料
                     marker.bindTooltip(treeName, { direction: 'top', offset: [0, -10] });
 
-                    namedTreesCluster.addLayer(marker);
+                    treesLayer.addLayer(marker);
                 }
             },
             complete: function() {
@@ -155,8 +152,8 @@
         sourceControl.onAdd = function (map) {
             var div = L.DomUtil.create('div', 'source-box');
             div.innerHTML = `
-                <b>🌲 香港精選樹木地圖：</b><br>
-                • 專註展示全港命名特色樹木<br>
+                <b>🌲 香港城市樹木分佈地圖：</b><br>
+                • 獨立顯示每棵樹的真實位置<br>
                 • 滑鼠懸停看樹名，點擊看詳情
             `;
             return div;
