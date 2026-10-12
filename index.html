@@ -16,7 +16,7 @@
         #map {
             width: 100%;
             height: 100vh;
-            position: relative; /* 關鍵修復：必須設定相對定位，否則地圖會變白畫面 */
+            position: relative;
         }
         .loading-overlay {
             position: absolute;
@@ -111,18 +111,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
+        let allMarkersData = [];
+        let currentMarkers = [];
+        let speciesSet = new Set();
+        let mapInstance = null;
+
+        // 正確使用官方規範初始化地圖
         const map = new HKMap('map', {
             center: [114.1694, 22.3193],
             zoom: 12,
             theme: 'light',
-            language: 'zh'
+            language: 'zh',
+            onLoad: (mapObj) => {
+                mapInstance = mapObj;
+                loadTreeData();
+            }
         });
 
-        let allMarkersData = [];
-        let currentMarkers = [];
-        let speciesSet = new Set();
-
-        map.onLoad((mapInstance) => {
+        function loadTreeData() {
             Papa.parse('csdi_gov_trees_named.csv', {
                 download: true,
                 header: true,
@@ -169,7 +175,7 @@
                     renderMarkers(allMarkersData);
                 }
             });
-        });
+        }
 
         function renderMarkers(markersData) {
             currentMarkers.forEach(m => m.remove());
