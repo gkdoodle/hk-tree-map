@@ -120,12 +120,11 @@
             maxZoom: 22
         }).setView([22.3193, 114.1694], 12);
 
-        // 使用高畫質、放大絕不起格嘅 CartoDB 矢量風格底圖 (Retina 支援)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        // 使用 OpenStreetMap 官方高解像度圖磚，完全免費、免 API Key
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 22,
-            maxNativeZoom: 20,
-            subdomains: 'abcd',
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            maxNativeZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
         var markersCluster = L.markerClusterGroup({ 
