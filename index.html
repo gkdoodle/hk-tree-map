@@ -52,6 +52,7 @@
             outline: none;
             cursor: pointer;
         }
+        /* 更精緻、更緊湊的標籤樣式，避免佔用太大空間 */
         .tree-label {
             background: rgba(255, 255, 255, 0.95);
             border: 1px solid #2e7d32;
@@ -66,7 +67,7 @@
         .gps-btn {
             position: absolute;
             bottom: 30px;
-            right: 20px;
+木            right: 20px;
             z-index: 1000;
             background: white;
             border: none;
@@ -117,20 +118,19 @@
     <script>
         var map = L.map('map', {
             renderer: L.canvas(),
-            maxZoom: 21
+            maxZoom: 22 // 允許放大到更深層級
         }).setView([22.3193, 114.1694], 12);
 
-        // 關鍵修復：maxNativeZoom 設為 19，防止放大過度時出現灰色空白塊
+        // 支援超高放大倍率 (maxZoom 22)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 21,
+            maxZoom: 22,
             maxNativeZoom: 19,
-            detectRetina: true,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true,
-            disableClusteringAtZoom: 18,
+            disableClusteringAtZoom: 18, // 提高到 18 級才散開，確保在大範圍時保持聚落整潔
             spiderfyOnMaxZoom: false,
             showCoverageOnHover: false
         });
@@ -168,6 +168,7 @@
                             <p style="margin: 0 0 5px 0; font-style: italic; color: #666; font-size: 13px;">${row.Scientific_Name || ''}</p>
                             <hr style="border:0; border-top:1px solid #eee; margin:5px 0;">
                             <p style="margin: 3px 0; font-size: 13px;"><b>地點：</b>${row.Location_in_Chinese || row.Location_in_English || '不詳'}</p>
+                            <p style="margin: 3px 0; font-size: 13px;"><b>來源：</b>${row.Source || '官方資料'}</p>
                         </div>
                     `;
                     marker.bindPopup(popupContent);
@@ -200,6 +201,7 @@
             }
         });
 
+        // 提升至 Zoom >= 18 時才顯示標籤，確保在足夠大的近鏡下才展開名稱
         function updateLabelsVisibility() {
             var currentZoom = map.getZoom();
             var bounds = map.getBounds();
