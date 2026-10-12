@@ -115,13 +115,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
-        // 啟用 Canvas 渲染引擎，確保幾千個點同時顯示時絕不 Lag
         var map = L.map('map', {
             renderer: L.canvas(),
             maxZoom: 21
         }).setView([22.3193, 114.1694], 12);
 
-        // 使用最穩定、全面支援 Retina 高清的 OpenStreetMap 官方底圖
+        // 關鍵修復：maxNativeZoom 設為 19，防止放大過度時出現灰色空白塊
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 21,
             maxNativeZoom: 19,
@@ -169,7 +168,6 @@
                             <p style="margin: 0 0 5px 0; font-style: italic; color: #666; font-size: 13px;">${row.Scientific_Name || ''}</p>
                             <hr style="border:0; border-top:1px solid #eee; margin:5px 0;">
                             <p style="margin: 3px 0; font-size: 13px;"><b>地點：</b>${row.Location_in_Chinese || row.Location_in_English || '不詳'}</p>
-                            <p style="margin: 3px 0; font-size: 13px;"><b>來源：</b>${row.Source || '官方資料'}</p>
                         </div>
                     `;
                     marker.bindPopup(popupContent);
