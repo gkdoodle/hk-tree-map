@@ -4,76 +4,99 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>香港樹木地圖</title>
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Marker Cluster CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-        #map { width: 100%; height: 100vh; }
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
         .loading-overlay {
-            position: absolute; top: 10px; right: 10px; z-index: 1000;
-            background: white; padding: 10px 15px; border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2); font-size: 14px; font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
         }
         .gps-btn {
-            position: absolute; bottom: 30px; right: 20px; z-index: 1000;
-            background: white; border: none; padding: 10px 14px; border-radius: 50px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3); font-size: 16px; cursor: pointer; font-weight: bold; color: #2e7d32;
+            position: absolute;
+            bottom: 30px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 50px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #2e7d32;
         }
-        .gps-btn:hover { background: #f1f8e9; }
+        .gps-btn:hover {
+            background: #f1f8e9;
+        }
         .source-box {
-            background: rgba(255, 255, 255, 0.92); padding: 10px 14px; font-size: 12px;
-            color: #444; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); max-width: 300px;
+            background: rgba(255, 255, 255, 0.92);
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #444;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            line-height: 1.5;
+            max-width: 300px;
         }
     </style>
 </head>
 <body>
 
-    <div id="loading" class="loading-overlay">正在載入全港樹木數據，請稍候...</div>
+    <div id="loading" class="loading-overlay">正在載入精選樹木數據，請稍候...</div>
     <div id="map"></div>
-    <button class="gps-btn" onclick="locateUser()">📍 我的位置</button>
+    <button class="gps-btn" onclick="locateUser()" title="顯示我的位置">📍 我的位置</button>
 
+    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Marker Cluster JS -->
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <!-- PapaParse -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
         var map = L.map('map').setView([22.3193, 114.1694], 12);
 
+        // 使用免費、無需 API Key 的 OpenStreetMap 官方底圖
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // 使用標準 Cluster，保持群集以確保流暢度
         var namedTreesCluster = L.markerClusterGroup({ chunkedLoading: true });
-        var unnamedTreesCluster = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 50 });
-
-        var baseLayers = {};
-        var overlayLayers = {
-            "🌳 精選命名樹木 (主圖層)": namedTreesCluster,
-            "⚪ 工程/斜坡樹木 (副圖層)": unnamedTreesCluster
-        };
-
         map.addLayer(namedTreesCluster);
-        L.control.layers(baseLayers, overlayLayers, { position: 'topright', collapsed: false }).addTo(map);
 
-        var loadedFiles = 0;
-        function checkLoadingStatus() {
-            loadedFiles++;
-            if (loadedFiles === 4) {
-                document.getElementById('loading').style.display = 'none';
-            }
-        }
-
+        // 暫時使用 Emoji 樹木 Icon（日後畫好 PNG/SVG 後，只需將呢度換成 iconUrl 即可）
         var treeEmojiIcon = L.divIcon({
-            html: '<span style="font-size: 16px;">🌳</span>',
+            html: '<span style="font-size: 18px;">🌳</span>',
             className: 'custom-emoji-icon',
             iconSize: [20, 20],
             iconAnchor: [10, 10]
         });
 
-        // 1. 載入 named 樹木
+        // 只載入精選命名樹木檔案
         Papa.parse('csdi_gov_trees_named.csv', {
             download: true,
             header: true,
@@ -96,50 +119,17 @@
                         </div>
                     `;
                     marker.bindPopup(popupContent);
-                    
-                    // 改用滑鼠懸停才顯示名稱（Tooltip），點擊才出 Popup，極之省資源
                     marker.bindTooltip(treeName, { direction: 'top', offset: [0, -10] });
 
                     namedTreesCluster.addLayer(marker);
                 }
             },
-            complete: function() { checkLoadingStatus(); }
+            complete: function() {
+                document.getElementById('loading').style.display = 'none';
+            }
         });
 
-        // 2, 3, 4. 載入 unnamed 檔案
-        ['csdi_gov_trees_unnamed_01.csv', 'csdi_gov_trees_unnamed_02.csv', 'csdi_gov_trees_unnamed_03.csv'].forEach(function(filename) {
-            Papa.parse(filename, {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
-                step: function(results) {
-                    var row = results.data;
-                    var lat = parseFloat(row.GeometryLatitude);
-                    var lng = parseFloat(row.GeometryLongitude);
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        var marker = L.circleMarker([lat, lng], {
-                            radius: 4,
-                            fillColor: "#78909c",
-                            color: "#fff",
-                            weight: 0.5,
-                            opacity: 0.8,
-                            fillOpacity: 0.5
-                        });
-
-                        var popupContent = `
-                            <div style="min-width: 180px;">
-                                <h3 style="margin: 0 0 5px 0; color: #455a64; font-size: 15px;">${row.Chinese_Name || '工程樹木'}</h3>
-                                <p style="margin: 3px 0; font-size: 13px;"><b>來源：</b>${row.Source || '工程數據'}</p>
-                            </div>
-                        `;
-                        marker.bindPopup(popupContent);
-                        unnamedTreesCluster.addLayer(marker);
-                    }
-                },
-                complete: function() { checkLoadingStatus(); }
-            });
-        });
-
+        // GPS 定位功能
         function locateUser() {
             if (!navigator.geolocation) {
                 alert("你的瀏覽器不支援定位功能。");
@@ -149,6 +139,7 @@
                 var lat = position.coords.latitude;
                 var lng = position.coords.longitude;
                 map.setView([lat, lng], 17);
+                
                 L.marker([lat, lng], {
                     icon: L.divIcon({
                         html: '<div style="background-color: #1976d2; width: 14px; height: 14px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>',
@@ -163,7 +154,11 @@
         var sourceControl = L.control({ position: 'bottomleft' });
         sourceControl.onAdd = function (map) {
             var div = L.DomUtil.create('div', 'source-box');
-            div.innerHTML = `<b>🌲 香港樹木地圖：</b><br>• 滑鼠移至樹木上可看樹名<br>• 點擊樹木可看詳情`;
+            div.innerHTML = `
+                <b>🌲 香港精選樹木地圖：</b><br>
+                • 專註展示全港命名特色樹木<br>
+                • 滑鼠懸停看樹名，點擊看詳情
+            `;
             return div;
         };
         sourceControl.addTo(map);
