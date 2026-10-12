@@ -50,6 +50,18 @@
             outline: none;
             cursor: pointer;
         }
+        /* 樹木名稱標籤樣式 (僅在放大時顯示) */
+        .tree-label {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #2e7d32;
+            border-radius: 4px;
+            padding: 1px 4px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #1b5e20;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
         .gps-btn {
             position: absolute;
             bottom: 30px;
@@ -109,9 +121,9 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        var allMarkers = []; // 儲存所有樹木 Marker 以便過濾
+        var allMarkers = []; 
         var treesLayer = L.layerGroup().addTo(map);
-        var speciesSet = new Set(); // 收集所有出現過的樹木品種
+        var speciesSet = new Set(); 
 
         // 載入精選命名樹木 CSV 檔案
         Papa.parse('csdi_gov_trees_named.csv', {
@@ -128,7 +140,7 @@
                         speciesSet.add(row.Chinese_Name.trim());
                     }
 
-                    // 使用極速圓點 (CircleMarker)，零延遲
+                    // 使用極速圓點 (CircleMarker)
                     var marker = L.circleMarker([lat, lng], {
                         radius: 5,
                         fillColor: "#2e7d32",
@@ -148,9 +160,15 @@
                         </div>
                     `;
                     marker.bindPopup(popupContent);
-                    marker.bindTooltip(treeName, { direction: 'top', offset: [0, -5] });
+                    
+                    // 綁定 Tooltip（預設不開啟 permanent，透過 zoom 控制）
+                    marker.bindTooltip(treeName, { 
+                        direction: 'right', 
+                        offset: [5, 0],
+                        className: 'tree-label',
+                        permanent: false 
+                    });
 
-                    // 記錄品種屬性以便篩選
                     marker.speciesName = treeName;
                     allMarkers.push(marker);
                     treesLayer.addLayer(marker);
@@ -159,7 +177,6 @@
             complete: function() {
                 document.getElementById('loading').style.display = 'none';
                 
-                // 動態生成下拉選單選項
                 var selectElement = document.getElementById('speciesSelect');
                 var sortedSpecies = Array.from(speciesSet).sort();
                 sortedSpecies.forEach(function(species) {
@@ -168,15 +185,40 @@
                     opt.textContent = species;
                     selectElement.appendChild(opt);
                 });
+
+                // 初始化檢查一次當前縮放級別
+                updateLabelsOnZoom();
             }
         });
 
+        // 智能縮放監聽：當 Zoom >= 16 時自動顯示樹名標籤，縮小時隱藏
+        function updateLabelsOnZoom() {
+            var currentZoom = map.getZoom();
+            allMarkers.forEach(function(marker) {
+                if (currentZoom >= 16) {
+                    if (!marker.isTooltipOpen()) {
+                        marker.openTooltip();
+                    }
+                } else {
+                    if (marker.isTooltipOpen()) {
+                        marker.closeTooltip();
+                    }
+                }
+            });
+        }
+
+        map.on('zoomend', updateLabelsOnZoom);
+
         // 品種篩選功能
         function filterSpecies(selectedSpecies) {
-            treesLayer.clearLayers(); // 清空當前地圖圖層
+            treesLayer.clearLayers();
+            var currentZoom = map.getZoom();
             allMarkers.forEach(function(marker) {
                 if (selectedSpecies === 'ALL' || marker.speciesName === selectedSpecies) {
                     treesLayer.addLayer(marker);
+                    if (currentZoom >= 16) {
+                        marker.openTooltip();
+                    }
                 }
             });
         }
@@ -190,7 +232,7 @@
             navigator.geolocation.getCurrentPosition(function(position) {
                 var lat = position.coords.latitude;
                 var lng = position.coords.longitude;
-                map.setView([lat, lng], 17);
+                map.setView([lat, lng], 17); // 自動放大到 17 級（會直接見到樹名）
                 
                 L.marker([lat, lng], {
                     icon: L.divIcon({
@@ -208,8 +250,8 @@
             var div = L.DomUtil.create('div', 'source-box');
             div.innerHTML = `
                 <b>🌲 香港城市樹木分佈研究：</b><br>
-                • 無 Cluster 獨立圓點顯示，極速流暢<br>
-                • 可於左上角選單篩選單一樹木品種分佈
+                • 縮小呈乾淨圓點，放大（>=16級）自動顯示樹名<br>
+                • 可於左上角選單篩選單一樹木品種
             `;
             return div;
         };
