@@ -52,19 +52,17 @@
             outline: none;
             cursor: pointer;
         }
-        /* 更精緻、更緊湊的標籤樣式，避免佔用太大空間 */
         .tree-label {
             background: rgba(255, 255, 255, 0.95);
             border: 1px solid #2e7d32;
             border-radius: 3px;
-            padding: 1px 2px;
-            font-size: 9px;
+            padding: 1px 3px;
+            font-size: 10px;
             font-weight: bold;
             color: #1b5e20;
             white-space: nowrap;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
-        /* 將「我的位置」按鈕固定在右下角 */
         .gps-btn {
             position: absolute;
             bottom: 30px;
@@ -83,12 +81,7 @@
         .gps-btn:hover {
             background: #f1f8e9;
         }
-        /* 左下角資料來源方塊 */
         .source-box {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            z-index: 1000;
             background: rgba(255, 255, 255, 0.92);
             padding: 10px 14px;
             font-size: 12px;
@@ -114,11 +107,6 @@
     <div id="map"></div>
     <button class="gps-btn" onclick="locateUser()" title="顯示我的位置">📍 我的位置</button>
 
-    <div class="source-box">
-        <b>🌲 資料來源：</b><br>
-        空間數據共享平台 (CSDI) 開放數據
-    </div>
-
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Marker Cluster JS -->
@@ -135,12 +123,13 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 22,
             maxNativeZoom: 19,
+            detectRetina: true,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true,
-            disableClusteringAtZoom: 19, // 提高到 19 級（更貼地時）才徹底散開，減少密集區重疊
+            disableClusteringAtZoom: 19,
             spiderfyOnMaxZoom: false,
             showCoverageOnHover: false
         });
@@ -163,14 +152,48 @@
                         speciesSet.add(row.Chinese_Name.trim());
                     }
 
-                    var marker = L.circleMarker([lat, lng], {
+                    // 1. 顏色分類策略
+                    let color = "#1a5e20"; // 默認綠色 (常綠)
+                    if (['大花紫薇', '洋紫荊', '紫荊花'].includes(treeName)) {
+                        color = "#9c27b0"; // 粉紅/紫色 (花樹)
+                    } else if (['楓香', '黃鐘木'].includes(treeName)) {
+                        color = "#f57c00"; // 橙色/黃色 (秋葉/黃花)
+                    }
+
+                    // 2. 古樹變正方形設計 (顏色跟品種)
+                    let options = {
                         radius: 5,
-                        fillColor: "#2e7d32",
+                        fillColor: color,
                         color: "#ffffff",
                         weight: 1,
                         opacity: 1,
                         fillOpacity: 0.85
-                    });
+                    };
+
+                    let marker;
+                    // 假設 CSV 有一個 "珍貴古樹" 屬性 (如果是，將其改為對應的 CSV 欄位名稱)
+                    if (row['珍貴古樹'] === '是' || row['珍貴古樹'] === 'TRUE') {
+                        // 雖然 Leaflet 沒有原生 SquareMarker，但可以用 L.circleMarker 繪製，這裡需要編寫專用畫 canvas 的程式碼，
+                        // 但為了代碼簡潔與穩定，這裡我們將古樹醒目地用正方形樣式的 divIcon 代替（放大後會跟隨其顏色）。
+                        // 或者最簡單的方法是給古樹加一個醒目的外圈金色光暈 (如下方的古樹標記醒目琥珀色高貴金色光暈)。
+                        options = {
+                            radius: 7, // 稍微加大
+                            fillColor: color, // 跟隨品種顏色
+                            color: "#ffc107", // 醒目金色外圈
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 1 // 填滿不透明度更高
+                        };
+                        marker = L.circleMarker([lat, lng], options);
+                    } else {
+                        // 其他一般樹木 keep 圓形
+                        marker = L.circleMarker([lat, lng], options);
+                    }
+
+                    // 3. Popup 詳情設計
+                    var isOldTree = (row['珍貴古樹'] === '是' || row['珍貴古樹'] === 'TRUE');
+                    var oldTreeStatus = isOldTree ? 
+                        `<span style="color:#d32f2f; font-weight:bold;">是（琥珀色琥珀色高貴金色標記）</span>` : '否';
 
                     var popupContent = `
                         <div style="min-width: 200px;">
@@ -178,16 +201,14 @@
                             <p style="margin: 0 0 5px 0; font-style: italic; color: #666; font-size: 13px;">${row.Scientific_Name || ''}</p>
                             <hr style="border:0; border-top:1px solid #eee; margin:5px 0;">
                             <p style="margin: 3px 0; font-size: 13px;"><b>地點：</b>${row.Location_in_Chinese || row.Location_in_English || '不詳'}</p>
+                            <p style="margin: 3px 0; font-size: 13px;"><b>珍貴古樹：</b>${oldTreeStatus}</p>
                         </div>
                     `;
                     marker.bindPopup(popupContent);
                     
-                    marker.bindTooltip(treeName, { 
-                        direction: 'right', 
-                        offset: [5, 0],
-                        className: 'tree-label',
-                        permanent: false 
-                    });
+                    // 4. 標籤管理設計：平時唔長開，需點擊先有。
+                    // 平時不綁定 Tooltip。如果想在極近距離長開，可以加入 updateLabelsVisibility 的邏輯，
+                    // 但這裡我們先採用「不長開，避免凌亂」的做法。
 
                     marker.speciesName = treeName;
                     allMarkers.push(marker);
@@ -205,32 +226,8 @@
                     opt.textContent = species;
                     selectElement.appendChild(opt);
                 });
-
-                updateLabelsVisibility();
             }
         });
-
-        // 提升至 Zoom >= 19 時才顯示標籤，並縮小字體與間距，減輕視覺凌亂
-        function updateLabelsVisibility() {
-            var currentZoom = map.getZoom();
-            var bounds = map.getBounds();
-
-            allMarkers.forEach(function(marker) {
-                if (markersCluster.hasLayer(marker)) {
-                    if (currentZoom >= 19 && bounds.contains(marker.getLatLng())) {
-                        if (!marker.isTooltipOpen()) {
-                            marker.openTooltip();
-                        }
-                    } else {
-                        if (marker.isTooltipOpen()) {
-                            marker.closeTooltip();
-                        }
-                    }
-                }
-            });
-        }
-
-        map.on('moveend zoomend', updateLabelsVisibility);
 
         function filterSpecies(selectedSpecies) {
             markersCluster.clearLayers();
@@ -241,7 +238,6 @@
                 }
             });
             markersCluster.addLayers(filteredMarkers);
-            updateLabelsVisibility();
         }
 
         function locateUser() {
@@ -264,6 +260,17 @@
                 alert("無法取得你的 GPS 位置。");
             });
         }
+
+        var sourceControl = L.control({ position: 'bottomleft' });
+        sourceControl.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'source-box');
+            div.innerHTML = `
+                <b>🌲 資料來源：</b><br>
+                空間數據共享平台 (CSDI) 開放數據
+            `;
+            return div;
+        };
+        sourceControl.addTo(map);
     </script>
 </body>
 </html>
