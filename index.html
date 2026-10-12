@@ -33,7 +33,6 @@
             font-weight: bold;
             color: #333;
         }
-        /* 品種篩選控制面板樣式 */
         .filter-control {
             position: absolute;
             top: 15px;
@@ -53,7 +52,6 @@
             outline: none;
             cursor: pointer;
         }
-        /* 樹木名稱標籤樣式 (僅在放大到地區級別時顯示) */
         .tree-label {
             background: rgba(255, 255, 255, 0.9);
             border: 1px solid #2e7d32;
@@ -99,7 +97,6 @@
 
     <div id="loading" class="loading-overlay">正在載入精選樹木數據，請稍候...</div>
     
-    <!-- 品種篩選下拉選單 -->
     <div class="filter-control">
         <label for="speciesSelect"><b>🌳 篩選樹木品種：</b></label>
         <select id="speciesSelect" onchange="filterSpecies(this.value)">
@@ -120,13 +117,11 @@
     <script>
         var map = L.map('map').setView([22.3193, 114.1694], 12);
 
-        // 使用免費、無需 API Key 的 OpenStreetMap 官方底圖
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // 設定 Cluster：加入 spiderfyOnMaxZoom: false 徹底禁絕蜘蛛網效果
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true,
             disableClusteringAtZoom: 16,
@@ -138,7 +133,6 @@
         var allMarkers = []; 
         var speciesSet = new Set(); 
 
-        // 載入精選命名樹木 CSV 檔案
         Papa.parse('csdi_gov_trees_named.csv', {
             download: true,
             header: true,
@@ -153,7 +147,6 @@
                         speciesSet.add(row.Chinese_Name.trim());
                     }
 
-                    // 使用極速圓點 (CircleMarker)
                     var marker = L.circleMarker([lat, lng], {
                         radius: 5,
                         fillColor: "#2e7d32",
@@ -174,7 +167,6 @@
                     `;
                     marker.bindPopup(popupContent);
                     
-                    // 綁定 Tooltip 作為樹名標籤
                     marker.bindTooltip(treeName, { 
                         direction: 'right', 
                         offset: [5, 0],
@@ -199,16 +191,18 @@
                     selectElement.appendChild(opt);
                 });
 
-                updateLabelsOnZoom();
+                updateLabelsVisibility();
             }
         });
 
-        // 智能縮放監聽：當 Zoom >= 16 時顯示樹名標籤
-        function updateLabelsOnZoom() {
+        // 效能優化：只渲染當前視野範圍（Bounds）內的標籤，徹底消除 Lag
+        function updateLabelsVisibility() {
             var currentZoom = map.getZoom();
+            var bounds = map.getBounds();
+
             allMarkers.forEach(function(marker) {
                 if (map.hasLayer(marker)) {
-                    if (currentZoom >= 16) {
+                    if (currentZoom >= 16 && bounds.contains(marker.getLatLng())) {
                         if (!marker.isTooltipOpen()) {
                             marker.openTooltip();
                         }
@@ -221,9 +215,8 @@
             });
         }
 
-        map.on('zoomend', updateLabelsOnZoom);
+        map.on('moveend zoomend', updateLabelsVisibility);
 
-        // 品種篩選功能
         function filterSpecies(selectedSpecies) {
             markersCluster.clearLayers();
             var filteredMarkers = [];
@@ -233,10 +226,9 @@
                 }
             });
             markersCluster.addLayers(filteredMarkers);
-            updateLabelsOnZoom();
+            updateLabelsVisibility();
         }
 
-        // GPS 定位功能
         function locateUser() {
             if (!navigator.geolocation) {
                 alert("你的瀏覽器不支援定位功能。");
