@@ -213,4 +213,161 @@
                     var treeId = row.OVTNo || row.TR_no_ || row.TMCP_ID || '';
                     var familyName = row.Family || row.Family_Chinese || '不詳';
                     var originStatus = row.Origin || row.Native_Status || '不詳';
-                    var dataSource = row.Source || '空間
+                    var dataSource = row.Source || '空間數據共享平台 (CSDI) 開放數據';
+                    var wikiUrl = `https://zh.wikipedia.org/wiki/${encodeURIComponent(treeName)}`;
+
+                    // 顏色與類型判斷
+                    let color = "#2e7d32"; // 預設綠色 (其他樹木)
+                    let radiusSize = 5;
+                    let category = "OTHER";
+
+                    if (treeType === 'OVT') {
+                        color = "#fbc02d"; // 古樹名木：黃色
+                        radiusSize = 6;
+                        category = "OVT";
+                    } else if (treeType === 'SWT') {
+                        color = "#795548"; // 石牆樹：啡色
+                        radiusSize = 6;
+                        category = "SWT";
+                    } else if (treeType.includes('OVT') && treeType.includes('SWT')) {
+                        color = "#fb8c00"; // 古樹名木及石牆樹：橙色
+                        radiusSize = 7;
+                        category = "BOTH";
+                    }
+
+                    var marker = L.circleMarker([lat, lng], {
+                        radius: radiusSize,
+                        fillColor: color,
+                        color: "#ffffff",
+                        weight: 1.5,
+                        opacity: 1,
+                        fillOpacity: 0.9
+                    });
+
+                    // 完整詳情 Popup
+                    var idHtml = treeId ? `<p style="margin: 3px 0; font-size: 12px;"><b>樹木編號：</b>${treeId}</p>` : '';
+                    var popupContent = `
+                        <div style="min-width: 200px; font-family: sans-serif; line-height: 1.4;">
+                            <h3 style="margin: 0 0 4px 0; color: #2e7d32; font-size: 15px;">
+                                <a href="${wikiUrl}" target="_blank" style="color: #2e7d32; text-decoration: none;" title="點擊查看維基百科介紹">${treeName} 🔗</a>
+                            </h3>
+                            <p style="margin: 0 0 6px 0; font-style: italic; color: #666; font-size: 12px;">${row.Scientific_Name || ''}</p>
+                            <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
+                            <p style="margin: 3px 0; font-size: 12px;"><b>科名：</b>${familyName}</p>
+                            <p style="margin: 3px 0; font-size: 12px;"><b>品種屬性：</b>${originStatus}</p>
+                            <p style="margin: 3px 0; font-size: 12px;"><b>地點：</b>${locationName}</p>
+                            ${idHtml}
+                            <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
+                            <p style="margin: 3px 0; font-size: 11px; color: #555;"><b>資料來源：</b>${dataSource}</p>
+                        </div>
+                    `;
+                    marker.bindPopup(popupContent);
+                    
+                    marker.bindTooltip(treeName, { 
+                        direction: 'right', 
+                        offset: [5, 0],
+                        className: 'tree-label',
+                        permanent: false 
+                    });
+
+                    marker.speciesName = treeName;
+                    marker.categoryType = category;
+                    allMarkers.push(marker);
+                    markersCluster.addLayer(marker);
+                }
+            },
+            complete: function() {
+                document.getElementById('loading').style.display = 'none';
+                
+                var selectElement = document.getElementById('speciesSelect');
+                var sortedSpecies = Array.from(speciesSet).sort();
+                sortedSpecies.forEach(function(species) {
+                    var opt = document.createElement('option');
+                    opt.value = species;
+                    opt.textContent = species;
+                    selectElement.appendChild(opt);
+                });
+
+                updateLabelsVisibility();
+            }
+        });
+
+        // 標籤顯示控制
+        function updateLabelsVisibility() {
+            var currentZoom = map.getZoom();
+            var bounds = map.getBounds();
+
+            allMarkers.forEach(function(marker) {
+                if (markersCluster.hasLayer(marker)) {
+                    if (labelsEnabled && currentZoom >= 19 && bounds.contains(marker.getLatLng())) {
+                        if (!marker.isTooltipOpen()) {
+                            marker.openTooltip();
+                        }
+                    } else {
+                        if (marker.isTooltipOpen()) {
+                            marker.closeTooltip();
+                        }
+                    }
+                }
+            });
+        }
+
+        function toggleLabels() {
+            labelsEnabled = !labelsEnabled;
+            var btn = document.getElementById('toggleLabelBtn');
+            if (labelsEnabled) {
+                btn.innerHTML = '🏷️ 隱藏標籤';
+                btn.style.color = '#2e7d32';
+            } else {
+                btn.innerHTML = '🏷️ 顯示標籤';
+                btn.style.color = '#666';
+            }
+            updateLabelsVisibility();
+        }
+
+        map.on('moveend zoomend', updateLabelsVisibility);
+
+        // 綜合篩選功能（品種 + 類型）
+        function applyFilters() {
+            var selectedSpecies = document.getElementById('speciesSelect').value;
+            var selectedType = document.getElementById('typeSelect').value;
+
+            markersCluster.clearLayers();
+            var filteredMarkers = [];
+
+            allMarkers.forEach(function(marker) {
+                var matchSpecies = (selectedSpecies === 'ALL' || marker.speciesName === selectedSpecies);
+                var matchType = (selectedType === 'ALL' || marker.categoryType === selectedType);
+
+                if (matchSpecies && matchType) {
+                    filteredMarkers.push(marker);
+                }
+            });
+
+            markersCluster.addLayers(filteredMarkers);
+            updateLabelsVisibility();
+        }
+
+        function locateUser() {
+            if (!navigator.geolocation) {
+                alert("你的瀏覽器不支援定位功能。");
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var lat = position.coords.latitude;
+                var lng = position.coords.longitude;
+                map.setView([lat, lng], 19);
+                
+                L.marker([lat, lng], {
+                    icon: L.divIcon({
+                        html: '<div style="background-color: #1976d2; width: 14px; height: 14px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>',
+                        className: 'user-gps-marker'
+                    })
+                }).addTo(map).bindPopup("<b>你在這裡！</b>").openPopup();
+            }, function() {
+                alert("無法取得你的 GPS 位置。");
+            });
+        }
+    </script>
+</body>
+</html>
