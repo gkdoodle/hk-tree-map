@@ -33,23 +33,31 @@
             font-weight: bold;
             color: #333;
         }
-        /* 頂部篩選器 */
+        /* 頂部篩選器控制面板 */
         .filter-control {
             position: absolute;
             top: 15px;
             left: 60px;
             z-index: 1000;
             background: white;
-            padding: 8px 12px;
+            padding: 10px 14px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            font-size: 14px;
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         .filter-control select {
-            padding: 5px 8px;
+            padding: 4px 6px;
             border-radius: 4px;
             border: 1px solid #ccc;
-            font-size: 14px;
+            font-size: 13px;
             outline: none;
             cursor: pointer;
         }
@@ -94,7 +102,7 @@
         .map-btn:hover {
             background: #f1f8e9;
         }
-        /* 左下角極簡備註與來源方塊 */
+        /* 左下角圖例備註與來源方塊 */
         .source-box {
             position: absolute;
             bottom: 20px;
@@ -115,11 +123,24 @@
 
     <div id="loading" class="loading-overlay">正在載入數據...</div>
     
+    <!-- 頂部雙重篩選列 -->
     <div class="filter-control">
-        <label for="speciesSelect"><b>🌳 篩選品種：</b></label>
-        <select id="speciesSelect" onchange="filterSpecies(this.value)">
-            <option value="ALL">全部品種（顯示全部）</option>
-        </select>
+        <div class="filter-row">
+            <label for="speciesSelect"><b>🌳 品種：</b></label>
+            <select id="speciesSelect" onchange="applyFilters()">
+                <option value="ALL">全部品種（顯示全部）</option>
+            </select>
+        </div>
+        <div class="filter-row">
+            <label for="typeSelect"><b>🏷️ 類型：</b></label>
+            <select id="typeSelect" onchange="applyFilters()">
+                <option value="ALL">全部類型</option>
+                <option value="OVT">古樹名木</option>
+                <option value="SWT">石牆樹</option>
+                <option value="BOTH">古樹名木及石牆樹</option>
+                <option value="OTHER">其他樹木</option>
+            </select>
+        </div>
     </div>
 
     <div id="map"></div>
@@ -130,13 +151,13 @@
         <button class="map-btn" onclick="locateUser()">📍 我的位置</button>
     </div>
 
-    <!-- 左下角極簡備註與來源 -->
+    <!-- 左下角圖例備註 -->
     <div class="source-box">
         <b>📌 備註：</b><br>
-        🟡 OVT 古樹<br>
-        🟤 SWT 石牆樹<br>
-        🟠 兼備 (OVT&SWT)<br>
-        🟢 花樹/常綠樹<br>
+        🟡 古樹名木<br>
+        🟤 石牆樹<br>
+        🟠 古樹名木及石牆樹<br>
+        🟢 其他樹木<br>
         <hr style="border:0; border-top:1px solid #ddd; margin:6px 0;">
         <b>🌲 資料來源：</b><br>
         空間數據共享平台 (CSDI) 開放數據
@@ -190,139 +211,6 @@
                     var treeType = (row.Type || '').trim();
                     var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
                     var treeId = row.OVTNo || row.TR_no_ || row.TMCP_ID || '';
-                    
-                    // 顏色分組邏輯
-                    let color = "#2e7d32"; // 預設綠色 (花樹/常綠樹)
-                    let radiusSize = 5;
-
-                    if (treeType === 'OVT') {
-                        color = "#fbc02d"; // OVT 傳統古樹：黃色
-                        radiusSize = 6;
-                    } else if (treeType === 'SWT') {
-                        color = "#795548"; // SWT 石牆樹：啡色
-                        radiusSize = 6;
-                    } else if (treeType.includes('OVT') && treeType.includes('SWT')) {
-                        color = "#fb8c00"; // OVT & SWT 兼備：橙色
-                        radiusSize = 7;
-                    }
-
-                    var marker = L.circleMarker([lat, lng], {
-                        radius: radiusSize,
-                        fillColor: color,
-                        color: "#ffffff",
-                        weight: 1.5,
-                        opacity: 1,
-                        fillOpacity: 0.9
-                    });
-
-                    // 簡潔版 Popup 詳情（如有編號則自動顯示）
-                    var idHtml = treeId ? `<p style="margin: 3px 0; font-size: 12px;"><b>樹木編號：</b>${treeId}</p>` : '';
-                    var popupContent = `
-                        <div style="min-width: 180px; font-family: sans-serif;">
-                            <h3 style="margin: 0 0 4px 0; color: #2e7d32; font-size: 15px;">${treeName}</h3>
-                            <p style="margin: 0 0 6px 0; font-style: italic; color: #666; font-size: 12px;">${row.Scientific_Name || ''}</p>
-                            <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
-                            <p style="margin: 3px 0; font-size: 12px;"><b>地點：</b>${locationName}</p>
-                            ${idHtml}
-                        </div>
-                    `;
-                    marker.bindPopup(popupContent);
-                    
-                    marker.bindTooltip(treeName, { 
-                        direction: 'right', 
-                        offset: [5, 0],
-                        className: 'tree-label',
-                        permanent: false 
-                    });
-
-                    marker.speciesName = treeName;
-                    allMarkers.push(marker);
-                    markersCluster.addLayer(marker);
-                }
-            },
-            complete: function() {
-                document.getElementById('loading').style.display = 'none';
-                
-                var selectElement = document.getElementById('speciesSelect');
-                var sortedSpecies = Array.from(speciesSet).sort();
-                sortedSpecies.forEach(function(species) {
-                    var opt = document.createElement('option');
-                    opt.value = species;
-                    opt.textContent = species;
-                    selectElement.appendChild(opt);
-                });
-
-                updateLabelsVisibility();
-            }
-        });
-
-        // 標籤顯示控制
-        function updateLabelsVisibility() {
-            var currentZoom = map.getZoom();
-            var bounds = map.getBounds();
-
-            allMarkers.forEach(function(marker) {
-                if (markersCluster.hasLayer(marker)) {
-                    if (labelsEnabled && currentZoom >= 19 && bounds.contains(marker.getLatLng())) {
-                        if (!marker.isTooltipOpen()) {
-                            marker.openTooltip();
-                        }
-                    } else {
-                        if (marker.isTooltipOpen()) {
-                            marker.closeTooltip();
-                        }
-                    }
-                }
-            });
-        }
-
-        function toggleLabels() {
-            labelsEnabled = !labelsEnabled;
-            var btn = document.getElementById('toggleLabelBtn');
-            if (labelsEnabled) {
-                btn.innerHTML = '🏷️ 隱藏標籤';
-                btn.style.color = '#2e7d32';
-            } else {
-                btn.innerHTML = '🏷️ 顯示標籤';
-                btn.style.color = '#666';
-            }
-            updateLabelsVisibility();
-        }
-
-        map.on('moveend zoomend', updateLabelsVisibility);
-
-        function filterSpecies(selectedSpecies) {
-            markersCluster.clearLayers();
-            var filteredMarkers = [];
-            allMarkers.forEach(function(marker) {
-                if (selectedSpecies === 'ALL' || marker.speciesName === selectedSpecies) {
-                    filteredMarkers.push(marker);
-                }
-            });
-            markersCluster.addLayers(filteredMarkers);
-            updateLabelsVisibility();
-        }
-
-        function locateUser() {
-            if (!navigator.geolocation) {
-                alert("你的瀏覽器不支援定位功能。");
-                return;
-            }
-            navigator.geolocation.getCurrentPosition(function(position) {
-                var lat = position.coords.latitude;
-                var lng = position.coords.longitude;
-                map.setView([lat, lng], 19);
-                
-                L.marker([lat, lng], {
-                    icon: L.divIcon({
-                        html: '<div style="background-color: #1976d2; width: 14px; height: 14px; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>',
-                        className: 'user-gps-marker'
-                    })
-                }).addTo(map).bindPopup("<b>你在這裡！</b>").openPopup();
-            }, function() {
-                alert("無法取得你的 GPS 位置。");
-            });
-        }
-    </script>
-</body>
-</html>
+                    var familyName = row.Family || row.Family_Chinese || '不詳';
+                    var originStatus = row.Origin || row.Native_Status || '不詳';
+                    var dataSource = row.Source || '空間
