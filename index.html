@@ -171,6 +171,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
+        // 常用香港樹木科名與品種屬性對照表
+        const treeDatabase = {
+            '榕樹': { family: '桑科 (Moraceae)', origin: '本地原生' },
+            '細葉榕': { family: '桑科 (Moraceae)', origin: '本地原生' },
+            '高山榕': { family: '桑科 (Moraceae)', origin: '本地原生' },
+            '印度橡膠樹': { family: '桑科 (Moraceae)', origin: '外來品種' },
+            '洋紫荊': { family: '蘇木亞科 (Caesalpinioideae)', origin: '本地原生（香港市花）' },
+            '大花紫薇': { family: '千屈菜科 (Lythraceae)', origin: '外來品種' },
+            '石栗': { family: '大戟科 (Euphorbiaceae)', origin: '外來品種' },
+            '鳳凰木': { family: '蘇木亞科 (Caesalpinioideae)', origin: '外來品種' },
+            '樟樹': { family: '樟科 (Lauraceae)', origin: '本地原生' },
+            '朴樹': { family: '大麻科 (Cannabaceae)', origin: '本地原生' },
+            '黃槐': { family: '蘇木亞科 (Caesalpinioideae)', origin: '外來品種' },
+            '紅豆杉': { family: '紅豆杉科 (Taxaceae)', origin: '本地原生' }
+        };
+
         var map = L.map('map', {
             renderer: L.canvas(),
             maxZoom: 22
@@ -203,17 +219,20 @@
                 var lat = parseFloat(row.GeometryLatitude);
                 var lng = parseFloat(row.GeometryLongitude);
                 if (!isNaN(lat) && !isNaN(lng)) {
-                    var treeName = row.Chinese_Name || '未命名樹木';
+                    var treeName = (row.Chinese_Name || '未命名樹木').trim();
                     if (row.Chinese_Name) {
-                        speciesSet.add(row.Chinese_Name.trim());
+                        speciesSet.add(treeName);
                     }
 
                     var treeType = (row.Type || '').trim();
                     var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
                     var treeId = row.OVTNo || row.TR_no_ || row.TMCP_ID || '';
-                    var familyName = row.Family || row.Family_Chinese || '不詳';
-                    var originStatus = row.Origin || row.Native_Status || '不詳';
                     var dataSource = row.Source || '空間數據共享平台 (CSDI) 開放數據';
+                    
+                    // 從對照表匹配科名與品種屬性，若無則顯示預設值
+                    let treeInfo = treeDatabase[treeName] || { family: '常見園景樹木', origin: '本地/引進' };
+                    
+                    // 維基百科跳轉連結
                     var wikiUrl = `https://zh.wikipedia.org/wiki/${encodeURIComponent(treeName)}`;
 
                     // 顏色與類型判斷
@@ -244,17 +263,17 @@
                         fillOpacity: 0.9
                     });
 
-                    // 完整詳情 Popup
+                    // 完整詳情 Popup (連去維基百科)
                     var idHtml = treeId ? `<p style="margin: 3px 0; font-size: 12px;"><b>樹木編號：</b>${treeId}</p>` : '';
                     var popupContent = `
                         <div style="min-width: 200px; font-family: sans-serif; line-height: 1.4;">
                             <h3 style="margin: 0 0 4px 0; color: #2e7d32; font-size: 15px;">
-                                <a href="${wikiUrl}" target="_blank" style="color: #2e7d32; text-decoration: none;" title="點擊查看維基百科介紹">${treeName} 🔗</a>
+                                <a href="${wikiUrl}" target="_blank" style="color: #2e7d32; text-decoration: none;" title="點擊前往維基百科查看介紹">${treeName} 🔗</a>
                             </h3>
                             <p style="margin: 0 0 6px 0; font-style: italic; color: #666; font-size: 12px;">${row.Scientific_Name || ''}</p>
                             <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
-                            <p style="margin: 3px 0; font-size: 12px;"><b>科名：</b>${familyName}</p>
-                            <p style="margin: 3px 0; font-size: 12px;"><b>品種屬性：</b>${originStatus}</p>
+                            <p style="margin: 3px 0; font-size: 12px;"><b>科名：</b>${treeInfo.family}</p>
+                            <p style="margin: 3px 0; font-size: 12px;"><b>品種屬性：</b>${treeInfo.origin}</p>
                             <p style="margin: 3px 0; font-size: 12px;"><b>地點：</b>${locationName}</p>
                             ${idHtml}
                             <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
