@@ -60,6 +60,7 @@
             font-size: 13px;
             outline: none;
             cursor: pointer;
+            max-width: 260px;
         }
         /* 樹名標籤樣式 */
         .tree-label {
@@ -121,7 +122,7 @@
 </head>
 <body>
 
-    <div id="loading" class="loading-overlay">正在載入數據...</div>
+    <div id="loading" class="loading-overlay">正在載入品種與樹木數據...</div>
     
     <!-- 頂部雙重篩選列 -->
     <div class="filter-control">
@@ -171,22 +172,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
-        // 常用香港樹木科名與品種屬性對照表
-        const treeDatabase = {
-            '榕樹': { family: '桑科 (Moraceae)', origin: '本地原生' },
-            '細葉榕': { family: '桑科 (Moraceae)', origin: '本地原生' },
-            '高山榕': { family: '桑科 (Moraceae)', origin: '本地原生' },
-            '印度橡膠樹': { family: '桑科 (Moraceae)', origin: '外來品種' },
-            '洋紫荊': { family: '蘇木亞科 (Caesalpinioideae)', origin: '本地原生（香港市花）' },
-            '大花紫薇': { family: '千屈菜科 (Lythraceae)', origin: '外來品種' },
-            '石栗': { family: '大戟科 (Euphorbiaceae)', origin: '外來品種' },
-            '鳳凰木': { family: '蘇木亞科 (Caesalpinioideae)', origin: '外來品種' },
-            '樟樹': { family: '樟科 (Lauraceae)', origin: '本地原生' },
-            '朴樹': { family: '大麻科 (Cannabaceae)', origin: '本地原生' },
-            '黃槐': { family: '蘇木亞科 (Caesalpinioideae)', origin: '外來品種' },
-            '紅豆杉': { family: '紅豆杉科 (Taxaceae)', origin: '本地原生' }
-        };
-
         var map = L.map('map', {
             renderer: L.canvas(),
             maxZoom: 22
@@ -207,109 +192,155 @@
         map.addLayer(markersCluster);
 
         var allMarkers = []; 
-        var speciesSet = new Set(); 
+        var speciesCounts = {}; // 統計每個品種的樹木數量
+        var speciesDict = {};   // 儲存 tree_species.csv 內對應的詳細屬性
         var labelsEnabled = true; 
 
-        Papa.parse('csdi_gov_trees_named.csv', {
+        // 步驟 1: 先載入 tree_species.csv 建立品種屬性字典
+        Papa.parse('tree_species.csv', {
             download: true,
             header: true,
             skipEmptyLines: true,
-            step: function(results) {
-                var row = results.data;
-                var lat = parseFloat(row.GeometryLatitude);
-                var lng = parseFloat(row.GeometryLongitude);
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    var treeName = (row.Chinese_Name || '未命名樹木').trim();
-                    if (row.Chinese_Name) {
-                        speciesSet.add(treeName);
+            complete: function(speciesResults) {
+                speciesResults.data.forEach(function(row) {
+                    var sName = (row.Chinese_Name || '').trim();
+                    if (sName) {
+                        speciesDict[sName] = {
+                            scientificName: row.Scientific_Name || '',
+                            family: row['科名'] || '常見植物科',
+                            origin: row['品種屬性'] || '本地 / 外來',
+                            flowering: row['花期'] || '',
+                            fruiting: row['果期'] || '',
+                            url: row['樹木網頁'] || ''
+                        };
                     }
-
-                    var treeType = (row.Type || '').trim();
-                    var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
-                    var treeId = row.OVTNo || row.TR_no_ || row.TMCP_ID || '';
-                    var dataSource = row.Source || '空間數據共享平台 (CSDI) 開放數據';
-                    
-                    // 從對照表匹配科名與品種屬性，若無則顯示預設值
-                    let treeInfo = treeDatabase[treeName] || { family: '常見園景樹木', origin: '本地/引進' };
-                    
-                    // 維基百科跳轉連結
-                    var wikiUrl = `https://zh.wikipedia.org/wiki/${encodeURIComponent(treeName)}`;
-
-                    // 顏色與類型判斷
-                    let color = "#2e7d32"; // 預設綠色 (其他樹木)
-                    let radiusSize = 5;
-                    let category = "OTHER";
-
-                    if (treeType === 'OVT') {
-                        color = "#fbc02d"; // 古樹名木：黃色
-                        radiusSize = 6;
-                        category = "OVT";
-                    } else if (treeType === 'SWT') {
-                        color = "#795548"; // 石牆樹：啡色
-                        radiusSize = 6;
-                        category = "SWT";
-                    } else if (treeType.includes('OVT') && treeType.includes('SWT')) {
-                        color = "#fb8c00"; // 古樹名木及石牆樹：橙色
-                        radiusSize = 7;
-                        category = "BOTH";
-                    }
-
-                    var marker = L.circleMarker([lat, lng], {
-                        radius: radiusSize,
-                        fillColor: color,
-                        color: "#ffffff",
-                        weight: 1.5,
-                        opacity: 1,
-                        fillOpacity: 0.9
-                    });
-
-                    // 完整詳情 Popup (連去維基百科)
-                    var idHtml = treeId ? `<p style="margin: 3px 0; font-size: 12px;"><b>樹木編號：</b>${treeId}</p>` : '';
-                    var popupContent = `
-                        <div style="min-width: 200px; font-family: sans-serif; line-height: 1.4;">
-                            <h3 style="margin: 0 0 4px 0; color: #2e7d32; font-size: 15px;">
-                                <a href="${wikiUrl}" target="_blank" style="color: #2e7d32; text-decoration: none;" title="點擊前往維基百科查看介紹">${treeName} 🔗</a>
-                            </h3>
-                            <p style="margin: 0 0 6px 0; font-style: italic; color: #666; font-size: 12px;">${row.Scientific_Name || ''}</p>
-                            <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
-                            <p style="margin: 3px 0; font-size: 12px;"><b>科名：</b>${treeInfo.family}</p>
-                            <p style="margin: 3px 0; font-size: 12px;"><b>品種屬性：</b>${treeInfo.origin}</p>
-                            <p style="margin: 3px 0; font-size: 12px;"><b>地點：</b>${locationName}</p>
-                            ${idHtml}
-                            <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
-                            <p style="margin: 3px 0; font-size: 11px; color: #555;"><b>資料來源：</b>${dataSource}</p>
-                        </div>
-                    `;
-                    marker.bindPopup(popupContent);
-                    
-                    marker.bindTooltip(treeName, { 
-                        direction: 'right', 
-                        offset: [5, 0],
-                        className: 'tree-label',
-                        permanent: false 
-                    });
-
-                    marker.speciesName = treeName;
-                    marker.categoryType = category;
-                    allMarkers.push(marker);
-                    markersCluster.addLayer(marker);
-                }
-            },
-            complete: function() {
-                document.getElementById('loading').style.display = 'none';
-                
-                var selectElement = document.getElementById('speciesSelect');
-                var sortedSpecies = Array.from(speciesSet).sort();
-                sortedSpecies.forEach(function(species) {
-                    var opt = document.createElement('option');
-                    opt.value = species;
-                    opt.textContent = species;
-                    selectElement.appendChild(opt);
                 });
-
-                updateLabelsVisibility();
+                
+                // 步驟 2: 再載入點位資料 csdi_gov_trees_named.csv
+                loadTreeLocations();
+            },
+            error: function() {
+                // 若 tree_species.csv 讀取失敗，仍繼續載入點位
+                loadTreeLocations();
             }
         });
+
+        function loadTreeLocations() {
+            Papa.parse('csdi_gov_trees_named.csv', {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                step: function(results) {
+                    var row = results.data;
+                    var lat = parseFloat(row.GeometryLatitude);
+                    var lng = parseFloat(row.GeometryLongitude);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        var treeName = (row.Chinese_Name || '未命名樹木').trim();
+                        
+                        // 累加該品種數量
+                        speciesCounts[treeName] = (speciesCounts[treeName] || 0) + 1;
+
+                        var treeType = (row.Type || '').trim();
+                        var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
+                        var treeId = row.OVTNo || row.TR_no_ || row.TMCP_ID || '';
+                        var dataSource = row.Source || '空間數據共享平台 (CSDI) 開放數據';
+                        
+                        // 匹配 tree_species.csv 屬性
+                        var speciesInfo = speciesDict[treeName] || {};
+                        var sciName = row.Scientific_Name || speciesInfo.scientificName || '';
+                        var familyName = speciesInfo.family || '常見植物科';
+                        var originStatus = speciesInfo.origin || '本地 / 外來';
+                        var flowerTime = speciesInfo.flowering ? `<p style="margin: 3px 0; font-size: 12px;"><b>花期：</b>${speciesInfo.flowering}</p>` : '';
+                        var fruitTime = speciesInfo.fruiting ? `<p style="margin: 3px 0; font-size: 12px;"><b>果期：</b>${speciesInfo.fruiting}</p>` : '';
+                        
+                        // 連結：優先使用 tree_species.csv 內的官方網頁，否則連去維基百科
+                        var targetUrl = speciesInfo.url || `https://zh.wikipedia.org/wiki/${encodeURIComponent(treeName)}`;
+
+                        // 顏色與類型判斷
+                        let color = "#2e7d32"; // 預設綠色 (其他樹木)
+                        let radiusSize = 5;
+                        let category = "OTHER";
+
+                        if (treeType === 'OVT') {
+                            color = "#fbc02d"; // 古樹名木：黃色
+                            radiusSize = 6;
+                            category = "OVT";
+                        } else if (treeType === 'SWT') {
+                            color = "#795548"; // 石牆樹：啡色
+                            radiusSize = 6;
+                            category = "SWT";
+                        } else if (treeType.includes('OVT') && treeType.includes('SWT')) {
+                            color = "#fb8c00"; // 古樹名木及石牆樹：橙色
+                            radiusSize = 7;
+                            category = "BOTH";
+                        }
+
+                        var marker = L.circleMarker([lat, lng], {
+                            radius: radiusSize,
+                            fillColor: color,
+                            color: "#ffffff",
+                            weight: 1.5,
+                            opacity: 1,
+                            fillOpacity: 0.9
+                        });
+
+                        // 完整詳情 Popup
+                        var idHtml = treeId ? `<p style="margin: 3px 0; font-size: 12px;"><b>樹木編號：</b>${treeId}</p>` : '';
+                        var popupContent = `
+                            <div style="min-width: 210px; font-family: sans-serif; line-height: 1.4;">
+                                <h3 style="margin: 0 0 4px 0; color: #2e7d32; font-size: 15px;">
+                                    <a href="${targetUrl}" target="_blank" style="color: #2e7d32; text-decoration: none;" title="點擊查看樹木詳細介紹">${treeName} 🔗</a>
+                                </h3>
+                                <p style="margin: 0 0 6px 0; font-style: italic; color: #666; font-size: 12px;">${sciName}</p>
+                                <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
+                                <p style="margin: 3px 0; font-size: 12px;"><b>科名：</b>${familyName}</p>
+                                <p style="margin: 3px 0; font-size: 12px;"><b>品種屬性：</b>${originStatus}</p>
+                                ${flowerTime}
+                                ${fruitTime}
+                                <p style="margin: 3px 0; font-size: 12px;"><b>地點：</b>${locationName}</p>
+                                ${idHtml}
+                                <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
+                                <p style="margin: 3px 0; font-size: 11px; color: #555;"><b>資料來源：</b>${dataSource}</p>
+                            </div>
+                        `;
+                        marker.bindPopup(popupContent);
+                        
+                        marker.bindTooltip(treeName, { 
+                            direction: 'right', 
+                            offset: [5, 0],
+                            className: 'tree-label',
+                            permanent: false 
+                        });
+
+                        marker.speciesName = treeName;
+                        marker.categoryType = category;
+                        allMarkers.push(marker);
+                        markersCluster.addLayer(marker);
+                    }
+                },
+                complete: function() {
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    // 填入品種選單，並附帶數量顯示 (如: 細葉榕 (16,653 棵))
+                    var selectElement = document.getElementById('speciesSelect');
+                    
+                    // 根據數量由多到少排序
+                    var sortedSpecies = Object.keys(speciesCounts).sort(function(a, b) {
+                        return speciesCounts[b] - speciesCounts[a];
+                    });
+
+                    sortedSpecies.forEach(function(species) {
+                        var count = speciesCounts[species];
+                        var opt = document.createElement('option');
+                        opt.value = species;
+                        opt.textContent = `${species} (${count.toLocaleString()} 棵)`;
+                        selectElement.appendChild(opt);
+                    });
+
+                    updateLabelsVisibility();
+                }
+            });
+        }
 
         // 標籤顯示控制
         function updateLabelsVisibility() {
