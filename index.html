@@ -60,7 +60,7 @@
             font-size: 13px;
             outline: none;
             cursor: pointer;
-            max-width: 260px;
+            max-width: 280px;
         }
         /* 樹名標籤樣式 */
         .tree-label {
@@ -135,11 +135,11 @@
         <div class="filter-row">
             <label for="typeSelect"><b>🏷️ 類型：</b></label>
             <select id="typeSelect" onchange="applyFilters()">
-                <option value="ALL">全部類型</option>
-                <option value="OVT">古樹名木</option>
-                <option value="SWT">石牆樹</option>
-                <option value="BOTH">古樹名木及石牆樹</option>
-                <option value="OTHER">其他樹木</option>
+                <option value="ALL" id="opt-all-type">全部類型</option>
+                <option value="OVT" id="opt-ovt">古樹名木</option>
+                <option value="SWT" id="opt-swt">石牆樹</option>
+                <option value="BOTH" id="opt-both">古樹名木及石牆樹</option>
+                <option value="OTHER" id="opt-other">其他樹木</option>
             </select>
         </div>
     </div>
@@ -193,6 +193,7 @@
 
         var allMarkers = []; 
         var speciesCounts = {}; // 統計每個品種的樹木數量
+        var typeCounts = { ALL: 0, OVT: 0, SWT: 0, BOTH: 0, OTHER: 0 }; // 統計各類型的樹木數量
         var speciesDict = {};   // 儲存 tree_species.csv 內對應的詳細屬性
         var labelsEnabled = true; 
 
@@ -220,7 +221,6 @@
                 loadTreeLocations();
             },
             error: function() {
-                // 若 tree_species.csv 讀取失敗，仍繼續載入點位
                 loadTreeLocations();
             }
         });
@@ -237,15 +237,15 @@
                     if (!isNaN(lat) && !isNaN(lng)) {
                         var treeName = (row.Chinese_Name || '未命名樹木').trim();
                         
-                        // 累加該品種數量
+                        // 累加品種數量
                         speciesCounts[treeName] = (speciesCounts[treeName] || 0) + 1;
+                        typeCounts.ALL++;
 
                         var treeType = (row.Type || '').trim();
                         var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
                         var treeId = row.OVTNo || row.TR_no_ || row.TMCP_ID || '';
                         var dataSource = row.Source || '空間數據共享平台 (CSDI) 開放數據';
                         
-                        // 匹配 tree_species.csv 屬性
                         var speciesInfo = speciesDict[treeName] || {};
                         var sciName = row.Scientific_Name || speciesInfo.scientificName || '';
                         var familyName = speciesInfo.family || '常見植物科';
@@ -253,26 +253,29 @@
                         var flowerTime = speciesInfo.flowering ? `<p style="margin: 3px 0; font-size: 12px;"><b>花期：</b>${speciesInfo.flowering}</p>` : '';
                         var fruitTime = speciesInfo.fruiting ? `<p style="margin: 3px 0; font-size: 12px;"><b>果期：</b>${speciesInfo.fruiting}</p>` : '';
                         
-                        // 連結：優先使用 tree_species.csv 內的官方網頁，否則連去維基百科
                         var targetUrl = speciesInfo.url || `https://zh.wikipedia.org/wiki/${encodeURIComponent(treeName)}`;
 
-                        // 顏色與類型判斷
-                        let color = "#2e7d32"; // 預設綠色 (其他樹木)
+                        let color = "#2e7d32"; 
                         let radiusSize = 5;
                         let category = "OTHER";
 
                         if (treeType === 'OVT') {
-                            color = "#fbc02d"; // 古樹名木：黃色
+                            color = "#fbc02d"; 
                             radiusSize = 6;
                             category = "OVT";
+                            typeCounts.OVT++;
                         } else if (treeType === 'SWT') {
-                            color = "#795548"; // 石牆樹：啡色
+                            color = "#795548"; 
                             radiusSize = 6;
                             category = "SWT";
+                            typeCounts.SWT++;
                         } else if (treeType.includes('OVT') && treeType.includes('SWT')) {
-                            color = "#fb8c00"; // 古樹名木及石牆樹：橙色
+                            color = "#fb8c00"; 
                             radiusSize = 7;
                             category = "BOTH";
+                            typeCounts.BOTH++;
+                        } else {
+                            typeCounts.OTHER++;
                         }
 
                         var marker = L.circleMarker([lat, lng], {
@@ -284,7 +287,6 @@
                             fillOpacity: 0.9
                         });
 
-                        // 完整詳情 Popup
                         var idHtml = treeId ? `<p style="margin: 3px 0; font-size: 12px;"><b>樹木編號：</b>${treeId}</p>` : '';
                         var popupContent = `
                             <div style="min-width: 210px; font-family: sans-serif; line-height: 1.4;">
@@ -321,10 +323,8 @@
                 complete: function() {
                     document.getElementById('loading').style.display = 'none';
                     
-                    // 填入品種選單，並附帶數量顯示 (如: 細葉榕 (16,653 棵))
+                    // 1. 填入品種選單（格式：樹木品種 ｜ 數量）
                     var selectElement = document.getElementById('speciesSelect');
-                    
-                    // 根據數量由多到少排序
                     var sortedSpecies = Object.keys(speciesCounts).sort(function(a, b) {
                         return speciesCounts[b] - speciesCounts[a];
                     });
@@ -333,9 +333,16 @@
                         var count = speciesCounts[species];
                         var opt = document.createElement('option');
                         opt.value = species;
-                        opt.textContent = `${species} (${count.toLocaleString()} 棵)`;
+                        opt.textContent = `${species} ｜ ${count.toLocaleString()} 棵`;
                         selectElement.appendChild(opt);
                     });
+
+                    // 2. 更新類型選單顯示數量
+                    document.getElementById('opt-all-type').textContent = `全部類型 ｜ ${typeCounts.ALL.toLocaleString()} 棵`;
+                    document.getElementById('opt-ovt').textContent = `古樹名木 ｜ ${typeCounts.OVT.toLocaleString()} 棵`;
+                    document.getElementById('opt-swt').textContent = `石牆樹 ｜ ${typeCounts.SWT.toLocaleString()} 棵`;
+                    document.getElementById('opt-both').textContent = `古樹名木及石牆樹 ｜ ${typeCounts.BOTH.toLocaleString()} 棵`;
+                    document.getElementById('opt-other').textContent = `其他樹木 ｜ ${typeCounts.OTHER.toLocaleString()} 棵`;
 
                     updateLabelsVisibility();
                 }
