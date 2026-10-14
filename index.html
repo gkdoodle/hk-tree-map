@@ -129,13 +129,13 @@
         <div class="filter-row">
             <label for="speciesSelect"><b>🌳 品種：</b></label>
             <select id="speciesSelect" onchange="applyFilters()">
-                <option value="ALL">全部品種（顯示全部）</option>
+                <option value="ALL" id="opt-all-species">全部品種 ｜ 載入中...</option>
             </select>
         </div>
         <div class="filter-row">
             <label for="typeSelect"><b>🏷️ 類型：</b></label>
             <select id="typeSelect" onchange="applyFilters()">
-                <option value="ALL" id="opt-all-type">全部類型</option>
+                <option value="ALL" id="opt-all-type">全部類型 ｜ 載入中...</option>
                 <option value="OVT" id="opt-ovt">古樹名木</option>
                 <option value="SWT" id="opt-swt">石牆樹</option>
                 <option value="BOTH" id="opt-both">古樹名木及石牆樹</option>
@@ -192,9 +192,9 @@
         map.addLayer(markersCluster);
 
         var allMarkers = []; 
-        var speciesCounts = {}; // 統計每個品種的樹木數量
-        var typeCounts = { ALL: 0, OVT: 0, SWT: 0, BOTH: 0, OTHER: 0 }; // 統計各類型的樹木數量
-        var speciesDict = {};   // 儲存 tree_species.csv 內對應的詳細屬性
+        var speciesCounts = {}; 
+        var typeCounts = { ALL: 0, OVT: 0, SWT: 0, BOTH: 0, OTHER: 0 }; 
+        var speciesDict = {};   
         var labelsEnabled = true; 
 
         // 步驟 1: 先載入 tree_species.csv 建立品種屬性字典
@@ -237,7 +237,6 @@
                     if (!isNaN(lat) && !isNaN(lng)) {
                         var treeName = (row.Chinese_Name || '未命名樹木').trim();
                         
-                        // 累加品種數量
                         speciesCounts[treeName] = (speciesCounts[treeName] || 0) + 1;
                         typeCounts.ALL++;
 
@@ -323,7 +322,10 @@
                 complete: function() {
                     document.getElementById('loading').style.display = 'none';
                     
-                    // 1. 填入品種選單（格式：樹木品種 ｜ 數量）
+                    // 1. 更新「全部品種」選項數量
+                    document.getElementById('opt-all-species').textContent = `全部品種 ｜ ${typeCounts.ALL.toLocaleString()} 棵`;
+
+                    // 2. 填入各品種選單（格式：品種 ｜ 數量）
                     var selectElement = document.getElementById('speciesSelect');
                     var sortedSpecies = Object.keys(speciesCounts).sort(function(a, b) {
                         return speciesCounts[b] - speciesCounts[a];
@@ -337,7 +339,7 @@
                         selectElement.appendChild(opt);
                     });
 
-                    // 2. 更新類型選單顯示數量
+                    // 3. 更新「類型」選單顯示數量
                     document.getElementById('opt-all-type').textContent = `全部類型 ｜ ${typeCounts.ALL.toLocaleString()} 棵`;
                     document.getElementById('opt-ovt').textContent = `古樹名木 ｜ ${typeCounts.OVT.toLocaleString()} 棵`;
                     document.getElementById('opt-swt').textContent = `石牆樹 ｜ ${typeCounts.SWT.toLocaleString()} 棵`;
