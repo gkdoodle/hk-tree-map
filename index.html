@@ -22,60 +22,57 @@
         }
         .loading-overlay {
             position: absolute;
-            top: 15px;
+            top: 10px;
             right: 20px;
             z-index: 1000;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 10px 16px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            font-size: 13px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            font-size: 14px;
             font-weight: bold;
             color: #333;
-            backdrop-filter: blur(5px);
         }
-        /* 頂部篩選器控制面板 (現代化漂浮圓角卡片) */
+        /* 頂部篩選器控制面板 */
         .filter-control {
             position: absolute;
             top: 15px;
             left: 60px;
             z-index: 1000;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 12px 16px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            background: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             font-size: 13px;
             display: flex;
             flex-direction: column;
             gap: 8px;
-            backdrop-filter: blur(5px);
         }
         .filter-row {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
         }
         .filter-control select {
-            padding: 6px 10px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
+            padding: 4px 6px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
             font-size: 13px;
             outline: none;
             cursor: pointer;
             max-width: 280px;
-            background: #fff;
         }
         /* 樹名標籤樣式 */
         .tree-label {
             background: rgba(255, 255, 255, 0.95);
             border: 1px solid #2e7d32;
-            border-radius: 4px;
-            padding: 2px 5px;
-            font-size: 10px;
+            border-radius: 3px;
+            padding: 1px 2px;
+            font-size: 9px;
             font-weight: bold;
             color: #1b5e20;
             white-space: nowrap;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
         }
         /* 右下角按鈕群組 */
         .control-group {
@@ -90,9 +87,9 @@
         .map-btn {
             background: white;
             border: none;
-            padding: 10px 16px;
+            padding: 10px 14px;
             border-radius: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
             font-size: 14px;
             cursor: pointer;
             font-weight: bold;
@@ -100,12 +97,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            transition: all 0.2s;
+            gap: 5px;
+            transition: background 0.2s;
         }
         .map-btn:hover {
             background: #f1f8e9;
-            transform: translateY(-1px);
         }
         /* 左下角圖例備註與來源方塊 */
         .source-box {
@@ -114,14 +110,13 @@
             left: 20px;
             z-index: 1000;
             background: rgba(255, 255, 255, 0.95);
-            padding: 12px 16px;
+            padding: 10px 14px;
             font-size: 12px;
             color: #444;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             line-height: 1.6;
             max-width: 220px;
-            backdrop-filter: blur(5px);
         }
     </style>
 </head>
@@ -164,7 +159,7 @@
         🟤 石牆樹<br>
         🟠 古樹名木及石牆樹<br>
         🟢 其他樹木<br>
-        <hr style="border:0; border-top:1px solid #eee; margin:8px 0;">
+        <hr style="border:0; border-top:1px solid #ddd; margin:6px 0;">
         <b>🌲 資料來源：</b><br>
         空間數據共享平台 (CSDI) 開放數據
     </div>
@@ -177,18 +172,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
-        // 初始化地圖 (置中香港)
         var map = L.map('map', {
             renderer: L.canvas(),
             maxZoom: 22
         }).setView([22.3193, 114.1694], 12);
 
-        // 使用高質感、極簡文青風的 CartoDB Positron 向量/點陣底圖 (無需 API Key)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 22,
-            maxNativeZoom: 20,
-            subdomains: 'abcd',
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            maxNativeZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
         var markersCluster = L.markerClusterGroup({ 
@@ -202,7 +194,7 @@
         var allMarkers = []; 
         var speciesCounts = {}; 
         var typeCounts = { ALL: 0, OVT: 0, SWT: 0, BOTH: 0, OTHER: 0 }; 
-        var speciesDict = {};    
+        var speciesDict = {};   
         var labelsEnabled = true; 
 
         // 步驟 1: 先載入 tree_species.csv 建立品種屬性字典
@@ -330,8 +322,10 @@
                 complete: function() {
                     document.getElementById('loading').style.display = 'none';
                     
+                    // 1. 更新「全部品種」選項數量
                     document.getElementById('opt-all-species').textContent = `全部品種 ｜ ${typeCounts.ALL.toLocaleString()} 棵`;
 
+                    // 2. 填入各品種選單（格式：品種 ｜ 數量）
                     var selectElement = document.getElementById('speciesSelect');
                     var sortedSpecies = Object.keys(speciesCounts).sort(function(a, b) {
                         return speciesCounts[b] - speciesCounts[a];
@@ -345,6 +339,7 @@
                         selectElement.appendChild(opt);
                     });
 
+                    // 3. 更新「類型」選單顯示數量
                     document.getElementById('opt-all-type').textContent = `全部類型 ｜ ${typeCounts.ALL.toLocaleString()} 棵`;
                     document.getElementById('opt-ovt').textContent = `古樹名木 ｜ ${typeCounts.OVT.toLocaleString()} 棵`;
                     document.getElementById('opt-swt').textContent = `石牆樹 ｜ ${typeCounts.SWT.toLocaleString()} 棵`;
@@ -356,6 +351,7 @@
             });
         }
 
+        // 標籤顯示控制
         function updateLabelsVisibility() {
             var currentZoom = map.getZoom();
             var bounds = map.getBounds();
@@ -390,6 +386,7 @@
 
         map.on('moveend zoomend', updateLabelsVisibility);
 
+        // 綜合篩選功能（品種 + 類型）
         function applyFilters() {
             var selectedSpecies = document.getElementById('speciesSelect').value;
             var selectedType = document.getElementById('typeSelect').value;
