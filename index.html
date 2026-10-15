@@ -6,6 +6,8 @@
     <title>香港樹木地圖</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- MapLibre GL CSS -->
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
     <!-- Marker Cluster CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
@@ -22,16 +24,17 @@
         }
         .loading-overlay {
             position: absolute;
-            top: 10px;
+            top: 15px;
             right: 20px;
             z-index: 1000;
-            background: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            font-size: 14px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            font-size: 13px;
             font-weight: bold;
             color: #333;
+            backdrop-filter: blur(5px);
         }
         /* 頂部篩選器控制面板 */
         .filter-control {
@@ -39,40 +42,42 @@
             top: 15px;
             left: 60px;
             z-index: 1000;
-            background: white;
-            padding: 10px 14px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             font-size: 13px;
             display: flex;
             flex-direction: column;
             gap: 8px;
+            backdrop-filter: blur(5px);
         }
         .filter-row {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
         }
         .filter-control select {
-            padding: 4px 6px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
             font-size: 13px;
             outline: none;
             cursor: pointer;
             max-width: 280px;
+            background: #fff;
         }
         /* 樹名標籤樣式 */
         .tree-label {
             background: rgba(255, 255, 255, 0.95);
             border: 1px solid #2e7d32;
-            border-radius: 3px;
-            padding: 1px 2px;
-            font-size: 9px;
+            border-radius: 4px;
+            padding: 2px 5px;
+            font-size: 10px;
             font-weight: bold;
             color: #1b5e20;
             white-space: nowrap;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         }
         /* 右下角按鈕群組 */
         .control-group {
@@ -87,9 +92,9 @@
         .map-btn {
             background: white;
             border: none;
-            padding: 10px 14px;
+            padding: 10px 16px;
             border-radius: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             font-size: 14px;
             cursor: pointer;
             font-weight: bold;
@@ -97,11 +102,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
-            transition: background 0.2s;
+            gap: 6px;
+            transition: all 0.2s;
         }
         .map-btn:hover {
             background: #f1f8e9;
+            transform: translateY(-1px);
         }
         /* 左下角圖例備註與來源方塊 */
         .source-box {
@@ -110,13 +116,14 @@
             left: 20px;
             z-index: 1000;
             background: rgba(255, 255, 255, 0.95);
-            padding: 10px 14px;
+            padding: 12px 16px;
             font-size: 12px;
             color: #444;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             line-height: 1.6;
             max-width: 220px;
+            backdrop-filter: blur(5px);
         }
     </style>
 </head>
@@ -159,28 +166,35 @@
         🟤 石牆樹<br>
         🟠 古樹名木及石牆樹<br>
         🟢 其他樹木<br>
-        <hr style="border:0; border-top:1px solid #ddd; margin:6px 0;">
+        <hr style="border:0; border-top:1px solid #eee; margin:8px 0;">
         <b>🌲 資料來源：</b><br>
         空間數據共享平台 (CSDI) 開放數據
     </div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- MapLibre GL JS -->
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <!-- Leaflet MapLibre GL Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"></script>
     <!-- Marker Cluster JS -->
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <!-- PapaParse -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
+        // 初始化地圖 (置中香港)
         var map = L.map('map', {
             renderer: L.canvas(),
-            maxZoom: 22
+            maxZoom: 22,
+            maxBounds: [[180, -Infinity], [-180, Infinity]],
+            maxBoundsViscosity: 1
         }).setView([22.3193, 114.1694], 12);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 22,
-            maxNativeZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        // 使用 OpenFreeMap Bright 向量底圖（完全免費、免 API Key、中英文地名清晰）
+        L.maplibreGL({
+            style: 'https://tiles.openfreemap.org/styles/bright',
+            attribution: '&copy; <a href="https://openfreemap.org">OpenFreeMap</a> &copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
         var markersCluster = L.markerClusterGroup({ 
@@ -194,7 +208,7 @@
         var allMarkers = []; 
         var speciesCounts = {}; 
         var typeCounts = { ALL: 0, OVT: 0, SWT: 0, BOTH: 0, OTHER: 0 }; 
-        var speciesDict = {};   
+        var speciesDict = {};    
         var labelsEnabled = true; 
 
         // 步驟 1: 先載入 tree_species.csv 建立品種屬性字典
@@ -322,10 +336,8 @@
                 complete: function() {
                     document.getElementById('loading').style.display = 'none';
                     
-                    // 1. 更新「全部品種」選項數量
                     document.getElementById('opt-all-species').textContent = `全部品種 ｜ ${typeCounts.ALL.toLocaleString()} 棵`;
 
-                    // 2. 填入各品種選單（格式：品種 ｜ 數量）
                     var selectElement = document.getElementById('speciesSelect');
                     var sortedSpecies = Object.keys(speciesCounts).sort(function(a, b) {
                         return speciesCounts[b] - speciesCounts[a];
@@ -339,7 +351,6 @@
                         selectElement.appendChild(opt);
                     });
 
-                    // 3. 更新「類型」選單顯示數量
                     document.getElementById('opt-all-type').textContent = `全部類型 ｜ ${typeCounts.ALL.toLocaleString()} 棵`;
                     document.getElementById('opt-ovt').textContent = `古樹名木 ｜ ${typeCounts.OVT.toLocaleString()} 棵`;
                     document.getElementById('opt-swt').textContent = `石牆樹 ｜ ${typeCounts.SWT.toLocaleString()} 棵`;
@@ -351,7 +362,6 @@
             });
         }
 
-        // 標籤顯示控制
         function updateLabelsVisibility() {
             var currentZoom = map.getZoom();
             var bounds = map.getBounds();
@@ -386,7 +396,6 @@
 
         map.on('moveend zoomend', updateLabelsVisibility);
 
-        // 綜合篩選功能（品種 + 類型）
         function applyFilters() {
             var selectedSpecies = document.getElementById('speciesSelect').value;
             var selectedType = document.getElementById('typeSelect').value;
