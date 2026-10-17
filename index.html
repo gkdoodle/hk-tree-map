@@ -51,7 +51,6 @@
             display: flex; align-items: center; gap: 8px;
         }
 
-        /* 側邊欄面板：使用 transform scale + opacity 實現極致絲滑的展開/收合動畫 */
         .sidebar-panel {
             position: absolute;
             top: 20px; left: 20px;
@@ -69,7 +68,6 @@
             transform: scale(1);
         }
 
-        /* 當面板收合成圓形圖標時的狀態 */
         .sidebar-panel.minimized {
             width: 46px;
             height: 46px;
@@ -83,7 +81,6 @@
             pointer-events: none;
         }
 
-        /* 圓形浮動展開按鈕：收合時淡入並保持完美圓形 */
         .float-expand-btn {
             position: absolute;
             top: 20px; left: 20px;
@@ -226,7 +223,35 @@
             font-size: 12px; font-weight: 700; color: var(--text-main); margin: 8px 0 4px 0;
         }
 
-        /* IG 風格正方形網格 */
+        /* 科名手風琴樣式 Accordion */
+        .family-accordion {
+            border: 1px solid #eef2ee;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .family-header {
+            padding: 10px 14px;
+            background: #fdfdfd;
+            cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 13px; font-weight: 700; color: var(--text-main);
+            transition: background 0.2s;
+        }
+        .family-header:hover { background: var(--primary-light); }
+        .family-count {
+            font-size: 11px; color: var(--primary-color); font-weight: 600;
+            background: var(--primary-light); padding: 2px 8px; border-radius: 10px;
+        }
+        .family-content {
+            display: none;
+            padding: 10px;
+            border-top: 1px solid #f0f0f0;
+            background: #fafafa;
+        }
+        .family-content.open { display: block; }
+
         .species-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -261,11 +286,11 @@
         }
 
         .tree-label {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid #2e7d32; border-radius: 3px;
-            padding: 1px 3px; font-size: 9px; font-weight: bold;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #2e7d32; border-radius: 4px;
+            padding: 2px 5px; font-size: 10px; font-weight: bold;
             color: #1b5e20; white-space: nowrap;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.12);
         }
 
         .seasonal-emoji-marker {
@@ -304,7 +329,6 @@
             border-bottom: 1px solid #eee !important;
         }
 
-        /* 關於本站 Modal 彈窗樣式 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0,0,0,0.4); backdrop-filter: blur(5px);
@@ -398,12 +422,12 @@
         <div class="panel-body" id="panelBody"></div>
     </div>
 
-    <!-- 獨立的圓形浮動展開按鈕（收合時顯示） -->
+    <!-- 圓形浮動展開按鈕（收合時顯示） -->
     <button class="float-expand-btn" id="expandBtn" onclick="toggleSidebar()" title="展開面板">🗁</button>
 
     <!-- 右上角控制按鈕 -->
     <div class="control-group" id="mapControls">
-        <button class="icon-map-btn" id="toggleLabelBtn" onclick="toggleLabels()" title="隱藏/顯示標籤">🏷️</button>
+        <button class="icon-map-btn" id="toggleLabelBtn" onclick="toggleLabels()" style="opacity: 1;" title="隱藏/顯示標籤">🏷️</button>
         <button class="icon-map-btn" onclick="locateUser()" title="我的位置">📍</button>
     </div>
 
@@ -516,12 +540,13 @@
         var allGovTreeMarkers = [];
         var allSeasonalMarkers = [];
         var speciesCounts = {};
+        var familySpeciesDict = {}; // 科名 -> 屬下樹種列表
         var typeCounts = { ALL: 0, OVT: 0, SWT: 0, OVT_SWT: 0 };
         var activeTab = 'trees';
         var activeTypeFilter = 'ALL';
         var activeSeasonalCategory = 'ALL';
         var activeMonthFilter = 'ALL';
-        var labelsEnabled = false;
+        var labelsEnabled = true; // 圖四：預設 Show 曬所有 Tag
         var isMinimized = false;
 
         // 1. 載入樹木品種資料
@@ -593,6 +618,7 @@
             return spotMonths.some(m => targetMonths.includes(m));
         }
 
+        // 圖一 & 圖二：優化季節景點 Popup 與 Icon
         function buildSeasonalMarkers() {
             allSeasonalMarkers = [];
             seasonalData.forEach(function(item) {
@@ -603,17 +629,20 @@
                     var category = (item.大分類 || '').trim();
                     var species = item.細分品種 || item.Chinese_Name || '';
                     var months = (item.觀賞月份 || item.最佳觀賞月份 || item.Best_Months || '').trim();
-                    var sci = item.學名 ? '學名：' + item.學名 : '';
+                    var sci = item.學名 ? item.學名 : '';
                     var desc = item.說明 || '';
 
                     let emoji = "🌸";
                     let styleClass = "seasonal-emoji-flower";
 
-                    if (category.includes("紅葉")) {
+                    // 圖二：將榕樹 Icon 改為 🌳，避免與自然生態 🍃 撞 Icon
+                    if (category.includes("榕樹")) {
+                        emoji = "🌳"; styleClass = "seasonal-emoji-nature";
+                    } else if (category.includes("紅葉")) {
                         emoji = "🍁"; styleClass = "seasonal-emoji-maple";
                     } else if (category.includes("日落")) {
                         emoji = "🌅"; styleClass = "seasonal-emoji-sunset";
-                    } else if (category.includes("自然生態") || category.includes("榕樹")) {
+                    } else if (category.includes("自然生態")) {
                         emoji = "🍃"; styleClass = "seasonal-emoji-nature";
                     }
 
@@ -631,15 +660,16 @@
 
                     var targetUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
                     
+                    // 圖一：學名移去品種下面
                     var popupContent = `
-                        <div style="min-width: 200px; font-family: sans-serif;">
-                            <div style="font-size: 15px; font-weight: 700; color: var(--primary-color); margin-bottom: 2px;">${title}</div>
-                            ${sci ? '<div style="font-size: 11.5px; font-style: italic; color: #666; margin-bottom: 6px;">' + sci + '</div>' : ''}
+                        <div style="min-width: 210px; font-family: sans-serif; padding: 2px;">
+                            <div style="font-size: 16px; font-weight: 700; color: var(--primary-color); margin-bottom: 6px;">${title}</div>
                             <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
-                            ${species ? '<div style="font-size: 12px; margin-bottom: 4px;"><b>品種：</b>' + species + '</div>' : ''}
-                            ${months ? '<div style="font-size: 12px; margin-bottom: 4px;">🗓️ <b>觀賞月份：</b>' + months + '</div>' : ''}
+                            ${species ? '<div style="font-size: 13px; margin-bottom: 2px; font-weight:600;">品種：' + species + '</div>' : ''}
+                            ${sci ? '<div style="font-size: 11.5px; font-style: italic; color: #666; margin-bottom: 6px;">學名：' + sci + '</div>' : ''}
+                            ${months ? '<div style="font-size: 12.5px; margin-bottom: 4px; color:#444;">🗓️ <b>觀賞月份：</b>' + months + '</div>' : ''}
                             ${desc ? '<div style="font-size: 12px; margin-bottom: 8px; color: #555;">📌 ' + desc + '</div>' : ''}
-                            <a href="${targetUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 6px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: 8px;">在 Google 地圖中開啟導航 🗺️</a>
+                            <a href="${targetUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: 8px;">在 Google 地圖中開啟導航 🗺️</a>
                         </div>
                     `;
 
@@ -649,7 +679,7 @@
             });
         }
 
-        // 3. 載入官方樹木與 other_trees_location.csv
+        // 3. 載入官方樹木資料
         function loadGovTrees() {
             Papa.parse('csdi_gov_trees_named.csv', {
                 download: true, header: true, skipEmptyLines: true,
@@ -671,10 +701,20 @@
         function finalizeLoading() {
             var loadingEl = document.getElementById('loading');
             if (loadingEl) loadingEl.style.display = 'none';
+            
+            // 整理科名 -> 樹種資料
+            Object.keys(speciesCounts).forEach(function(spName) {
+                var info = speciesDict[spName] || {};
+                var fam = info.family || '常見植物科';
+                if (!familySpeciesDict[fam]) familySpeciesDict[fam] = [];
+                familySpeciesDict[fam].push(spName);
+            });
+
             updateMapMarkers();
             renderPanelBody();
         }
 
+        // 圖五：點擊樹木地標彈出 Popup 卡片
         function processTreeRow(row) {
             var lat = parseFloat(row.GeometryLatitude);
             var lng = parseFloat(row.GeometryLongitude);
@@ -708,17 +748,24 @@
                 var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
                 var treeId = row.OVTNo || row.TR_no_ || row.TMCP_ID || '';
                 var dataSource = row.Source || '樹木登記冊 / CSDI';
-                var targetUrl = speciesInfo.url || 'https://zh.wikipedia.org/wiki/' + encodeURIComponent(treeName);
                 var gmapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
 
-                marker.on('click', function() {
-                    showDetailView({
-                        title: treeName, sciName: sciName, family: familyName,
-                        origin: originStatus, location: locationName, id: treeId,
-                        source: dataSource, url: targetUrl, gmapsUrl: gmapsUrl, isTree: true
-                    });
-                });
+                // 圖五：點擊直接彈出包含完整資訊的 Popup 卡片
+                var popupContent = `
+                    <div style="min-width: 220px; font-family: sans-serif; padding: 2px;">
+                        <div style="font-size: 16px; font-weight: 700; color: var(--primary-color); margin-bottom: 2px;">${treeName}</div>
+                        ${sciName ? '<div style="font-size: 12px; font-style: italic; color: #666; margin-bottom: 6px;">' + sciName + '</div>' : ''}
+                        <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
+                        <div style="font-size: 12.5px; margin-bottom: 3px;"><b>科名：</b>${familyName}</div>
+                        <div style="font-size: 12.5px; margin-bottom: 3px;"><b>屬性：</b>${originStatus}</div>
+                        <div style="font-size: 12.5px; margin-bottom: 3px;"><b>地點：</b>${locationName}</div>
+                        ${treeId ? '<div style="font-size: 12px; color: #666; margin-bottom: 3px;"><b>編號：</b>' + treeId + '</div>' : ''}
+                        <div style="font-size: 11px; color: #888; margin-top: 4px;"><b>來源：</b>${dataSource}</div>
+                        <a href="${gmapsUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: 8px;">在 Google 地圖中開啟導航 🗺️</a>
+                    </div>
+                `;
 
+                marker.bindPopup(popupContent);
                 marker.bindTooltip(treeName, { direction: 'right', offset: [5, 0], className: 'tree-label', permanent: false });
                 marker.speciesName = treeName;
                 marker.categoryType = category;
@@ -750,27 +797,6 @@
             updateLabelsVisibility();
         }
 
-        function showDetailView(data) {
-            var body = document.getElementById('panelBody');
-            body.innerHTML = `
-                <div class="detail-view">
-                    <button class="detail-back-btn" onclick="renderPanelBody()">◀ 返回列表</button>
-                    <div class="detail-title">
-                        <a href="${data.url}" target="_blank" style="color: var(--primary-color); text-decoration: none;">${data.title} 🔗</a>
-                    </div>
-                    <div class="detail-sci">${data.sciName}</div>
-                    <hr class="detail-divider">
-                    <div class="detail-row"><b>科名：</b>${data.family}</div>
-                    <div class="detail-row"><b>屬性：</b>${data.origin}</div>
-                    <div class="detail-row"><b>地點：</b>${data.location}</div>
-                    ${data.id ? `<div class="detail-row"><b>編號：</b>${data.id}</div>` : ''}
-                    <hr class="detail-divider">
-                    <div class="detail-row" style="font-size:11px; color:#555;"><b>來源：</b>${data.source}</div>
-                    <a href="${data.gmapsUrl}" target="_blank" class="gmaps-btn">在 Google 地圖中開啟導航 🗺️</a>
-                </div>
-            `;
-        }
-
         function switchTab(tab) {
             activeTab = tab;
             document.getElementById('tabTrees').classList.toggle('active', tab === 'trees');
@@ -779,17 +805,37 @@
             renderPanelBody();
         }
 
+        // 圖三：將品種卡片改按「科名」做手風琴分類折疊/展開
         function renderPanelBody() {
             var body = document.getElementById('panelBody');
             
             if (activeTab === 'trees') {
-                var sortedSpecies = Object.keys(speciesCounts).sort(function(a, b) { return speciesCounts[b] - speciesCounts[a]; });
-                var speciesCardsHtml = sortedSpecies.map(function(sp) {
-                    var count = speciesCounts[sp];
+                var familyKeys = Object.keys(familySpeciesDict).sort();
+                
+                var familyAccordionHtml = familyKeys.map(function(fam, index) {
+                    var speciesList = familySpeciesDict[fam];
+                    // 計算該科的總樹木數量
+                    var totalFamTrees = speciesList.reduce((acc, sp) => acc + (speciesCounts[sp] || 0), 0);
+
+                    var speciesCardsHtml = speciesList.map(function(sp) {
+                        var count = speciesCounts[sp] || 0;
+                        return `
+                            <div class="species-square-card" onclick="filterBySpecies('${sp}')">
+                                <div class="species-card-name">${sp}</div>
+                                <div class="species-card-count">${count.toLocaleString()} 棵</div>
+                            </div>
+                        `;
+                    }).join('');
+
                     return `
-                        <div class="species-square-card" onclick="filterBySpecies('${sp}')">
-                            <div class="species-card-name">${sp}</div>
-                            <div class="species-card-count">${count.toLocaleString()} 棵</div>
+                        <div class="family-accordion">
+                            <div class="family-header" onclick="toggleFamilyAccordion('fam-${index}')">
+                                <span>🌿 ${fam} (${speciesList.length} 種)</span>
+                                <span class="family-count">${totalFamTrees.toLocaleString()} 棵 ▾</span>
+                            </div>
+                            <div class="family-content" id="fam-${index}">
+                                <div class="species-grid">${speciesCardsHtml}</div>
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -800,8 +846,8 @@
                         <button class="chip ${activeTypeFilter === 'OVT' ? 'active' : ''}" onclick="filterByType('OVT')">古樹名木 (${typeCounts.OVT})</button>
                         <button class="chip ${activeTypeFilter === 'SWT' ? 'active' : ''}" onclick="filterByType('SWT')">石牆樹 (${typeCounts.SWT})</button>
                     </div>
-                    <div style="font-size:11.5px; color:#666; margin-bottom:10px;">點擊下方品種卡片，地圖將篩選該樹種分佈。</div>
-                    <div class="species-grid">${speciesCardsHtml}</div>
+                    <div style="font-size:11.5px; color:#666; margin-bottom:10px;">點擊科名展開樹種選單，選取樹木可顯示分佈。</div>
+                    <div>${familyAccordionHtml}</div>
                 `;
             } else {
                 body.innerHTML = `
@@ -824,6 +870,13 @@
                         <button class="chip ${activeMonthFilter === '11-1' ? 'active' : ''}" onclick="filterMonth('11-1')">11-1月</button>
                     </div>
                 `;
+            }
+        }
+
+        function toggleFamilyAccordion(elementId) {
+            var content = document.getElementById(elementId);
+            if (content) {
+                content.classList.toggle('open');
             }
         }
 
@@ -853,19 +906,6 @@
             });
             markersCluster.addLayers(filtered);
             if (filtered.length > 0) map.setView(filtered[0].getLatLng(), 15);
-
-            var info = speciesDict[speciesName] || {};
-            showDetailView({
-                title: speciesName,
-                sciName: info.scientificName || '植物學名',
-                family: info.family || '常見植物科',
-                origin: info.origin || '本地 / 外來',
-                location: '全港共 ' + filtered.length + ' 棵',
-                source: '香港植物標本室 / CSDI',
-                url: info.url || 'https://zh.wikipedia.org/wiki/' + encodeURIComponent(speciesName),
-                gmapsUrl: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(speciesName),
-                isTree: true
-            });
         }
 
         function flyToSpot(lat, lng, title) {
@@ -912,6 +952,7 @@
             else { resultsDiv.style.display = 'none'; }
         }
 
+        // 圖四：預設開啟 Show 曬所有樹木 Tag (放大到 level 18 時顯示)
         function updateLabelsVisibility() {
             var currentZoom = map.getZoom();
             allGovTreeMarkers.forEach(function(marker) {
