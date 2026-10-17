@@ -422,7 +422,8 @@
     <button class="float-expand-btn" id="expandBtn" onclick="toggleSidebar()" title="展開面板">🗁</button>
 
     <div class="control-group" id="mapControls">
-        <button class="icon-map-btn" id="toggleLabelBtn" onclick="toggleLabels()" style="opacity: 1;" title="隱藏/顯示標籤">🏷️</button>
+        <!-- 預設關閉 Tag，按鈕設為半透明 -->
+        <button class="icon-map-btn" id="toggleLabelBtn" onclick="toggleLabels()" style="opacity: 0.5;" title="隱藏/顯示標籤">🏷️</button>
         <button class="icon-map-btn" onclick="locateUser()" title="我的位置">📍</button>
     </div>
 
@@ -540,7 +541,7 @@
         var activeTypeFilter = 'ALL';
         var activeSeasonalCategory = 'ALL';
         var activeMonthFilter = 'ALL';
-        var labelsEnabled = true;
+        var labelsEnabled = false; // 預設關閉 Tag，大幅提升流暢度
         var isMinimized = false;
 
         // 1. 載入樹木品種資料
@@ -741,7 +742,6 @@
                 var targetUrl = speciesInfo.url || 'https://zh.wikipedia.org/wiki/' + encodeURIComponent(treeName);
                 var gmapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
 
-                // 樹木名稱加上超連結
                 var popupContent = `
                     <div style="min-width: 220px; font-family: sans-serif; padding: 2px;">
                         <div style="font-size: 16px; font-weight: 700; margin-bottom: 2px;">
