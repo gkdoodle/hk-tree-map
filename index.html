@@ -224,6 +224,7 @@
             color: #fff;
         }
 
+        /* 卡片設計 (品種列表 & 季節景點列表) */
         .spot-card {
             background: #fff;
             border: 1px solid #f0f0f0;
@@ -263,7 +264,73 @@
             gap: 6px;
         }
 
-        /* 右上角控制按鈕群組與放大縮小制放大 */
+        /* 詳細檔案卡 (Detail View) 樣式 */
+        .detail-view {
+            animation: fadeIn 0.2s ease-out;
+        }
+        .detail-back-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            cursor: pointer;
+            margin-bottom: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .detail-back-btn:hover {
+            background: #e0e0e0;
+        }
+        .detail-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+        .detail-sci {
+            font-size: 13px;
+            font-style: italic;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .detail-divider {
+            border: 0;
+            border-top: 1px solid #eee;
+            margin: 10px 0;
+        }
+        .detail-row {
+            font-size: 13px;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+        .gmaps-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: #1976d2;
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-weight: 600;
+            margin-top: 14px;
+            transition: background 0.2s;
+        }
+        .gmaps-btn:hover {
+            background: #115293;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 右上角控制按鈕群組 */
         .control-group {
             position: absolute;
             top: 20px;
@@ -294,7 +361,6 @@
             transform: scale(1.05);
         }
 
-        /* 放大 Leaflet 原生的 zoom 控制按鈕尺寸與字體 */
         .leaflet-control-zoom {
             border: none !important;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
@@ -514,11 +580,13 @@
                 <button class="about-btn" onclick="openAboutModal()">關於本站 ℹ️</button>
             </div>
 
+            <!-- 全局統一搜尋欄 -->
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="搜尋樹木品種、地點或季節景點..." oninput="handleSearch()">
                 <div id="searchResults" class="search-results-dropdown"></div>
             </div>
 
+            <!-- 雙頁籤 (預設選中 🌳 樹木地圖) -->
             <div class="tab-group">
                 <button class="tab-btn active" id="tabTrees" onclick="switchTab('trees')">🌳 樹木地圖</button>
                 <button class="tab-btn" id="tabSeasonal" onclick="switchTab('seasonal')">🌸 季節景點</button>
@@ -648,10 +716,8 @@
             zoomControl: false 
         }).setView([22.3193, 114.1694], 12);
 
-        // 將 Leaflet 放大縮小制加入右上角控制群組
         var zoomControl = L.control.zoom({ position: 'topright' });
         zoomControl.addTo(map);
-
         var zoomContainer = zoomControl.getContainer();
         var controlGroup = document.getElementById('mapControls');
         controlGroup.insertBefore(zoomContainer, controlGroup.firstChild);
@@ -661,15 +727,25 @@
             attribution: '&copy; OpenFreeMap'
         }).addTo(map);
 
-        var markersCluster = L.markerClusterGroup({ chunkedLoading: true, disableClusteringAtZoom: 18 });
+        var markersCluster = L.markerClusterGroup({ 
+            chunkedLoading: true, 
+            disableClusteringAtZoom: 18,
+            spiderfyOnMaxZoom: false,
+            showCoverageOnHover: false
+        });
         map.addLayer(markersCluster);
 
         var speciesDict = {};
         var seasonalData = [];
         var allGovTreeMarkers = [];
-        var activeTab = 'trees'; // 預設為樹木地圖
+        var speciesCounts = {};
+        var typeCounts = { ALL: 0, OVT: 0, SWT: 0, OVT_SWT: 0 };
+        var activeTab = 'trees';
+        var activeTypeFilter = 'ALL';
+        var activeSpeciesFilter = 'ALL';
         var labelsEnabled = true;
 
+        // 1. 載入品種字典 tree_species.csv
         Papa.parse('tree_species.csv', {
             download: true,
             header: true,
@@ -677,13 +753,23 @@
             complete: function(res) {
                 res.data.forEach(function(row) {
                     var sName = (row.Chinese_Name || '').trim();
-                    if (sName) speciesDict[sName] = row;
+                    if (sName) {
+                        speciesDict[sName] = {
+                            scientificName: row.Scientific_Name || '',
+                            family: row['科名'] || '常見植物科',
+                            origin: row['品種屬性'] || '本地 / 外來',
+                            flowering: row['花期'] || '',
+                            fruiting: row['果期'] || '',
+                            url: row['樹木網頁'] || ''
+                        };
+                    }
                 });
                 loadSeasonalSpots();
             },
             error: loadSeasonalSpots
         });
 
+        // 2. 載入季節景點 seasonal_spots_enhanced.csv
         function loadSeasonalSpots() {
             Papa.parse('seasonal_spots_enhanced.csv', {
                 download: true,
@@ -708,6 +794,7 @@
             });
         }
 
+        // 3. 載入官方樹木數據 csdi_gov_trees_named.csv
         function loadGovTrees() {
             Papa.parse('csdi_gov_trees_named.csv', {
                 download: true,
@@ -721,27 +808,62 @@
                         var treeName = (row.Chinese_Name || '未命名樹木').trim();
                         var treeType = (row.Type || '').trim();
 
+                        speciesCounts[treeName] = (speciesCounts[treeName] || 0) + 1;
+                        typeCounts.ALL++;
+
+                        let category = "OTHER";
                         let color = "#2e7d32";
-                        if (treeType === 'OVT') color = "#fbc02d";
-                        else if (treeType === 'SWT') color = "#795548";
+                        let radiusSize = 5;
+
+                        if (treeType === 'OVT') {
+                            category = "OVT";
+                            color = "#fbc02d";
+                            radiusSize = 6;
+                            typeCounts.OVT++;
+                        } else if (treeType === 'SWT') {
+                            category = "SWT";
+                            color = "#795548";
+                            radiusSize = 6;
+                            typeCounts.SWT++;
+                        } else if (treeType.includes('OVT') && treeType.includes('SWT')) {
+                            category = "OVT_SWT";
+                            color = "#fb8c00";
+                            radiusSize = 7;
+                            typeCounts.OVT_SWT++;
+                        }
 
                         var marker = L.circleMarker([lat, lng], {
-                            radius: 5,
+                            radius: radiusSize,
                             fillColor: color,
                             color: "#ffffff",
-                            weight: 1,
-                            fillOpacity: 0.85
+                            weight: 1.5,
+                            fillOpacity: 0.9
                         });
 
-                        var popupHtml = `
-                            <div style="font-family:sans-serif;">
-                                <h3 style="margin:0; color:#2e7d32;">${treeName}</h3>
-                                <p style="margin:4px 0; font-size:12px; color:#666;">${row.Scientific_Name || ''}</p>
-                                <p style="margin:4px 0; font-size:12px;">地點：${row.Location_in_Chinese || '不詳'}</p>
-                            </div>
-                        `;
-                        marker.bindPopup(popupHtml);
-                        marker.treeName = treeName;
+                        var speciesInfo = speciesDict[treeName] || {};
+                        var sciName = row.Scientific_Name || speciesInfo.scientificName || '';
+                        var familyName = speciesInfo.family || '常見植物科';
+                        var originStatus = speciesInfo.origin || '本地 / 外來';
+                        var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
+                        var treeId = row.OVTNo || row.TR_no_ || row.TMCP_ID || '';
+                        var dataSource = row.Source || '樹木登記冊 / CSDI';
+                        var targetUrl = speciesInfo.url || `https://zh.wikipedia.org/wiki/${encodeURIComponent(treeName)}`;
+                        var gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
+                        // 點擊點位時切換為左側詳情檔案卡 (Detail View)
+                        marker.on('click', function() {
+                            showDetailView({
+                                title: treeName,
+                                sciName: sciName,
+                                family: familyName,
+                                origin: originStatus,
+                                location: locationName,
+                                id: treeId,
+                                source: dataSource,
+                                url: targetUrl,
+                                gmapsUrl: gmapsUrl
+                            });
+                        });
 
                         marker.bindTooltip(treeName, {
                             direction: 'right',
@@ -750,17 +872,42 @@
                             permanent: false
                         });
 
+                        marker.speciesName = treeName;
+                        marker.categoryType = category;
                         allGovTreeMarkers.push(marker);
                         markersCluster.addLayer(marker);
                     }
                 },
                 complete: function() {
                     document.getElementById('loading').style.display = 'none';
-                    renderPanelBody(); // 初始化預設渲染樹木地圖面板
+                    renderPanelBody();
                 }
             });
         }
 
+        // 顯示 V1 風格的詳細檔案卡 (Detail View)
+        function showDetailView(data) {
+            var body = document.getElementById('panelBody');
+            body.innerHTML = `
+                <div class="detail-view">
+                    <button class="detail-back-btn" onclick="renderPanelBody()">◀ 返回列表</button>
+                    <div class="detail-title">
+                        <a href="${data.url}" target="_blank" style="color: var(--primary-color); text-decoration: none;" title="點擊查看維基百科">${data.title} 🔗</a>
+                    </div>
+                    <div class="detail-sci">${data.sciName}</div>
+                    <hr class="detail-divider">
+                    <div class="detail-row"><b>科名：</b>${data.family}</div>
+                    <div class="detail-row"><b>品種屬性：</b>${data.origin}</div>
+                    <div class="detail-row"><b>地點：</b>${data.location}</div>
+                    ${data.id ? `<div class="detail-row"><b>樹木編號：</b>${data.id}</div>` : ''}
+                    <hr class="detail-divider">
+                    <div class="detail-row" style="font-size:11px; color:#555;"><b>資料來源：</b>${data.source}</div>
+                    <a href="${data.gmapsUrl}" target="_blank" class="gmaps-btn">在 Google 地圖中開啟導航 🗺️</a>
+                </div>
+            `;
+        }
+
+        // 頁籤切換
         function switchTab(tab) {
             activeTab = tab;
             document.getElementById('tabTrees').classList.toggle('active', tab === 'trees');
@@ -768,16 +915,37 @@
             renderPanelBody();
         }
 
+        // 渲染左側面板內容
         function renderPanelBody() {
             var body = document.getElementById('panelBody');
+            
             if (activeTab === 'trees') {
+                var sortedSpecies = Object.keys(speciesCounts).sort(function(a, b) {
+                    return speciesCounts[b] - speciesCounts[a];
+                });
+
+                var speciesCardsHtml = sortedSpecies.map(function(sp) {
+                    var count = speciesCounts[sp];
+                    var info = speciesDict[sp] || {};
+                    var sci = info.scientificName || '';
+                    var flower = info.flowering ? `🌸 花期：${info.flowering}` : '🌳 常見樹木';
+                    return `
+                        <div class="spot-card" onclick="filterBySpecies('${sp}')">
+                            <div class="spot-title">${sp} ｜ ${count.toLocaleString()} 棵</div>
+                            <div class="spot-subtitle">${sci}</div>
+                            <div class="spot-meta">${flower}</div>
+                        </div>
+                    `;
+                }).join('');
+
                 body.innerHTML = `
                     <div class="chip-group">
-                        <button class="chip active">全部品種</button>
-                        <button class="chip">古樹名木</button>
-                        <button class="chip">石牆樹</button>
+                        <button class="chip ${activeTypeFilter === 'ALL' ? 'active' : ''}" onclick="filterByType('ALL')">全部品種 (${typeCounts.ALL.toLocaleString()})</button>
+                        <button class="chip ${activeTypeFilter === 'OVT' ? 'active' : ''}" onclick="filterByType('OVT')">古樹名木 (${typeCounts.OVT})</button>
+                        <button class="chip ${activeTypeFilter === 'SWT' ? 'active' : ''}" onclick="filterByType('SWT')">石牆樹 (${typeCounts.SWT})</button>
                     </div>
-                    <div style="font-size:12px; color:#666; margin-bottom:10px;">點擊樹木種類地圖自動定位，顯示區域數量分佈。</div>
+                    <div style="font-size:12px; color:#666; margin-bottom:12px;">點擊下方品種卡片，地圖將自動篩選並定位該樹種分佈。</div>
+                    ${speciesCardsHtml}
                 `;
             } else {
                 var cardsHtml = seasonalData.map(function(item) {
@@ -786,11 +954,12 @@
                     var months = item.最佳觀賞月份 || item.Best_Months || '當季景點';
                     var lat = item.Latitude || item.GeometryLatitude;
                     var lng = item.Longitude || item.GeometryLongitude;
+                    var sci = item.學名 ? '｜ ' + item.學名 : '';
 
                     return `
                         <div class="spot-card" onclick="flyToSpot(${lat}, ${lng}, '${title}')">
                             <div class="spot-title">${title}</div>
-                            <div class="spot-subtitle">${species} ${item.學名 ? '｜ ' + item.學名 : ''}</div>
+                            <div class="spot-subtitle">${species} ${sci}</div>
                             <div class="spot-meta">🗓️ 最佳觀賞期：${months}</div>
                         </div>
                     `;
@@ -808,13 +977,50 @@
             }
         }
 
-        function flyToSpot(lat, lng, title) {
-            if (lat && lng) {
-                map.flyTo([lat, lng], 16, { duration: 1.5 });
-                L.popup().setLatLng([lat, lng]).setContent(`<b>${title}</b>`).openOn(map);
-            }
+        // 依類型篩選 (全部 / 古樹名木 / 石牆樹)
+        function filterByType(type) {
+            activeTypeFilter = type;
+            activeSpeciesFilter = 'ALL';
+            markersCluster.clearLayers();
+            var filtered = [];
+            allGovTreeMarkers.forEach(function(m) {
+                if (type === 'ALL' || m.categoryType === type) {
+                    filtered.push(m);
+                }
+            });
+            markersCluster.addLayers(filtered);
+            renderPanelBody();
         }
 
+        // 依品種篩選
+        function filterBySpecies(speciesName) {
+            activeSpeciesFilter = speciesName;
+            markersCluster.clearLayers();
+            var filtered = [];
+            allGovTreeMarkers.forEach(function(m) {
+                if (m.speciesName === speciesName) {
+                    filtered.push(m);
+                }
+            });
+            markersCluster.addLayers(filtered);
+            if (filtered.length > 0) {
+                map.setView(filtered[0].getLatLng(), 16);
+            }
+            // 顯示該品種的詳細資訊卡
+            var info = speciesDict[speciesName] || {};
+            showDetailView({
+                title: speciesName,
+                sciName: info.scientificName || '植物學名',
+                family: info.family || '常見植物科',
+                origin: info.origin || '本地 / 外來',
+                location: `全港共 ${filtered.length} 棵`,
+                source: '香港植物標本室 / CSDI',
+                url: info.url || `https://zh.wikipedia.org/wiki/${encodeURIComponent(speciesName)}`,
+                gmapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(speciesName)}`
+            });
+        }
+
+        // 全局統一搜尋欄 (同時搜尋官方樹木品種與季節景點)
         function handleSearch() {
             var query = document.getElementById('searchInput').value.trim().toLowerCase();
             var resultsDiv = document.getElementById('searchResults');
@@ -824,24 +1030,47 @@
                 return;
             }
 
-            var matches = seasonalData.filter(function(d) {
+            // 搜尋季節景點
+            var matchedSpots = seasonalData.filter(function(d) {
                 var text = (d.地點名稱 || '') + (d.細分品種 || '') + (d.名稱 || '');
                 return text.toLowerCase().includes(query);
-            }).slice(0, 5);
+            }).slice(0, 4);
 
-            if (matches.length > 0) {
-                resultsDiv.innerHTML = matches.map(function(m) {
-                    var title = m.地點名稱 || m.Location_Name || m.名稱;
-                    var lat = m.Latitude || m.GeometryLatitude;
-                    var lng = m.Longitude || m.GeometryLongitude;
-                    return `<div class="search-item" onclick="flyToSpot(${lat}, ${lng}, '${title}'); document.getElementById('searchResults').style.display='none';">
-                        <span>📍 ${title}</span>
-                        <span style="font-size:11px; color:#888;">${m.細分品種 || '景點'}</span>
-                    </div>`;
-                }).join('');
+            // 搜尋樹木品種
+            var matchedSpecies = Object.keys(speciesCounts).filter(function(s) {
+                return s.toLowerCase().includes(query);
+            }).slice(0, 4);
+
+            var html = '';
+            matchedSpots.forEach(function(m) {
+                var title = m.地點名稱 || m.Location_Name || m.名稱;
+                var lat = m.Latitude || m.GeometryLatitude;
+                var lng = m.Longitude || m.GeometryLongitude;
+                html += `<div class="search-item" onclick="flyToSpot(${lat}, ${lng}, '${title}'); document.getElementById('searchResults').style.display='none';">
+                    <span>🌸 景點：${title}</span>
+                    <span style="font-size:11px; color:#888;">${m.細分品種 || ''}</span>
+                </div>`;
+            });
+
+            matchedSpecies.forEach(function(s) {
+                html += `<div class="search-item" onclick="filterBySpecies('${s}'); document.getElementById('searchResults').style.display='none';">
+                    <span>🌳 樹種：${s}</span>
+                    <span style="font-size:11px; color:#888;">${speciesCounts[s]} 棵</span>
+                </div>`;
+            });
+
+            if (html) {
+                resultsDiv.innerHTML = html;
                 resultsDiv.style.display = 'block';
             } else {
                 resultsDiv.style.display = 'none';
+            }
+        }
+
+        function flyToSpot(lat, lng, title) {
+            if (lat && lng) {
+                map.flyTo([lat, lng], 16, { duration: 1.5 });
+                L.popup().setLatLng([lat, lng]).setContent(`<b>${title}</b>`).openOn(map);
             }
         }
 
