@@ -24,222 +24,306 @@
             --border-radius: 16px;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body, html {
-            height: 100%; width: 100%;
+            height: 100%;
+            width: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: var(--text-main);
             overflow: hidden;
-            background: #e5e3df;
+            background: #f8f9fa;
         }
 
-        /* 確保地圖容器填滿整個畫面背景 */
         #map {
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
-            height: 100%;
+            height: 100vh;
             z-index: 1;
         }
 
         .loading-overlay {
-            position: fixed; top: 20px; right: 90px; z-index: 2000;
+            position: fixed;
+            top: 20px;
+            right: 90px;
+            z-index: 2000;
             background: rgba(255, 255, 255, 0.95);
-            padding: 10px 18px; border-radius: 30px;
+            padding: 10px 18px;
+            border-radius: 30px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            font-size: 13px; font-weight: 600; color: var(--primary-color);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-color);
             backdrop-filter: blur(8px);
-            display: flex; align-items: center; gap: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        /* 左側懸浮面板 */
         .sidebar-panel {
             position: absolute;
-            top: 20px; left: 20px;
+            top: 20px;
+            left: 20px;
             width: 380px;
             max-height: calc(100vh - 40px);
             z-index: 1000;
             background: var(--bg-white);
             border-radius: var(--border-radius);
             box-shadow: var(--shadow-card);
-            display: flex; flex-direction: column;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
             transition: all 0.3s ease;
         }
 
-        .sidebar-panel.minimized .panel-body {
-            display: none !important;
-        }
-
         .panel-header {
-            padding: 14px 16px 10px 16px;
+            padding: 20px 20px 12px 20px;
             border-bottom: 1px solid #f0f0f0;
-            background: #fff;
-            position: relative;
         }
 
-        .collapse-toggle-btn {
-            position: absolute;
-            top: 18px; right: 16px;
-            background: #f0f4f1; border: none;
-            color: var(--primary-color);
-            width: 28px; height: 28px; border-radius: 50%;
-            font-size: 12px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            transition: background 0.2s; z-index: 10;
+        .panel-title-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
         }
-        .collapse-toggle-btn:hover { background: #e1ede3; }
+
+        .panel-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: -0.5px;
+        }
+
+        .about-btn {
+            background: #f0f4f1;
+            border: none;
+            color: var(--primary-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .about-btn:hover {
+            background: #e1ede3;
+        }
 
         .search-container {
             position: relative;
-            margin-bottom: 10px;
-            padding-right: 36px;
+            margin-bottom: 12px;
         }
 
         .search-input {
             width: 100%;
-            padding: 9px 14px;
+            padding: 10px 16px;
+            padding-right: 36px;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
-            font-size: 13px; outline: none;
+            font-size: 13.5px;
+            outline: none;
             transition: border-color 0.2s;
             background: #fdfdfd;
         }
-        .search-input:focus { border-color: var(--primary-color); background: #fff; }
+
+        .search-input:focus {
+            border-color: var(--primary-color);
+            background: #fff;
+        }
 
         .search-results-dropdown {
             position: absolute;
-            top: 100%; left: 0; right: 36px;
-            background: #fff; border-radius: 10px;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 10px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-            max-height: 250px; overflow-y: auto;
-            z-index: 1010; display: none; margin-top: 4px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1010;
+            display: none;
+            margin-top: 4px;
         }
 
         .search-item {
-            padding: 9px 12px; font-size: 12.5px; cursor: pointer;
+            padding: 10px 14px;
+            font-size: 13px;
+            cursor: pointer;
             border-bottom: 1px solid #f7f7f7;
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .search-item:hover { background: var(--primary-light); }
+
+        .search-item:hover {
+            background: var(--primary-light);
+        }
 
         .tab-group {
             display: flex;
-            background: #f5f5f5; padding: 3px; border-radius: 10px;
+            background: #f5f5f5;
+            padding: 3px;
+            border-radius: 10px;
         }
 
         .tab-btn {
-            flex: 1; padding: 7px 0; border: none;
-            background: transparent; font-size: 12px; font-weight: 600;
-            color: var(--text-sub); border-radius: 8px; cursor: pointer;
+            flex: 1;
+            padding: 8px 0;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-sub);
+            border-radius: 8px;
+            cursor: pointer;
             transition: all 0.2s;
         }
+
         .tab-btn.active {
-            background: #fff; color: var(--primary-color);
+            background: #fff;
+            color: var(--primary-color);
             box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
 
         .panel-body {
-            padding: 14px 16px;
-            overflow-y: auto; flex: 1;
-            max-height: calc(100vh - 140px);
+            padding: 16px 20px;
+            overflow-y: auto;
+            flex: 1;
         }
 
         .chip-group {
-            display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
         }
 
         .chip {
-            padding: 5px 12px; border-radius: 16px;
-            background: #f0f0f0; font-size: 11.5px;
-            color: #555; cursor: pointer; border: none;
+            padding: 6px 14px;
+            border-radius: 16px;
+            background: #f0f0f0;
+            font-size: 12.5px;
+            color: #555;
+            cursor: pointer;
+            border: none;
             transition: all 0.2s;
         }
-        .chip.active { background: var(--primary-color); color: #fff; }
 
-        .species-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-
-        .species-square-card {
-            background: #fff;
-            border: 1px solid #eef2ee;
-            border-radius: 12px;
-            aspect-ratio: 1 / 1;
-            padding: 6px;
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            text-align: center; cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-        }
-        .species-square-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--primary-color);
-            box-shadow: 0 4px 12px rgba(46,125,50,0.12);
-        }
-        .species-card-name {
-            font-size: 11.5px; font-weight: 700; color: var(--text-main);
-            margin-bottom: 4px; display: -webkit-box;
-            -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-        }
-        .species-card-count {
-            font-size: 10.5px; color: var(--primary-color); font-weight: 600;
-            background: var(--primary-light); padding: 1px 5px; border-radius: 8px;
+        .chip.active {
+            background: var(--primary-color);
+            color: #fff;
         }
 
         .spot-card {
-            background: #fff; border: 1px solid #f0f0f0;
-            border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
-            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+            background: #fff;
+            border: 1px solid #f0f0f0;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
+
         .spot-card:hover {
-            transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
             border-color: #e0e0e0;
         }
-        .spot-title { font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 3px; }
-        .spot-subtitle { font-size: 11.5px; font-style: italic; color: #777; margin-bottom: 4px; }
-        .spot-meta { font-size: 11.5px; color: var(--primary-color); font-weight: 600; }
 
-        .tree-label {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid #2e7d32; border-radius: 3px;
-            padding: 1px 3px; font-size: 9px; font-weight: bold;
-            color: #1b5e20; white-space: nowrap;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        .spot-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
         }
 
+        .spot-subtitle {
+            font-size: 12px;
+            font-style: italic;
+            color: #777;
+            margin-bottom: 6px;
+        }
+
+        .spot-meta {
+            font-size: 12px;
+            color: var(--primary-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 季節景點專屬 Emoji 圓形地標樣式 */
         .seasonal-emoji-marker {
-            width: 30px; height: 30px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.25);
-            border: 2px solid #ffffff; cursor: pointer; transition: transform 0.2s;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+            border: 2px solid #ffffff;
+            cursor: pointer;
+            transition: transform 0.2s;
         }
-        .seasonal-emoji-marker:hover { transform: scale(1.15); }
+
+        .seasonal-emoji-marker:hover {
+            transform: scale(1.15);
+        }
+
         .seasonal-emoji-flower { background: #fce4ec; color: #d81b60; }
         .seasonal-emoji-maple { background: #fff3e0; color: #e65100; }
         .seasonal-emoji-sunset { background: #fffde7; color: #f57f17; }
         .seasonal-emoji-nature { background: #e8f5e9; color: #2e7d32; }
 
-        .detail-view { animation: fadeIn 0.2s ease-out; }
+        /* 詳細檔案卡 */
+        .detail-view {
+            animation: fadeIn 0.2s ease-out;
+        }
         .detail-back-btn {
-            background: #f0f0f0; border: none; padding: 5px 10px; border-radius: 20px;
-            font-size: 11.5px; font-weight: 600; color: #555; cursor: pointer; margin-bottom: 10px;
-            display: inline-flex; align-items: center; gap: 4px;
+            background: #f0f0f0;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            cursor: pointer;
+            margin-bottom: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
         .detail-back-btn:hover { background: #e0e0e0; }
-        .detail-title { font-size: 16px; font-weight: 700; color: var(--primary-color); margin-bottom: 2px; }
-        .detail-sci { font-size: 12px; font-style: italic; color: #666; margin-bottom: 8px; }
-        .detail-divider { border: 0; border-top: 1px solid #eee; margin: 8px 0; }
-        .detail-row { font-size: 12.5px; margin-bottom: 5px; line-height: 1.4; }
+        .detail-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+        .detail-sci { font-size: 13px; font-style: italic; color: #666; margin-bottom: 10px; }
+        .detail-divider { border: 0; border-top: 1px solid #eee; margin: 10px 0; }
+        .detail-row { font-size: 13px; margin-bottom: 6px; line-height: 1.4; }
         .gmaps-btn {
-            display: block; width: 100%; text-align: center; background: #1976d2; color: white;
-            text-decoration: none; padding: 9px; border-radius: 10px; font-size: 13px; font-weight: 600;
-            margin-top: 12px; transition: background 0.2s;
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: #1976d2;
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-weight: 600;
+            margin-top: 14px;
+            transition: background 0.2s;
         }
         .gmaps-btn:hover { background: #115293; }
 
@@ -248,54 +332,113 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .about-section { margin-bottom: 14px; }
-        .about-section-title {
-            font-size: 13.5px; font-weight: 700; color: var(--text-main);
-            margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
-            border-left: 3px solid var(--primary-color); padding-left: 6px;
-        }
-        .source-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-        .source-item {
-            display: flex; justify-content: space-between; align-items: center;
-            background: #f9f9f9; padding: 6px 10px; border-radius: 8px; font-size: 11.5px;
-        }
-        .source-item a { color: #1976d2; text-decoration: none; font-weight: 600; }
-        .source-badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; background: #e8f5e9; color: #2e7d32; font-weight: 600; }
-        .info-card-box { background: #f9fbf9; border: 1px solid #eef2ee; border-radius: 10px; padding: 10px; color: #444; font-size: 12px; }
-        .disclaimer-box { background: #fff8e1; border: 1px solid #fcf3d6; border-radius: 10px; padding: 10px; color: #795548; font-size: 12px; }
-        .disclaimer-item { margin-bottom: 4px; }
-        .sponsor-box { background: #f1f8e9; border: 1px solid #e2f0d9; border-radius: 10px; padding: 10px; text-align: center; }
-        .bmc-wrapper { display: flex; justify-content: center; transform: scale(0.8); transform-origin: center; margin-top: 4px; }
-        .footer-copyright { text-align: center; font-size: 11px; color: #888; margin-top: 10px; padding-top: 6px; border-top: 1px solid #eee; }
-
         .control-group {
-            position: absolute; top: 20px; right: 20px; z-index: 1000;
-            display: flex; flex-direction: column; gap: 8px;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
+
         .icon-map-btn {
-            background: white; border: 2px solid rgba(0,0,0,0.15);
-            width: 38px; height: 38px; border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-size: 18px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            background: white;
+            border: 2px solid rgba(0,0,0,0.15);
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.2s;
         }
-        .icon-map-btn:hover { background: #f4f4f4; transform: scale(1.05); }
+
+        .icon-map-btn:hover {
+            background: #f4f4f4;
+            transform: scale(1.05);
+        }
 
         .leaflet-control-zoom {
-            border: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
-            border-radius: 8px !important; overflow: hidden;
+            border: none !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+            border-radius: 8px !important;
+            overflow: hidden;
         }
         .leaflet-control-zoom a {
-            width: 38px !important; height: 38px !important;
-            line-height: 38px !important; font-size: 18px !important;
-            color: #333 !important; background-color: #fff !important;
+            width: 38px !important;
+            height: 38px !important;
+            line-height: 38px !important;
+            font-size: 18px !important;
+            color: #333 !important;
+            background-color: #fff !important;
             border-bottom: 1px solid #eee !important;
         }
 
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            z-index: 3000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-card {
+            background: #fff;
+            width: 100%; max-width: 580px; max-height: 85vh;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 20px 24px; border-bottom: 1px solid #eee;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .modal-title { font-size: 18px; font-weight: 700; color: var(--primary-color); }
+
+        .modal-close {
+            background: #f0f0f0; border: none;
+            width: 32px; height: 32px; border-radius: 50%;
+            cursor: pointer; font-size: 16px; color: #666;
+        }
+
+        .modal-body { padding: 24px; overflow-y: auto; line-height: 1.6; font-size: 13.5px; color: #444; }
+        .modal-section { margin-bottom: 22px; }
+        .modal-section-title {
+            font-size: 15px; font-weight: 700; color: var(--text-main);
+            margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+            border-left: 3px solid var(--primary-color); padding-left: 8px;
+        }
+
+        .source-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+        .source-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #f9f9f9; padding: 8px 12px; border-radius: 8px;
+        }
+        .source-item a { color: #1976d2; text-decoration: none; font-size: 12.5px; font-weight: 600; }
+        .source-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #e8f5e9; color: #2e7d32; font-weight: 600; }
+
+        .info-card-box { background: #f9fbf9; border: 1px solid #eef2ee; border-radius: 12px; padding: 14px 16px; color: #444; font-size: 13px; }
+        .disclaimer-box { background: #fff8e1; border: 1px solid #fcf3d6; border-radius: 12px; padding: 14px 16px; color: #795548; font-size: 13px; }
+        .disclaimer-item { margin-bottom: 6px; }
+        .sponsor-box { background: #f1f8e9; border: 1px solid #e2f0d9; border-radius: 12px; padding: 16px; text-align: center; }
+        .bmc-wrapper { display: flex; justify-content: center; transform: scale(0.85); transform-origin: center; margin-top: 6px; }
+        .footer-copyright { text-align: center; font-size: 12px; color: #888; margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee; }
+
         @media (max-width: 768px) {
             .sidebar-panel {
-                top: auto; bottom: 0; left: 0; width: 100%; max-height: 50vh;
-                border-radius: 20px 20px 0 0;
+                top: auto; bottom: 0; left: 0; width: 100%; max-height: 50vh; border-radius: 20px 20px 0 0;
             }
             .control-group { top: 15px; right: 15px; }
         }
@@ -303,36 +446,111 @@
 </head>
 <body>
 
-    <!-- 確保地圖容器在底層 -->
-    <div id="map"></div>
-
     <div id="loading" class="loading-overlay">
         <span>🌱 正在讀取樹木數據與季節景點...</span>
     </div>
 
-    <!-- 左側 / 底部懸浮面板 -->
-    <div class="sidebar-panel" id="sidebarPanel">
-        <button class="collapse-toggle-btn" id="collapseBtn" onclick="toggleSidebar()" title="收合/展開面板">▼</button>
-        
+    <div class="sidebar-panel">
         <div class="panel-header">
+            <div class="panel-title-group">
+                <div class="panel-title">香港樹木地圖</div>
+                <button class="about-btn" onclick="openAboutModal()">關於本站 ℹ️</button>
+            </div>
+
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="搜尋樹木品種、地點或季節景點..." oninput="handleSearch()">
                 <div id="searchResults" class="search-results-dropdown"></div>
             </div>
 
             <div class="tab-group">
-                <button class="tab-btn active" id="tabTrees" onclick="switchTab('trees')">🌳 樹木位置</button>
+                <button class="tab-btn active" id="tabTrees" onclick="switchTab('trees')">🌳 樹木地圖</button>
                 <button class="tab-btn" id="tabSeasonal" onclick="switchTab('seasonal')">🌸 季節景點</button>
-                <button class="tab-btn" id="tabAbout" onclick="switchTab('about')">ℹ️ 關於本站</button>
             </div>
         </div>
 
         <div class="panel-body" id="panelBody"></div>
     </div>
 
+    <div id="map"></div>
+
     <div class="control-group" id="mapControls">
         <button class="icon-map-btn" id="toggleLabelBtn" onclick="toggleLabels()" title="隱藏/顯示標籤">🏷️</button>
         <button class="icon-map-btn" onclick="locateUser()" title="我的位置">📍</button>
+    </div>
+
+    <!-- 關於本站 Modal 彈窗 -->
+    <div class="modal-overlay" id="aboutModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">關於《香港樹木地圖》</div>
+                <button class="modal-close" onclick="closeAboutModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <div class="modal-section-title">📖 網頁介紹</div>
+                    <div class="info-card-box">
+                        《香港樹木地圖》整合了全港樹木、賞花、紅葉與日落位置，方便大家尋找心儀的樹木與花海，以及有助了解城市樹木的分佈。
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <div class="modal-section-title">📚 資料來源與致謝</div>
+                    <ul class="source-list">
+                        <li class="source-item">
+                            <div><a href="https://openfreemap.org/" target="_blank">OpenFreeMap</a><div style="font-size:11px; color:#777;">向量底圖與地理渲染</div></div>
+                            <span class="source-badge">地圖底圖</span>
+                        </li>
+                        <li class="source-item">
+                            <div><a href="https://www.herbarium.gov.hk/tc/home/index.html" target="_blank">香港植物標本室</a><div style="font-size:11px; color:#777;">植物學學名與特徵檢索</div></div>
+                            <span class="source-badge">植物資料</span>
+                        </li>
+                        <li class="source-item">
+                            <div><a href="https://www.greening.gov.hk/tc/community-outreach/qrcode-tree-labels/index.html" target="_blank">二維條碼樹木標籤</a><div style="font-size:11px; color:#777;">發展局綠化、園境及樹木管理組</div></div>
+                            <span class="source-badge">植物資料</span>
+                        </li>
+                        <li class="source-item">
+                            <div><a href="https://portal.csdi.gov.hk/geoportal/#metadataInfoPanel" target="_blank">CSDI 空間數據共享平台</a><div style="font-size:11px; color:#777;">古樹名木、石牆樹、康文署及渠務署等資料</div></div>
+                            <span class="source-badge">樹木位置</span>
+                        </li>
+                        <li class="source-item">
+                            <div><a href="https://benjaminficusmicrocarpa.github.io/map/wkcd-trees.html?lat=22.300083&lng=114.156058&zoom=18" target="_blank">西九文化區樹木地圖</a><div style="font-size:11px; color:#777;">西九園區樹木專項點位</div></div>
+                            <span class="source-badge">樹木位置</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="modal-section">
+                    <div class="modal-section-title">⚠️ 免責聲明與觀賞禮儀</div>
+                    <div class="disclaimer-box">
+                        <div class="disclaimer-item"><b>1）位置參考</b>：地圖內標註的點位座標主要來自開放數據整合，不一定為 100% 精準位置，僅供賞樹與行程參考。</div>
+                        <div class="disclaimer-item"><b>2）愛惜自然</b>：前往觀賞樹木及季節景點時，請愛護樹木與植物，切勿採摘、攀折樹枝或留下垃圾。</div>
+                        <div class="disclaimer-item"><b>3）安全提示</b>：部分樹木的汁液、花粉、果實或葉片可能帶有毒性，請勿撫摸後觸碰眼睛，並<b>切勿採摘或食用</b>任何野生樹木果實。</div>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <div class="modal-section-title">☕ 支持我們的營運</div>
+                    <div class="sponsor-box">
+                        <p style="margin-bottom: 8px; font-size: 13px;">如果你喜歡這個地圖，歡迎請我們喝一杯咖啡，支持伺服器與地圖維護費用！</p>
+                        <div class="bmc-wrapper">
+                            <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="gk_doodle" data-color="#FFDD00" data-emoji="" data-font="Arial" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff"></script>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <div class="modal-section-title">✨ 作者簡介</div>
+                    <div class="info-card-box">
+                        <p><b>GK Doodle</b> 是一個象徵着自由少女的插畫品牌，希望透過溫暖、窩心的插畫，讓大家遠離煩囂，一同進入被治癒的夢幻世界。</p>
+                        <p style="margin-top: 6px;"><a href="https://www.instagram.com/gk_doodle/" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: 600;">🔗 Instagram: @gk_doodle</a></p>
+                    </div>
+                </div>
+
+                <div class="footer-copyright">
+                    © 2026 GK Doodle. All rights reserved.
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Leaflet & JS -->
@@ -373,8 +591,7 @@
         var activeTab = 'trees';
         var activeTypeFilter = 'ALL';
         var activeSeasonalCategory = 'ALL';
-        var labelsEnabled = false;
-        var isPanelMinimized = false;
+        var labelsEnabled = true;
 
         Papa.parse('tree_species.csv', {
             download: true, header: true, skipEmptyLines: true,
@@ -419,6 +636,7 @@
             });
         }
 
+        // 建立季節景點的 Emoji 大圓形圖標 Marker
         function buildSeasonalMarkers() {
             allSeasonalMarkers = [];
             seasonalData.forEach(function(item) {
@@ -428,24 +646,27 @@
                     var title = item.地點名稱 || item.Location_Name || item.名稱 || '景點';
                     var category = (item.大分類 || '').trim();
                     var species = item.細分品種 || item.Chinese_Name || '';
-                    var months = item.最佳觀賞月份 || item.Best_Months || '';
+                    var months = item.最佳觀賞月份 || item.Best_Months || '當季景點';
 
                     let emoji = "🌸";
                     let styleClass = "seasonal-emoji-flower";
 
                     if (category.includes("紅葉")) {
-                        emoji = "🍁"; styleClass = "seasonal-emoji-maple";
+                        emoji = "🍁";
+                        styleClass = "seasonal-emoji-maple";
                     } else if (category.includes("日落")) {
-                        emoji = "🌅"; styleClass = "seasonal-emoji-sunset";
+                        emoji = "🌅";
+                        styleClass = "seasonal-emoji-sunset";
                     } else if (category.includes("自然生態") || category.includes("榕樹")) {
-                        emoji = "🍃"; styleClass = "seasonal-emoji-nature";
+                        emoji = "🍃";
+                        styleClass = "seasonal-emoji-nature";
                     }
 
                     var icon = L.divIcon({
                         className: 'custom-seasonal-div-icon',
                         html: `<div class="seasonal-emoji-marker ${styleClass}">${emoji}</div>`,
-                        iconSize: [30, 30],
-                        iconAnchor: [15, 15]
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
                     });
 
                     var marker = L.marker([lat, lng], { icon: icon });
@@ -456,10 +677,15 @@
                     marker.on('click', function() {
                         showDetailView({
                             title: title,
-                            speciesText: species ? `品種：${species}` : '',
-                            monthText: months ? `觀賞月份：${months}` : '',
+                            sciName: `${species} ${item.學名 ? '｜ ' + item.學名 : ''}`,
+                            family: category,
+                            origin: `🗓️ 最佳期：${months}`,
+                            location: item.說明 || '熱門季節景點',
+                            source: '民間生態與季節景點手記',
+                            url: targetUrl,
                             gmapsUrl: targetUrl
                         });
+                        map.flyTo([lat, lng], 16);
                     });
 
                     allSeasonalMarkers.push(marker);
@@ -470,15 +696,57 @@
         function loadGovTrees() {
             Papa.parse('csdi_gov_trees_named.csv', {
                 download: true, header: true, skipEmptyLines: true,
-                step: function(results) { processTreeRow(results.data); },
-                complete: function() { loadOtherTrees(); }
-            });
-        }
+                step: function(results) {
+                    var row = results.data;
+                    var lat = parseFloat(row.GeometryLatitude);
+                    var lng = parseFloat(row.GeometryLongitude);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        var treeName = (row.Chinese_Name || '未命名樹木').trim();
+                        var treeType = (row.Type || '').trim();
 
-        function loadOtherTrees() {
-            Papa.parse('other_trees_location.csv', {
-                download: true, header: true, skipEmptyLines: true,
-                step: function(results) { processTreeRow(results.data); },
+                        speciesCounts[treeName] = (speciesCounts[treeName] || 0) + 1;
+                        typeCounts.ALL++;
+
+                        let category = "OTHER";
+                        let color = "#2e7d32";
+                        let radiusSize = 5;
+
+                        if (treeType === 'OVT') {
+                            category = "OVT"; color = "#fbc02d"; radiusSize = 6; typeCounts.OVT++;
+                        } else if (treeType === 'SWT') {
+                            category = "SWT"; color = "#795548"; radiusSize = 6; typeCounts.SWT++;
+                        } else if (treeType.includes('OVT') && treeType.includes('SWT')) {
+                            category = "OVT_SWT"; color = "#fb8c00"; radiusSize = 7; typeCounts.OVT_SWT++;
+                        }
+
+                        var marker = L.circleMarker([lat, lng], {
+                            radius: radiusSize, fillColor: color, color: "#ffffff", weight: 1.5, fillOpacity: 0.9
+                        });
+
+                        var speciesInfo = speciesDict[treeName] || {};
+                        var sciName = row.Scientific_Name || speciesInfo.scientificName || '';
+                        var familyName = speciesInfo.family || '常見植物科';
+                        var originStatus = speciesInfo.origin || '本地 / 外來';
+                        var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
+                        var treeId = row.OVTNo || row.TR_no_ || row.TMCP_ID || '';
+                        var dataSource = row.Source || '樹木登記冊 / CSDI';
+                        var targetUrl = speciesInfo.url || `https://zh.wikipedia.org/wiki/${encodeURIComponent(treeName)}`;
+                        var gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
+                        marker.on('click', function() {
+                            showDetailView({
+                                title: treeName, sciName: sciName, family: familyName,
+                                origin: originStatus, location: locationName, id: treeId,
+                                source: dataSource, url: targetUrl, gmapsUrl: gmapsUrl
+                            });
+                        });
+
+                        marker.bindTooltip(treeName, { direction: 'right', offset: [5, 0], className: 'tree-label', permanent: false });
+                        marker.speciesName = treeName;
+                        marker.categoryType = category;
+                        allGovTreeMarkers.push(marker);
+                    }
+                },
                 complete: function() {
                     document.getElementById('loading').style.display = 'none';
                     updateMapMarkers();
@@ -487,125 +755,61 @@
             });
         }
 
-        function processTreeRow(row) {
-            var lat = parseFloat(row.GeometryLatitude);
-            var lng = parseFloat(row.GeometryLongitude);
-            if (!isNaN(lat) && !isNaN(lng)) {
-                var treeName = (row.Chinese_Name || '未命名樹木').trim();
-                var treeType = (row.Type || '').trim();
-
-                speciesCounts[treeName] = (speciesCounts[treeName] || 0) + 1;
-                typeCounts.ALL++;
-
-                let category = "OTHER";
-                let color = "#2e7d32";
-                let radiusSize = 5;
-
-                if (treeType === 'OVT') {
-                    category = "OVT"; color = "#fbc02d"; radiusSize = 6; typeCounts.OVT++;
-                } else if (treeType === 'SWT') {
-                    category = "SWT"; color = "#795548"; radiusSize = 6; typeCounts.SWT++;
-                } else if (treeType.includes('OVT') && treeType.includes('SWT')) {
-                    category = "OVT_SWT"; color = "#fb8c00"; radiusSize = 7; typeCounts.OVT_SWT++;
-                }
-
-                var marker = L.circleMarker([lat, lng], {
-                    radius: radiusSize, fillColor: color, color: "#ffffff", weight: 1.5, fillOpacity: 0.9
-                });
-
-                var speciesInfo = speciesDict[treeName] || {};
-                var sciName = row.Scientific_Name || speciesInfo.scientificName || '';
-                var familyName = speciesInfo.family || '常見植物科';
-                var originStatus = speciesInfo.origin || '本地 / 外來';
-                var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
-                var treeId = row.OVTNo || row.TR_no_ || row.TMCP_ID || '';
-                var dataSource = row.Source || '樹木登記冊 / CSDI';
-                var targetUrl = speciesInfo.url || `https://zh.wikipedia.org/wiki/${encodeURIComponent(treeName)}`;
-                var gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-
-                marker.on('click', function() {
-                    showDetailView({
-                        title: treeName, sciName: sciName, family: familyName,
-                        origin: originStatus, location: locationName, id: treeId,
-                        source: dataSource, url: targetUrl, gmapsUrl: gmapsUrl, isTree: true
-                    });
-                });
-
-                marker.bindTooltip(treeName, { direction: 'right', offset: [5, 0], className: 'tree-label', permanent: false });
-                marker.speciesName = treeName;
-                marker.categoryType = category;
-                allGovTreeMarkers.push(marker);
-            }
-        }
-
+        // 根據當前 Tab 與 Filter 切換地圖標記
         function updateMapMarkers() {
             markersCluster.clearLayers();
-            var combined = [];
-            
-            allGovTreeMarkers.forEach(function(m) {
-                if (activeTypeFilter === 'ALL' || m.categoryType === activeTypeFilter) {
-                    combined.push(m);
-                }
-            });
-
-            allSeasonalMarkers.forEach(function(m) {
-                if (activeSeasonalCategory === 'ALL' || m.category.includes(activeSeasonalCategory)) {
-                    combined.push(m);
-                }
-            });
-
-            markersCluster.addLayers(combined);
-            updateLabelsVisibility();
+            if (activeTab === 'trees') {
+                var filtered = [];
+                allGovTreeMarkers.forEach(function(m) {
+                    if (activeTypeFilter === 'ALL' || m.categoryType === activeTypeFilter) {
+                        filtered.push(m);
+                    }
+                });
+                markersCluster.addLayers(filtered);
+            } else {
+                var filtered = [];
+                allSeasonalMarkers.forEach(function(m) {
+                    if (activeSeasonalCategory === 'ALL' || m.category.includes(activeSeasonalCategory)) {
+                        filtered.push(m);
+                    }
+                });
+                markersCluster.addLayers(filtered);
+            }
         }
 
         function showDetailView(data) {
             var body = document.getElementById('panelBody');
-            if (data.isTree) {
-                body.innerHTML = `
-                    <div class="detail-view">
-                        <button class="detail-back-btn" onclick="renderPanelBody()">◀ 返回列表</button>
-                        <div class="detail-title">
-                            <a href="${data.url}" target="_blank" style="color: var(--primary-color); text-decoration: none;">${data.title} 🔗</a>
-                        </div>
-                        <div class="detail-sci">${data.sciName}</div>
-                        <hr class="detail-divider">
-                        <div class="detail-row"><b>科名：</b>${data.family}</div>
-                        <div class="detail-row"><b>屬性：</b>${data.origin}</div>
-                        <div class="detail-row"><b>地點：</b>${data.location}</div>
-                        ${data.id ? `<div class="detail-row"><b>編號：</b>${data.id}</div>` : ''}
-                        <hr class="detail-divider">
-                        <div class="detail-row" style="font-size:11px; color:#555;"><b>來源：</b>${data.source}</div>
-                        <a href="${data.gmapsUrl}" target="_blank" class="gmaps-btn">在 Google 地圖中開啟導航 🗺️</a>
+            body.innerHTML = `
+                <div class="detail-view">
+                    <button class="detail-back-btn" onclick="renderPanelBody()">◀ 返回列表</button>
+                    <div class="detail-title">
+                        <a href="${data.url}" target="_blank" style="color: var(--primary-color); text-decoration: none;">${data.title} 🔗</a>
                     </div>
-                `;
-            } else {
-                body.innerHTML = `
-                    <div class="detail-view">
-                        <button class="detail-back-btn" onclick="renderPanelBody()">◀ 返回列表</button>
-                        <div class="detail-title">${data.title}</div>
-                        <hr class="detail-divider">
-                        ${data.speciesText ? `<div class="detail-row"><b>${data.speciesText}</b></div>` : ''}
-                        ${data.monthText ? `<div class="detail-row">🗓️ <b>${data.monthText}</b></div>` : ''}
-                        <a href="${data.gmapsUrl}" target="_blank" class="gmaps-btn">在 Google 地圖中開啟導航 🗺️</a>
-                    </div>
-                `;
-            }
+                    <div class="detail-sci">${data.sciName}</div>
+                    <hr class="detail-divider">
+                    <div class="detail-row"><b>分類/科名：</b>${data.family}</div>
+                    <div class="detail-row"><b>屬性/期：</b>${data.origin}</div>
+                    <div class="detail-row"><b>地點：</b>${data.location}</div>
+                    ${data.id ? `<div class="detail-row"><b>編號：</b>${data.id}</div>` : ''}
+                    <hr class="detail-divider">
+                    <div class="detail-row" style="font-size:11px; color:#555;"><b>來源：</b>${data.source}</div>
+                    <a href="${data.gmapsUrl}" target="_blank" class="gmaps-btn">在 Google 地圖中開啟導航 🗺️</a>
+                </div>
+            `;
         }
 
         function switchTab(tab) {
             activeTab = tab;
             document.getElementById('tabTrees').classList.toggle('active', tab === 'trees');
             document.getElementById('tabSeasonal').classList.toggle('active', tab === 'seasonal');
-            document.getElementById('tabAbout').classList.toggle('active', tab === 'about');
+            updateMapMarkers();
             renderPanelBody();
         }
 
-        function toggleSidebar() {
-            isPanelMinimized = !isPanelMinimized;
-            var panel = document.getElementById('sidebarPanel');
-            var btn = document.getElementById('collapseBtn');
-            panel.classList.toggle('minimized', isPanelMinimized);
-            btn.innerHTML = isPanelMinimized ? '▲' : '▼';
+        function filterSeasonalByCategory(catKey) {
+            activeSeasonalCategory = catKey;
+            updateMapMarkers();
+            renderPanelBody();
         }
 
         function renderPanelBody() {
@@ -615,10 +819,14 @@
                 var sortedSpecies = Object.keys(speciesCounts).sort(function(a, b) { return speciesCounts[b] - speciesCounts[a]; });
                 var speciesCardsHtml = sortedSpecies.map(function(sp) {
                     var count = speciesCounts[sp];
+                    var info = speciesDict[sp] || {};
+                    var sci = info.scientificName || '';
+                    var flower = info.flowering ? `🌸 花期：${info.flowering}` : '🌳 常見樹木';
                     return `
-                        <div class="species-square-card" onclick="filterBySpecies('${sp}')">
-                            <div class="species-card-name">${sp}</div>
-                            <div class="species-card-count">${count.toLocaleString()} 棵</div>
+                        <div class="spot-card" onclick="filterBySpecies('${sp}')">
+                            <div class="spot-title">${sp} ｜ ${count.toLocaleString()} 棵</div>
+                            <div class="spot-subtitle">${sci}</div>
+                            <div class="spot-meta">${flower}</div>
                         </div>
                     `;
                 }).join('');
@@ -629,10 +837,10 @@
                         <button class="chip ${activeTypeFilter === 'OVT' ? 'active' : ''}" onclick="filterByType('OVT')">古樹名木 (${typeCounts.OVT})</button>
                         <button class="chip ${activeTypeFilter === 'SWT' ? 'active' : ''}" onclick="filterByType('SWT')">石牆樹 (${typeCounts.SWT})</button>
                     </div>
-                    <div style="font-size:11.5px; color:#666; margin-bottom:10px;">點擊下方品種卡片，地圖將篩選該樹種分佈。</div>
-                    <div class="species-grid">${speciesCardsHtml}</div>
+                    <div style="font-size:12px; color:#666; margin-bottom:12px;">點擊下方品種卡片，地圖將自動篩選並定位該樹種分佈。</div>
+                    ${speciesCardsHtml}
                 `;
-            } else if (activeTab === 'seasonal') {
+            } else {
                 var filteredData = seasonalData.filter(function(item) {
                     var cat = item.大分類 || '';
                     return activeSeasonalCategory === 'ALL' || cat.includes(activeSeasonalCategory);
@@ -641,7 +849,7 @@
                 var cardsHtml = filteredData.map(function(item) {
                     var title = item.地點名稱 || item.Location_Name || item.名稱 || '熱點';
                     var species = item.細分品種 || item.Chinese_Name || '';
-                    var months = item.最佳觀賞月份 || item.Best_Months || '';
+                    var months = item.最佳觀賞月份 || item.Best_Months || '當季景點';
                     var lat = item.Latitude || item.GeometryLatitude;
                     var lng = item.Longitude || item.GeometryLongitude;
                     var sci = item.學名 ? '｜ ' + item.學名 : '';
@@ -650,7 +858,7 @@
                         <div class="spot-card" onclick="flyToSpot(${lat}, ${lng}, '${title}')">
                             <div class="spot-title">${title}</div>
                             <div class="spot-subtitle">${species} ${sci}</div>
-                            ${months ? `<div class="spot-meta">🗓️ 觀賞月份：${months}</div>` : ''}
+                            <div class="spot-meta">🗓️ 最佳觀賞期：${months}</div>
                         </div>
                     `;
                 }).join('');
@@ -661,83 +869,14 @@
                         <button class="chip ${activeSeasonalCategory === '賞花' ? 'active' : ''}" onclick="filterSeasonalByCategory('賞花')">🌸 季節賞花</button>
                         <button class="chip ${activeSeasonalCategory === '紅葉' ? 'active' : ''}" onclick="filterSeasonalByCategory('紅葉')">🍁 紅葉秋景</button>
                         <button class="chip ${activeSeasonalCategory === '日落' ? 'active' : ''}" onclick="filterSeasonalByCategory('日落')">🌅 日落景點</button>
-                        <button class="chip ${activeSeasonalCategory === '自然生態' ? 'active' : ''}" onclick="filterSeasonalByCategory('自然生態')">🍃 自然生態</button>
                     </div>
                     ${cardsHtml}
-                `;
-            } else {
-                body.innerHTML = `
-                    <div class="about-section">
-                        <div class="about-section-title">📖 網頁介紹</div>
-                        <div class="info-card-box">
-                            《香港樹木地圖》整合了全港樹木、賞花、紅葉與日落位置，方便大家尋找心儀的樹木與花海，以及有助了解城市樹木的分佈。
-                        </div>
-                    </div>
-
-                    <div class="about-section">
-                        <div class="about-section-title">📚 資料來源與致謝</div>
-                        <ul class="source-list">
-                            <li class="source-item">
-                                <div><a href="https://openfreemap.org/" target="_blank">OpenFreeMap</a><div style="font-size:10.5px; color:#777;">向量底圖</div></div>
-                                <span class="source-badge">地圖底圖</span>
-                            </li>
-                            <li class="source-item">
-                                <div><a href="https://www.herbarium.gov.hk/tc/home/index.html" target="_blank">香港植物標本室</a><div style="font-size:10.5px; color:#777;">學名檢索</div></div>
-                                <span class="source-badge">植物資料</span>
-                            </li>
-                            <li class="source-item">
-                                <div><a href="https://www.greening.gov.hk/tc/community-outreach/qrcode-tree-labels/index.html" target="_blank">二維條碼樹木標籤</a><div style="font-size:10.5px; color:#777;">發展局樹木組</div></div>
-                                <span class="source-badge">植物資料</span>
-                            </li>
-                            <li class="source-item">
-                                <div><a href="https://portal.csdi.gov.hk/geoportal/#metadataInfoPanel" target="_blank">CSDI 空間數據共享平台</a><div style="font-size:10.5px; color:#777;">古樹與康文署點位</div></div>
-                                <span class="source-badge">樹木位置</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="about-section">
-                        <div class="about-section-title">⚠️ 免責聲明與觀賞禮儀</div>
-                        <div class="disclaimer-box">
-                            <div class="disclaimer-item"><b>1）位置參考</b>：地圖座標主要來自開放數據，僅供行程參考。</div>
-                            <div class="disclaimer-item"><b>2）愛惜自然</b>：賞樹與賞花時請愛護植物，切勿折枝。</div>
-                            <div class="disclaimer-item"><b>3）安全提示</b>：野生植物果實切勿採摘或食用。</div>
-                        </div>
-                    </div>
-
-                    <div class="about-section">
-                        <div class="about-section-title">☕ 支持我們的營運</div>
-                        <div class="sponsor-box">
-                            <p style="margin-bottom: 6px; font-size: 12px;">歡迎請我們喝一杯咖啡，支持地圖維護費用！</p>
-                            <div class="bmc-wrapper">
-                                <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="gk_doodle" data-color="#FFDD00" data-emoji="" data-font="Arial" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff"></script>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="about-section">
-                        <div class="about-section-title">✨ 作者簡介</div>
-                        <div class="info-card-box">
-                            <p><b>GK Doodle</b> 是一個象徵着自由少女的插畫品牌，希望透過溫暖、窩心的插畫，讓大家遠離煩囂，一同進入被治癒的夢幻世界。</p>
-                            <p style="margin-top: 4px;"><a href="https://www.instagram.com/gk_doodle/" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: 600;">🔗 Instagram: @gk_doodle</a></p>
-                        </div>
-                    </div>
-
-                    <div class="footer-copyright">
-                        © 2026 GK Doodle. All rights reserved.
-                    </div>
                 `;
             }
         }
 
         function filterByType(type) {
             activeTypeFilter = type;
-            updateMapMarkers();
-            renderPanelBody();
-        }
-
-        function filterSeasonalByCategory(catKey) {
-            activeSeasonalCategory = catKey;
             updateMapMarkers();
             renderPanelBody();
         }
@@ -749,7 +888,7 @@
                 if (m.speciesName === speciesName) filtered.push(m);
             });
             markersCluster.addLayers(filtered);
-            if (filtered.length > 0) map.setView(filtered[0].getLatLng(), 15);
+            if (filtered.length > 0) map.setView(filtered[0].getLatLng(), 16);
 
             var info = speciesDict[speciesName] || {};
             showDetailView({
@@ -760,16 +899,8 @@
                 location: `全港共 ${filtered.length} 棵`,
                 source: '香港植物標本室 / CSDI',
                 url: info.url || `https://zh.wikipedia.org/wiki/${encodeURIComponent(speciesName)}`,
-                gmapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(speciesName)}`,
-                isTree: true
+                gmapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(speciesName)}`
             });
-        }
-
-        function flyToSpot(lat, lng, title) {
-            if (lat && lng) {
-                map.panTo([lat, lng]);
-                L.popup().setLatLng([lat, lng]).setContent(`<b>${title}</b>`).openOn(map);
-            }
         }
 
         function handleSearch() {
@@ -809,32 +940,30 @@
             else { resultsDiv.style.display = 'none'; }
         }
 
-        function updateLabelsVisibility() {
-            var currentZoom = map.getZoom();
-            allGovTreeMarkers.forEach(function(marker) {
-                if (markersCluster.hasLayer(marker)) {
-                    if (labelsEnabled && currentZoom >= 18) {
-                        if (!marker.isTooltipOpen()) marker.openTooltip();
-                    } else {
-                        if (marker.isTooltipOpen()) marker.closeTooltip();
-                    }
-                }
-            });
+        function flyToSpot(lat, lng, title) {
+            if (lat && lng) {
+                map.flyTo([lat, lng], 16, { duration: 1.5 });
+                L.popup().setLatLng([lat, lng]).setContent(`<b>${title}</b>`).openOn(map);
+            }
         }
 
         function toggleLabels() {
             labelsEnabled = !labelsEnabled;
             var btn = document.getElementById('toggleLabelBtn');
             btn.style.opacity = labelsEnabled ? '1' : '0.5';
-            updateLabelsVisibility();
+            allGovTreeMarkers.forEach(function(marker) {
+                if (labelsEnabled) { if (map.getZoom() >= 18) marker.openTooltip(); }
+                else { marker.closeTooltip(); }
+            });
         }
 
-        map.on('moveend zoomend', updateLabelsVisibility);
+        function openAboutModal() { document.getElementById('aboutModal').style.display = 'flex'; }
+        function closeAboutModal() { document.getElementById('aboutModal').style.display = 'none'; }
 
         function locateUser() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(pos) {
-                    map.setView([pos.coords.latitude, pos.coords.longitude], 16);
+                    map.flyTo([pos.coords.latitude, pos.coords.longitude], 17);
                     L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map).bindPopup("你在這裡！").openPopup();
                 });
             }
