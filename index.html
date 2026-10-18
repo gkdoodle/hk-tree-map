@@ -415,7 +415,6 @@
             border-radius: 50%; cursor: pointer; font-size: 16px; color: #666;
         }
         
-        /* 解決最底部版權被切掉問題 */
         .modal-body { 
             padding: 24px; 
             padding-bottom: 60px !important;
@@ -446,7 +445,6 @@
         .bmc-wrapper { display: flex; justify-content: center; transform: scale(0.85); transform-origin: center; margin-top: 6px; }
         .footer-copyright { text-align: center; font-size: 12px; color: #888; margin-top: 20px; padding-top: 14px; border-top: 1px solid #eee; }
 
-        /* 手機版適應修復 */
         @media (max-width: 768px) {
             .sidebar-panel {
                 top: auto; bottom: 0; left: 0; width: 100%; max-height: 50vh;
@@ -489,7 +487,6 @@
                 </div>
                 <div class="panel-actions-right">
                     <button class="about-btn" onclick="openAboutModal()">關於本站 ℹ️</button>
-                    <!-- 精準繪製 SVG 🗁 資料夾 Icon，確保跨平台百分百統一 -->
                     <button class="collapse-icon-btn" id="collapseBtn" onclick="toggleSidebar()" title="收合側欄">
                         <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
                     </button>
@@ -510,7 +507,6 @@
         <div class="panel-body" id="panelBody"></div>
     </div>
 
-    <!-- 懸浮展開按鈕：採用一致嘅 SVG 🗁 資料夾 Icon -->
     <button class="float-expand-btn" id="expandBtn" onclick="toggleSidebar()" title="展開面板">
         <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:currentColor;"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
     </button>
@@ -779,7 +775,7 @@
                             <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
                             ${species ? '<div style="font-size: 13px; margin-bottom: 2px; font-weight:600;">品種：' + species + '</div>' : ''}
                             ${sci ? '<div style="font-size: 11.5px; font-style: italic; color: #666; margin-bottom: 6px;">學名：' + sci + '</div>' : ''}
-                            ${months ? '<div style="font-size: 12.5px; margin-bottom: 4px; color:#444;">🗓️ <b>觀賞月份：</b>' + months + '</div>' : ''}
+                            ${months ? '<div style="font-size: 12.5px; margin-bottom: 4px; color:#444;"><b>觀賞月份：</b>' + months + '</div>' : ''}
                             ${desc ? '<div style="font-size: 12px; margin-bottom: 8px; color: #555;">📌 ' + desc + '</div>' : ''}
                             <a href="${targetUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: 8px;">在 Google 地圖中開啟導航 🗺️</a>
                         </div>
@@ -863,6 +859,7 @@
                 var targetUrl = speciesInfo.url || 'https://zh.wikipedia.org/wiki/' + encodeURIComponent(treeName);
                 var gmapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
 
+                /* 移除花期同果期前面嘅 Icon */
                 var popupContent = `
                     <div style="min-width: 220px; font-family: sans-serif; padding: 2px;">
                         <div style="font-size: 16px; font-weight: 700; margin-bottom: 2px;">
@@ -872,8 +869,8 @@
                         <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
                         <div style="font-size: 12.5px; margin-bottom: 3px;"><b>科名：</b>${familyName}</div>
                         <div style="font-size: 12.5px; margin-bottom: 3px;"><b>屬性：</b>${originStatus}</div>
-                        ${floweringTime ? '<div style="font-size: 12.5px; margin-bottom: 3px;">🌸 <b>花期：</b>' + floweringTime + '</div>' : ''}
-                        ${fruitingTime ? '<div style="font-size: 12.5px; margin-bottom: 3px;">🥭 <b>果期：</b>' + fruitingTime.replace('果', '') + '</div>' : ''}
+                        ${floweringTime ? '<div style="font-size: 12.5px; margin-bottom: 3px;"><b>花期：</b>' + floweringTime + '</div>' : ''}
+                        ${fruitingTime ? '<div style="font-size: 12.5px; margin-bottom: 3px;"><b>果期：</b>' + fruitingTime.replace('果', '') + '</div>' : ''}
                         <div style="font-size: 12.5px; margin-bottom: 3px;"><b>地點：</b>${locationName}</div>
                         ${treeId ? '<div style="font-size: 12px; color: #666; margin-bottom: 3px;"><b>編號：</b>' + treeId + '</div>' : ''}
                         <div style="font-size: 11px; color: #888; margin-top: 4px;"><b>來源：</b>${dataSource}</div>
