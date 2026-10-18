@@ -203,7 +203,7 @@
             background: #f4f5f4; border: 1px solid #e2e8f0; color: #555;
             width: 34px; height: 34px; border-radius: 50%;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 15px; transition: all 0.2s;
+            font-size: 16px; transition: all 0.2s;
         }
         .collapse-icon-btn:hover { background: #e8ede8; border-color: var(--primary-color); color: var(--primary-color); }
 
@@ -398,20 +398,32 @@
             z-index: 3000; display: none; justify-content: center; align-items: center; padding: 20px;
         }
         .modal-card {
-            background: #fff; width: 100%; max-width: 580px; max-height: 85vh;
+            background: #fff; width: 100%; max-width: 580px; 
+            max-height: 85vh;
             border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             display: flex; flex-direction: column; overflow: hidden;
         }
         .modal-header {
             padding: 20px 24px; border-bottom: 1px solid #eee;
             display: flex; justify-content: space-between; align-items: center;
+            flex-shrink: 0;
         }
         .modal-title { font-size: 18px; font-weight: 700; color: var(--primary-color); }
         .modal-close {
             background: #f0f0f0; border: none; width: 32px; height: 32px;
             border-radius: 50%; cursor: pointer; font-size: 16px; color: #666;
         }
-        .modal-body { padding: 24px; overflow-y: auto; line-height: 1.6; font-size: 13.5px; color: #444; }
+        
+        /* 修復圖一/圖二：確保 modal-body 可滾動且底部留出足夠空間顯示版權 */
+        .modal-body { 
+            padding: 24px; 
+            padding-bottom: 40px;
+            overflow-y: auto; 
+            line-height: 1.6; 
+            font-size: 13.5px; 
+            color: #444; 
+            flex: 1;
+        }
         .modal-section { margin-bottom: 22px; }
         .modal-section-title {
             font-size: 15px; font-weight: 700; color: var(--text-main);
@@ -448,13 +460,12 @@
             }
             .control-group { top: 15px; right: 15px; }
 
-            /* 修復圖二：「關於本站」彈窗在手機版移上，不要沉到底部 */
             .modal-overlay {
                 align-items: flex-start;
-                padding: 15px 12px;
+                padding: 20px 12px;
             }
             .modal-card {
-                max-height: calc(100vh - 30px);
+                max-height: calc(100vh - 40px);
                 border-radius: 16px;
             }
         }
@@ -476,6 +487,7 @@
                 </div>
                 <div class="panel-actions-right">
                     <button class="about-btn" onclick="openAboutModal()">關於本站 ℹ️</button>
+                    <!-- 修復圖三：側欄右上角 Icon 統一修改為 🗁 -->
                     <button class="collapse-icon-btn" id="collapseBtn" onclick="toggleSidebar()" title="收合側欄">🗁</button>
                 </div>
             </div>
@@ -494,7 +506,7 @@
         <div class="panel-body" id="panelBody"></div>
     </div>
 
-    <!-- 修復圖一：將收合後的展開按鈕改返同電腦版一樣嘅 🗁 Icon -->
+    <!-- 收合後的懸浮展開按鈕亦為 🗁 -->
     <button class="float-expand-btn" id="expandBtn" onclick="toggleSidebar()" title="展開面板">🗁</button>
 
     <div class="control-group" id="mapControls">
