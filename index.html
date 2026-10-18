@@ -2,7 +2,7 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>香港樹木地圖</title>
 
     <!-- Leaflet CSS -->
@@ -155,7 +155,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
             color: var(--primary-color);
             box-shadow: 0 4px 16px rgba(0,0,0,0.15);
             z-index: 999;
@@ -199,13 +198,15 @@
             display: flex; align-items: center; gap: 8px;
         }
 
+        /* 使用 SVG 圖形統一按鈕圖示 */
         .collapse-icon-btn {
             background: #f4f5f4; border: 1px solid #e2e8f0; color: #555;
-            width: 34px; height: 34px; border-radius: 50%;
+            width: 36px; height: 36px; border-radius: 50%;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 16px; transition: all 0.2s;
+            transition: all 0.2s; padding: 0;
         }
-        .collapse-icon-btn:hover { background: #e8ede8; border-color: var(--primary-color); color: var(--primary-color); }
+        .collapse-icon-btn:hover { background: #e8ede8; border-color: var(--primary-color); }
+        .collapse-icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
         .about-btn {
             background: #f0f4f1; border: none; color: var(--primary-color);
@@ -399,7 +400,7 @@
         }
         .modal-card {
             background: #fff; width: 100%; max-width: 580px; 
-            max-height: 85vh;
+            max-height: 80vh;
             border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             display: flex; flex-direction: column; overflow: hidden;
         }
@@ -414,15 +415,16 @@
             border-radius: 50%; cursor: pointer; font-size: 16px; color: #666;
         }
         
-        /* 修復圖一/圖二：確保 modal-body 可滾動且底部留出足夠空間顯示版權 */
+        /* 解決最底部版權被切掉問題 */
         .modal-body { 
             padding: 24px; 
-            padding-bottom: 40px;
+            padding-bottom: 60px !important;
             overflow-y: auto; 
             line-height: 1.6; 
             font-size: 13.5px; 
             color: #444; 
             flex: 1;
+            -webkit-overflow-scrolling: touch;
         }
         .modal-section { margin-bottom: 22px; }
         .modal-section-title {
@@ -442,7 +444,7 @@
         .disclaimer-item { margin-bottom: 6px; }
         .sponsor-box { background: #f1f8e9; border: 1px solid #e2f0d9; border-radius: 12px; padding: 16px; text-align: center; }
         .bmc-wrapper { display: flex; justify-content: center; transform: scale(0.85); transform-origin: center; margin-top: 6px; }
-        .footer-copyright { text-align: center; font-size: 12px; color: #888; margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee; }
+        .footer-copyright { text-align: center; font-size: 12px; color: #888; margin-top: 20px; padding-top: 14px; border-top: 1px solid #eee; }
 
         /* 手機版適應修復 */
         @media (max-width: 768px) {
@@ -462,10 +464,10 @@
 
             .modal-overlay {
                 align-items: flex-start;
-                padding: 20px 12px;
+                padding: 15px 12px;
             }
             .modal-card {
-                max-height: calc(100vh - 40px);
+                max-height: calc(100dvh - 80px) !important;
                 border-radius: 16px;
             }
         }
@@ -487,8 +489,10 @@
                 </div>
                 <div class="panel-actions-right">
                     <button class="about-btn" onclick="openAboutModal()">關於本站 ℹ️</button>
-                    <!-- 修復圖三：側欄右上角 Icon 統一修改為 🗁 -->
-                    <button class="collapse-icon-btn" id="collapseBtn" onclick="toggleSidebar()" title="收合側欄">🗁</button>
+                    <!-- 精準繪製 SVG 🗁 資料夾 Icon，確保跨平台百分百統一 -->
+                    <button class="collapse-icon-btn" id="collapseBtn" onclick="toggleSidebar()" title="收合側欄">
+                        <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
+                    </button>
                 </div>
             </div>
 
@@ -506,8 +510,10 @@
         <div class="panel-body" id="panelBody"></div>
     </div>
 
-    <!-- 收合後的懸浮展開按鈕亦為 🗁 -->
-    <button class="float-expand-btn" id="expandBtn" onclick="toggleSidebar()" title="展開面板">🗁</button>
+    <!-- 懸浮展開按鈕：採用一致嘅 SVG 🗁 資料夾 Icon -->
+    <button class="float-expand-btn" id="expandBtn" onclick="toggleSidebar()" title="展開面板">
+        <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:currentColor;"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
+    </button>
 
     <div class="control-group" id="mapControls">
         <button class="icon-map-btn" id="toggleLabelBtn" onclick="toggleLabels()" style="opacity: 0.5;" title="隱藏/顯示標籤">🏷️</button>
