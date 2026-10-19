@@ -559,58 +559,62 @@
             ]
         };
 
-        // 精確 NOAA 日落算法 (含均時差與大氣折射校正)
         function getSolarTimes(date = new Date()) {
-            const lat = 22.3193; // 香港緯度
-            const lng = 114.1694; // 香港經度
-            const tz = 8; // HKT UTC+8
-
-            const year = date.getFullYear();
-            const month = date.getMonth() + 1;
-            const day = date.getDate();
-
-            let a = Math.floor((14 - month) / 12);
-            let y = year + 4800 - a;
-            let m = month + 12 * a - 3;
+            const lat = 22.3193; const lng = 114.1694; const tz = 8;
+            const year = date.getFullYear(); const month = date.getMonth() + 1; const day = date.getDate();
+            let a = Math.floor((14 - month) / 12); let y = year + 4800 - a; let m = month + 12 * a - 3;
             let jd = day + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
             let jc = (jd - 2451545.0) / 36525.0;
-
             let geomMeanLongSun = (280.46646 + jc * (36000.76983 + jc * 0.0003032)) % 360;
             let geomMeanAnomSun = 357.52911 + jc * (35999.05029 - 0.0001537 * jc);
             let eccentEarthOrbit = 0.016708634 - jc * (0.000042037 + 0.0000001267 * jc);
-
             let sunEqOfCtr = Math.sin(geomMeanAnomSun * Math.PI / 180) * (1.914602 - jc * (0.004817 + 0.000014 * jc)) +
                              Math.sin(2 * geomMeanAnomSun * Math.PI / 180) * (0.019993 - 0.000101 * jc) +
                              Math.sin(3 * geomMeanAnomSun * Math.PI / 180) * 0.000289;
-
             let sunTrueLong = geomMeanLongSun + sunEqOfCtr;
             let sunAppLong = sunTrueLong - 0.00569 - 0.00478 * Math.sin((125.04 - 1934.136 * jc) * Math.PI / 180);
-
             let meanObliqEclip = 23 + (26 + ((21.448 - jc * (46.815 + jc * (0.00059 - jc * 0.001813)))) / 60) / 60;
             let obliqCorr = meanObliqEclip + 0.00256 * Math.cos((125.04 - 1934.136 * jc) * Math.PI / 180);
             let sunDeclin = Math.asin(Math.sin(obliqCorr * Math.PI / 180) * Math.sin(sunAppLong * Math.PI / 180)) * 180 / Math.PI;
-
             let vary = Math.tan((obliqCorr / 2) * Math.PI / 180) * Math.tan((obliqCorr / 2) * Math.PI / 180);
             let eqOfTime = 4 * (vary * Math.sin(2 * geomMeanLongSun * Math.PI / 180) - 2 * eccentEarthOrbit * Math.sin(geomMeanAnomSun * Math.PI / 180) + 4 * eccentEarthOrbit * vary * Math.sin(geomMeanAnomSun * Math.PI / 180) * Math.cos(2 * geomMeanLongSun * Math.PI / 180) - 0.5 * vary * vary * Math.sin(4 * geomMeanLongSun * Math.PI / 180) - 1.25 * eccentEarthOrbit * eccentEarthOrbit * Math.sin(2 * geomMeanAnomSun * Math.PI / 180)) * 180 / Math.PI;
-
             let haCorrection = Math.acos((Math.cos(90.833 * Math.PI / 180) / (Math.cos(lat * Math.PI / 180) * Math.cos(sunDeclin * Math.PI / 180))) - Math.tan(lat * Math.PI / 180) * Math.tan(sunDeclin * Math.PI / 180)) * 180 / Math.PI;
-
             let solarNoonUTC = (720 - 4 * lng - eqOfTime);
             let sunsetUTC = solarNoonUTC + haCorrection * 4;
             let sunsetLocalMin = sunsetUTC + tz * 60;
-
             let sunsetH = Math.floor(sunsetLocalMin / 60);
             let sunsetM = Math.round(sunsetLocalMin % 60);
-
             let exactSunsetDate = new Date(date);
             exactSunsetDate.setHours(sunsetH, sunsetM, 0);
-
             const formatTime = (d) => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-
             let rangeStart = new Date(exactSunsetDate.getTime() - 6 * 60 * 1000);
             let rangeEnd = new Date(exactSunsetDate.getTime() + 12 * 60 * 1000);
-
             return formatTime(rangeStart) + ' - ' + formatTime(rangeEnd);
+        }
+
+        // 精準月份比對（支援 "5月-8月", "3-5月", "10,11,12" 等格式）
+        function matchExactMonth(monthsStr, targetMonthNum) {
+            if (!monthsStr || targetMonthNum === 'ALL') return true;
+            
+            var target = parseInt(targetMonthNum, 10);
+            
+            // 處理區間格式，例如 "5月-8月" 或 "5-8"
+            var rangeMatch = monthsStr.match(/(\d+)\s*月?\s*[-~～至]\s*(\d+)/);
+            if (rangeMatch) {
+                var start = parseInt(rangeMatch[1], 10);
+                var end = parseInt(rangeMatch[2], 10);
+                if (start <= end) {
+                    return target >= start && target <= end;
+                } else {
+                    // 跨年區間例如 11月-2月
+                    return target >= start || target <= end;
+                }
+            }
+
+            // 處理獨立數字列表，例如 "3, 4, 5"
+            var matches = monthsStr.match(/\d+/g);
+            if (!matches) return false;
+            return matches.map(Number).includes(target);
         }
 
         Papa.parse('tree_species.csv', {
@@ -709,13 +713,6 @@
                     allSunsetMarkers.push(marker);
                 }
             });
-        }
-
-        function matchExactMonth(monthsStr, targetMonthNum) {
-            if (!monthsStr || targetMonthNum === 'ALL') return true;
-            let matches = monthsStr.match(/\d+/g);
-            if (!matches) return false;
-            return matches.map(Number).includes(parseInt(targetMonthNum));
         }
 
         function buildSeasonalMarkers() {
@@ -827,7 +824,6 @@
                 var targetUrl = speciesInfo.url || 'https://zh.wikipedia.org/wiki/' + encodeURIComponent(treeName);
                 var gmapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
 
-                // 完美跟隨圖一的排版與字體樣式（冒號帶空格「：」）
                 marker.bindPopup(`
                     <div style="min-width: 220px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 2px;">
                         <div style="font-size: 17px; font-weight: 700; margin-bottom: 2px; display: flex; align-items: center; gap: 4px;">
@@ -850,6 +846,7 @@
                 marker.bindTooltip(treeName, { direction: 'right', offset: [5, 0], className: 'tree-label', permanent: false });
                 marker.speciesName = treeName;
                 marker.categoryType = category;
+                marker.floweringPeriod = flowering; // 記錄花期供篩選使用
                 allGovTreeMarkers.push(marker);
             }
         }
@@ -861,15 +858,10 @@
                 allGovTreeMarkers.forEach(function(m) {
                     var matchType = (activeTypeFilter === 'ALL' || m.categoryType === activeTypeFilter || (activeTypeFilter === 'OVT' && m.categoryType === 'OVT_SWT') || (activeTypeFilter === 'SWT' && m.categoryType === 'OVT_SWT'));
                     var matchSpecies = (selectedSpeciesFilter === 'ALL' || m.speciesName === selectedSpeciesFilter);
-                    var matchMonth = true;
-                    if (activeTreeMonthFilter !== 'ALL') {
-                        var foundSeasonItem = seasonalData.find(d => (d.細分品種 || '').includes(m.speciesName));
-                        if (foundSeasonItem) {
-                            matchMonth = matchExactMonth(foundSeasonItem.觀賞月份 || foundSeasonItem.最佳觀賞月份 || '', activeTreeMonthFilter);
-                        } else {
-                            matchMonth = false;
-                        }
-                    }
+                    
+                    // 正確比對 tree_species.csv 內對應的花期
+                    var matchMonth = matchExactMonth(m.floweringPeriod, activeTreeMonthFilter);
+
                     if (matchType && matchSpecies && matchMonth) combined.push(m);
                 });
             } else if (activeTab === 'seasonal') {
