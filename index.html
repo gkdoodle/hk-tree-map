@@ -569,19 +569,16 @@
             const month = date.getMonth() + 1;
             const day = date.getDate();
 
-            // 計算儒略日 (Julian Day)
             let a = Math.floor((14 - month) / 12);
             let y = year + 4800 - a;
             let m = month + 12 * a - 3;
             let jd = day + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
             let jc = (jd - 2451545.0) / 36525.0;
 
-            // 太陽幾何平黃經與平近點角
             let geomMeanLongSun = (280.46646 + jc * (36000.76983 + jc * 0.0003032)) % 360;
             let geomMeanAnomSun = 357.52911 + jc * (35999.05029 - 0.0001537 * jc);
             let eccentEarthOrbit = 0.016708634 - jc * (0.000042037 + 0.0000001267 * jc);
 
-            // 太陽中心黃經差
             let sunEqOfCtr = Math.sin(geomMeanAnomSun * Math.PI / 180) * (1.914602 - jc * (0.004817 + 0.000014 * jc)) +
                              Math.sin(2 * geomMeanAnomSun * Math.PI / 180) * (0.019993 - 0.000101 * jc) +
                              Math.sin(3 * geomMeanAnomSun * Math.PI / 180) * 0.000289;
@@ -589,19 +586,15 @@
             let sunTrueLong = geomMeanLongSun + sunEqOfCtr;
             let sunAppLong = sunTrueLong - 0.00569 - 0.00478 * Math.sin((125.04 - 1934.136 * jc) * Math.PI / 180);
 
-            // 黃赤交角與赤緯
             let meanObliqEclip = 23 + (26 + ((21.448 - jc * (46.815 + jc * (0.00059 - jc * 0.001813)))) / 60) / 60;
             let obliqCorr = meanObliqEclip + 0.00256 * Math.cos((125.04 - 1934.136 * jc) * Math.PI / 180);
             let sunDeclin = Math.asin(Math.sin(obliqCorr * Math.PI / 180) * Math.sin(sunAppLong * Math.PI / 180)) * 180 / Math.PI;
 
-            // 均時差 (Equation of Time - 分鐘)
             let vary = Math.tan((obliqCorr / 2) * Math.PI / 180) * Math.tan((obliqCorr / 2) * Math.PI / 180);
             let eqOfTime = 4 * (vary * Math.sin(2 * geomMeanLongSun * Math.PI / 180) - 2 * eccentEarthOrbit * Math.sin(geomMeanAnomSun * Math.PI / 180) + 4 * eccentEarthOrbit * vary * Math.sin(geomMeanAnomSun * Math.PI / 180) * Math.cos(2 * geomMeanLongSun * Math.PI / 180) - 0.5 * vary * vary * Math.sin(4 * geomMeanLongSun * Math.PI / 180) - 1.25 * eccentEarthOrbit * eccentEarthOrbit * Math.sin(2 * geomMeanAnomSun * Math.PI / 180)) * 180 / Math.PI;
 
-            // 太陽時角 (Hour Angle)
             let haCorrection = Math.acos((Math.cos(90.833 * Math.PI / 180) / (Math.cos(lat * Math.PI / 180) * Math.cos(sunDeclin * Math.PI / 180))) - Math.tan(lat * Math.PI / 180) * Math.tan(sunDeclin * Math.PI / 180)) * 180 / Math.PI;
 
-            // 日落時間 (當地的 UTC 分鐘數)
             let solarNoonUTC = (720 - 4 * lng - eqOfTime);
             let sunsetUTC = solarNoonUTC + haCorrection * 4;
             let sunsetLocalMin = sunsetUTC + tz * 60;
@@ -614,7 +607,6 @@
 
             const formatTime = (d) => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
 
-            // 前 6 分鐘至後 12 分鐘為最美夕陽餘暉區間
             let rangeStart = new Date(exactSunsetDate.getTime() - 6 * 60 * 1000);
             let rangeEnd = new Date(exactSunsetDate.getTime() + 12 * 60 * 1000);
 
@@ -632,7 +624,9 @@
                                 scientificName: row.Scientific_Name || '',
                                 family: (row['科名'] || '常見植物科').trim(),
                                 origin: row['品種屬性'] || '本地 / 外來',
-                                url: row['樹木網頁'] || ''
+                                url: row['樹木網頁'] || '',
+                                floweringPeriod: (row['花期'] || row.Flowering_Period || row.flowering_period || '').trim(),
+                                fruitingPeriod: (row['果期'] || row.Fruiting_Period || row.fruiting_period || '').trim()
                             };
                         }
                     });
@@ -826,21 +820,31 @@
                 var sciName = row.Scientific_Name || speciesInfo.scientificName || '';
                 var familyName = speciesInfo.family || '常見植物科';
                 var originStatus = speciesInfo.origin || '本地 / 外來';
+                var flowering = speciesInfo.floweringPeriod || row.Flowering_Period || row['花期'] || '';
+                var fruiting = speciesInfo.fruitingPeriod || row.Fruiting_Period || row['果期'] || '';
                 var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
+                var sourceName = row.Data_Source || row.Source || row['來源'] || '';
                 var targetUrl = speciesInfo.url || 'https://zh.wikipedia.org/wiki/' + encodeURIComponent(treeName);
                 var gmapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
 
+                // 完美跟隨圖一的排版與字體樣式（冒號帶空格「：」）
                 marker.bindPopup(`
-                    <div style="min-width: 220px; font-family: sans-serif; padding: 2px;">
-                        <div style="font-size: 16px; font-weight: 700; margin-bottom: 2px;">
-                            <a href="${targetUrl}" target="_blank" style="color: var(--primary-color); text-decoration: none;">${treeName} 🔗</a>
+                    <div style="min-width: 220px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 2px;">
+                        <div style="font-size: 17px; font-weight: 700; margin-bottom: 2px; display: flex; align-items: center; gap: 4px;">
+                            <a href="${targetUrl}" target="_blank" style="color: var(--primary-color); text-decoration: none;">${treeName}</a>
+                            <a href="${targetUrl}" target="_blank" style="text-decoration: none;">🔗</a>
                         </div>
-                        ${sciName ? '<div style="font-size: 12px; font-style: italic; color: #666; margin-bottom: 6px;">' + sciName + '</div>' : ''}
-                        <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
-                        <div style="font-size: 12.5px; margin-bottom: 3px;"><b>科名：</b>${familyName}</div>
-                        <div style="font-size: 12.5px; margin-bottom: 3px;"><b>屬性：</b>${originStatus}</div>
-                        <div style="font-size: 12.5px; margin-bottom: 3px;"><b>地點：</b>${locationName}</div>
-                        <a href="${gmapsUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: 8px;">在 Google 地圖中開啟導航 🗺️</a>
+                        ${sciName ? '<div style="font-size: 13px; font-style: italic; color: #555; margin-bottom: 8px;">' + sciName + '</div>' : ''}
+                        <hr style="border:0; border-top:1px solid #eef0ee; margin:8px 0;">
+                        <div style="font-size: 13.5px; line-height: 1.6; color: #2c3e50;">
+                            <div><b>科名：</b>${familyName}</div>
+                            <div><b>屬性：</b>${originStatus}</div>
+                            ${flowering ? '<div><b>花期：</b>' + flowering + '</div>' : ''}
+                            ${fruiting ? '<div><b>果期：</b>' + fruiting + '</div>' : ''}
+                            <div><b>地點：</b>${locationName}</div>
+                            ${sourceName ? '<div style="color: #666; font-size: 12.5px;"><b>來源：</b>' + sourceName + '</div>' : ''}
+                        </div>
+                        <a href="${gmapsUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 8px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-top: 12px; box-shadow: 0 2px 6px rgba(25,118,210,0.2);">在 Google 地圖中開啟導航 🗺️</a>
                     </div>
                 `);
                 marker.bindTooltip(treeName, { direction: 'right', offset: [5, 0], className: 'tree-label', permanent: false });
