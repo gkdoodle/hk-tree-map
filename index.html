@@ -559,30 +559,65 @@
             ]
         };
 
+        // 精確 NOAA 日落算法 (含均時差與大氣折射校正)
         function getSolarTimes(date = new Date()) {
-            const startOfYear = new Date(date.getFullYear(), 0, 1);
-            const dayOfYear = Math.floor((date - startOfYear) / (1000 * 60 * 60 * 24)) + 1;
-            
-            const declination = 23.44 * Math.sin((360 * (284 + dayOfYear) / 365) * (Math.PI / 180));
-            const lat = 22.3193 * (Math.PI / 180);
-            const decRad = declination * (Math.PI / 180);
-            
-            let val = -Math.tan(lat) * Math.tan(decRad);
-            val = Math.max(-1.0, Math.min(1.0, val));
-            const hAngle = Math.acos(val) * (180 / Math.PI);
-            
-            const sunsetHourDecimal = 12.35 + (hAngle / 15.0);
-            const sunsetH = Math.floor(sunsetHourDecimal);
-            const sunsetM = Math.round((sunsetHourDecimal - sunsetH) * 60);
-            
-            const sunsetDate = new Date(date);
-            sunsetDate.setHours(sunsetH, sunsetM, 0);
-            
+            const lat = 22.3193; // 香港緯度
+            const lng = 114.1694; // 香港經度
+            const tz = 8; // HKT UTC+8
+
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+
+            // 計算儒略日 (Julian Day)
+            let a = Math.floor((14 - month) / 12);
+            let y = year + 4800 - a;
+            let m = month + 12 * a - 3;
+            let jd = day + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
+            let jc = (jd - 2451545.0) / 36525.0;
+
+            // 太陽幾何平黃經與平近點角
+            let geomMeanLongSun = (280.46646 + jc * (36000.76983 + jc * 0.0003032)) % 360;
+            let geomMeanAnomSun = 357.52911 + jc * (35999.05029 - 0.0001537 * jc);
+            let eccentEarthOrbit = 0.016708634 - jc * (0.000042037 + 0.0000001267 * jc);
+
+            // 太陽中心黃經差
+            let sunEqOfCtr = Math.sin(geomMeanAnomSun * Math.PI / 180) * (1.914602 - jc * (0.004817 + 0.000014 * jc)) +
+                             Math.sin(2 * geomMeanAnomSun * Math.PI / 180) * (0.019993 - 0.000101 * jc) +
+                             Math.sin(3 * geomMeanAnomSun * Math.PI / 180) * 0.000289;
+
+            let sunTrueLong = geomMeanLongSun + sunEqOfCtr;
+            let sunAppLong = sunTrueLong - 0.00569 - 0.00478 * Math.sin((125.04 - 1934.136 * jc) * Math.PI / 180);
+
+            // 黃赤交角與赤緯
+            let meanObliqEclip = 23 + (26 + ((21.448 - jc * (46.815 + jc * (0.00059 - jc * 0.001813)))) / 60) / 60;
+            let obliqCorr = meanObliqEclip + 0.00256 * Math.cos((125.04 - 1934.136 * jc) * Math.PI / 180);
+            let sunDeclin = Math.asin(Math.sin(obliqCorr * Math.PI / 180) * Math.sin(sunAppLong * Math.PI / 180)) * 180 / Math.PI;
+
+            // 均時差 (Equation of Time - 分鐘)
+            let vary = Math.tan((obliqCorr / 2) * Math.PI / 180) * Math.tan((obliqCorr / 2) * Math.PI / 180);
+            let eqOfTime = 4 * (vary * Math.sin(2 * geomMeanLongSun * Math.PI / 180) - 2 * eccentEarthOrbit * Math.sin(geomMeanAnomSun * Math.PI / 180) + 4 * eccentEarthOrbit * vary * Math.sin(geomMeanAnomSun * Math.PI / 180) * Math.cos(2 * geomMeanLongSun * Math.PI / 180) - 0.5 * vary * vary * Math.sin(4 * geomMeanLongSun * Math.PI / 180) - 1.25 * eccentEarthOrbit * eccentEarthOrbit * Math.sin(2 * geomMeanAnomSun * Math.PI / 180)) * 180 / Math.PI;
+
+            // 太陽時角 (Hour Angle)
+            let haCorrection = Math.acos((Math.cos(90.833 * Math.PI / 180) / (Math.cos(lat * Math.PI / 180) * Math.cos(sunDeclin * Math.PI / 180))) - Math.tan(lat * Math.PI / 180) * Math.tan(sunDeclin * Math.PI / 180)) * 180 / Math.PI;
+
+            // 日落時間 (當地的 UTC 分鐘數)
+            let solarNoonUTC = (720 - 4 * lng - eqOfTime);
+            let sunsetUTC = solarNoonUTC + haCorrection * 4;
+            let sunsetLocalMin = sunsetUTC + tz * 60;
+
+            let sunsetH = Math.floor(sunsetLocalMin / 60);
+            let sunsetM = Math.round(sunsetLocalMin % 60);
+
+            let exactSunsetDate = new Date(date);
+            exactSunsetDate.setHours(sunsetH, sunsetM, 0);
+
             const formatTime = (d) => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-            
-            const rangeStart = new Date(sunsetDate.getTime() - 6 * 60 * 1000);
-            const rangeEnd = new Date(sunsetDate.getTime() + 12 * 60 * 1000);
-            
+
+            // 前 6 分鐘至後 12 分鐘為最美夕陽餘暉區間
+            let rangeStart = new Date(exactSunsetDate.getTime() - 6 * 60 * 1000);
+            let rangeEnd = new Date(exactSunsetDate.getTime() + 12 * 60 * 1000);
+
             return formatTime(rangeStart) + ' - ' + formatTime(rangeEnd);
         }
 
