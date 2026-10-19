@@ -187,13 +187,20 @@
         }
         .search-item:hover { background: var(--primary-light); }
 
-        .tab-group { display: flex; background: #f5f5f5; padding: 3px; border-radius: 10px; gap: 2px; }
+        .tab-group { display: flex; background: #f5f5f5; padding: 3px; border-radius: 10px; gap: 4px; }
         .tab-btn {
-            flex: 1; padding: 7px 0; border: none; background: transparent;
-            font-size: 11.5px; font-weight: 600; color: var(--text-sub); border-radius: 8px;
+            flex: 1; padding: 7px 4px; border: none; background: transparent;
+            font-size: 11px; font-weight: 600; color: var(--text-sub); border-radius: 8px;
             cursor: pointer; transition: all 0.2s; text-align: center;
+            display: flex; align-items: center; justify-content: center; gap: 3px;
         }
         .tab-btn.active { background: #fff; color: var(--primary-color); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+        .tab-btn input[type="checkbox"] {
+            accent-color: var(--primary-color);
+            cursor: pointer;
+            width: 13px;
+            height: 13px;
+        }
 
         .panel-body { padding: 14px 20px; overflow-y: auto; flex: 1; max-height: calc(100vh - 140px); }
 
@@ -388,10 +395,17 @@
                 <div id="searchResults" class="search-results-dropdown"></div>
             </div>
 
+            <!-- 頂部頁籤按鈕：整合了真正可獨立勾選的 Checkbox 與切換功能 -->
             <div class="tab-group">
-                <button class="tab-btn active" id="tabTrees" onclick="switchTab('trees')">🌳 樹木位置</button>
-                <button class="tab-btn" id="tabSeasonal" onclick="switchTab('seasonal')">🌸 季節賞花</button>
-                <button class="tab-btn" id="tabSunset" onclick="switchTab('sunset')">🌅 日落景點</button>
+                <button class="tab-btn active" id="tabTrees" onclick="switchTab('trees', event)">
+                    <input type="checkbox" id="layerTreesToggle" checked onclick="event.stopPropagation(); toggleLayerVisibility();" title="切換樹木圖層"> 🌳 樹木位置
+                </button>
+                <button class="tab-btn" id="tabSeasonal" onclick="switchTab('seasonal', event)">
+                    <input type="checkbox" id="layerSeasonalToggle" checked onclick="event.stopPropagation(); toggleLayerVisibility();" title="切換賞花圖層"> 🌸 季節景點
+                </button>
+                <button class="tab-btn" id="tabSunset" onclick="switchTab('sunset', event)">
+                    <input type="checkbox" id="layerSunsetToggle" checked onclick="event.stopPropagation(); toggleLayerVisibility();" title="切換日落圖層"> 🌅 日落景點
+                </button>
             </div>
         </div>
 
@@ -543,6 +557,8 @@
         var activeSunsetCategory = 'ALL', activeSunsetMonth = 'ALL';
         var labelsEnabled = false, isMinimized = false;
 
+        var showTreesLayer = true, showSeasonalLayer = true, showSunsetLayer = true;
+
         var hkoWeatherData = {
             currentTemp: "27°C - 31°C",
             currentDesc: "大致天晴",
@@ -592,13 +608,11 @@
             return formatTime(rangeStart) + ' - ' + formatTime(rangeEnd);
         }
 
-        // 精準月份比對（支援 "5月-8月", "3-5月", "10,11,12" 等格式）
         function matchExactMonth(monthsStr, targetMonthNum) {
             if (!monthsStr || targetMonthNum === 'ALL') return true;
             
             var target = parseInt(targetMonthNum, 10);
             
-            // 處理區間格式，例如 "5月-8月" 或 "5-8"
             var rangeMatch = monthsStr.match(/(\d+)\s*月?\s*[-~～至]\s*(\d+)/);
             if (rangeMatch) {
                 var start = parseInt(rangeMatch[1], 10);
@@ -606,12 +620,10 @@
                 if (start <= end) {
                     return target >= start && target <= end;
                 } else {
-                    // 跨年區間例如 11月-2月
                     return target >= start || target <= end;
                 }
             }
 
-            // 處理獨立數字列表，例如 "3, 4, 5"
             var matches = monthsStr.match(/\d+/g);
             if (!matches) return false;
             return matches.map(Number).includes(target);
@@ -846,49 +858,59 @@
                 marker.bindTooltip(treeName, { direction: 'right', offset: [5, 0], className: 'tree-label', permanent: false });
                 marker.speciesName = treeName;
                 marker.categoryType = category;
-                marker.floweringPeriod = flowering; // 記錄花期供篩選使用
+                marker.floweringPeriod = flowering;
                 allGovTreeMarkers.push(marker);
             }
+        }
+
+        function toggleLayerVisibility() {
+            showTreesLayer = document.getElementById('layerTreesToggle').checked;
+            showSeasonalLayer = document.getElementById('layerSeasonalToggle').checked;
+            showSunsetLayer = document.getElementById('layerSunsetToggle').checked;
+            updateMapMarkers();
         }
 
         function updateMapMarkers() {
             markersCluster.clearLayers();
             var combined = [];
-            if (activeTab === 'trees') {
+
+            if (showTreesLayer) {
                 allGovTreeMarkers.forEach(function(m) {
                     var matchType = (activeTypeFilter === 'ALL' || m.categoryType === activeTypeFilter || (activeTypeFilter === 'OVT' && m.categoryType === 'OVT_SWT') || (activeTypeFilter === 'SWT' && m.categoryType === 'OVT_SWT'));
                     var matchSpecies = (selectedSpeciesFilter === 'ALL' || m.speciesName === selectedSpeciesFilter);
-                    
-                    // 正確比對 tree_species.csv 內對應的花期
                     var matchMonth = matchExactMonth(m.floweringPeriod, activeTreeMonthFilter);
 
                     if (matchType && matchSpecies && matchMonth) combined.push(m);
                 });
-            } else if (activeTab === 'seasonal') {
+            }
+
+            if (showSeasonalLayer) {
                 allSeasonalMarkers.forEach(function(m) {
                     var matchCat = (activeSeasonalCategory === 'ALL' || m.category.includes(activeSeasonalCategory));
                     var matchMonth = (m.category.includes("榕樹") || m.category.includes("常綠")) ? true : matchExactMonth(m.seasonalMonths, activeMonthFilter);
                     var matchSpecies = (activeSeasonalSpecies === 'ALL' || m.species.includes(activeSeasonalSpecies));
                     if (matchCat && matchMonth && matchSpecies) combined.push(m);
                 });
-            } else if (activeTab === 'sunset') {
+            }
+
+            if (showSunsetLayer) {
                 allSunsetMarkers.forEach(function(m) {
                     var matchCat = (activeSunsetCategory === 'ALL' || m.category === activeSunsetCategory);
                     var matchMonth = matchExactMonth(m.sunsetMonth, activeSunsetMonth);
                     if (matchCat && matchMonth) combined.push(m);
                 });
             }
+
             markersCluster.addLayers(combined);
             updateLabelsVisibility();
         }
 
-        function switchTab(tab) {
+        function switchTab(tab, event) {
             activeTab = tab;
             document.getElementById('tabTrees').classList.toggle('active', tab === 'trees');
             document.getElementById('tabSeasonal').classList.toggle('active', tab === 'seasonal');
             document.getElementById('tabSunset').classList.toggle('active', tab === 'sunset');
 
-            updateMapMarkers();
             renderPanelBody();
         }
 
@@ -926,7 +948,7 @@
                 }).join('');
 
                 body.innerHTML = `
-                    <div class="section-label">📌 類別：</div>
+                    <div class="section-label">📌 樹木類別：</div>
                     <div class="chip-group">
                         <button class="chip ${activeTypeFilter === 'ALL' ? 'active' : ''}" onclick="filterByType('ALL')">全部品種 (${typeCounts.ALL.toLocaleString()})</button>
                         <button class="chip ${activeTypeFilter === 'OVT' ? 'active' : ''}" onclick="filterByType('OVT')">古樹名木 (${typeCounts.OVT})</button>
@@ -934,12 +956,12 @@
                     </div>
                     <div class="section-label">🔥 常見樹木品種：</div>
                     <div class="chip-group">
-                        <button class="chip ${selectedSpeciesFilter === 'ALL' ? 'active' : ''}" onclick="selectTreeSpecies('ALL')">全部樹種</button>
+                        <button class="chip ${selectedSpeciesFilter === 'ALL' ? 'active' : ''}" onclick="selectTreeSpecies('ALL')">全部</button>
                         ${popChipsHtml}
                     </div>
                     <div class="section-label">🌸 花期月份篩選：</div>
                     <div class="chip-group">
-                        <button class="chip ${activeTreeMonthFilter === 'ALL' ? 'active' : ''}" onclick="filterTreeMonth('ALL')">全部月份</button>
+                        <button class="chip ${activeTreeMonthFilter === 'ALL' ? 'active' : ''}" onclick="filterTreeMonth('ALL')">全部</button>
                         ${treeMonthsButtonsHtml}
                     </div>
                     <hr class="section-divider">
