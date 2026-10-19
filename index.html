@@ -345,6 +345,10 @@
         .source-item a { color: #1976d2; text-decoration: none; font-size: 12.5px; font-weight: 600; }
         .source-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #e8f5e9; color: #2e7d32; font-weight: 600; }
         .info-card-box { background: #f9fbf9; border: 1px solid #eef2ee; border-radius: 12px; padding: 14px 16px; color: #444; font-size: 13px; }
+        .disclaimer-box { background: #fff8e1; border: 1px solid #fcf3d6; border-radius: 12px; padding: 14px 16px; color: #795548; font-size: 13px; }
+        .disclaimer-item { margin-bottom: 6px; }
+        .sponsor-box { background: #f1f8e9; border: 1px solid #e2f0d9; border-radius: 12px; padding: 16px; text-align: center; }
+        .bmc-wrapper { display: flex; justify-content: center; transform: scale(0.85); transform-origin: center; margin-top: 6px; }
         .footer-copyright { text-align: center; font-size: 12px; color: #888; margin-top: 20px; padding-top: 14px; border-top: 1px solid #eee; }
 
         @media (max-width: 768px) {
@@ -414,7 +418,7 @@
                 <div class="modal-section">
                     <div class="modal-section-title">📖 網頁介紹</div>
                     <div class="info-card-box">
-                        《香港樹木地圖》整合了全港樹木、賞花、紅葉與日落位置，方便大家尋找心儀的樹木與花海，以及了解城市樹木與絕美日落分佈。
+                        《香港樹木地圖》整合了全港樹木、賞花、紅葉與日落位置，方便大家尋找心儀的樹木與花海，以及有助了解城市樹木的分佈。
                     </div>
                 </div>
 
@@ -426,10 +430,49 @@
                             <span class="source-badge">地圖底圖</span>
                         </li>
                         <li class="source-item">
-                            <div><a href="https://www.hko.gov.hk/tc/index.html" target="_blank">香港天文台 (HKO)</a><div style="font-size:11px; color:#777;">官方實時天氣、紫外線及九天預報 RSS</div></div>
-                            <span class="source-badge">天氣數據</span>
+                            <div><a href="https://www.herbarium.gov.hk/tc/home/index.html" target="_blank">香港植物標本室</a><div style="font-size:11px; color:#777;">植物學學名與特徵檢索</div></div>
+                            <span class="source-badge">植物資料</span>
+                        </li>
+                        <li class="source-item">
+                            <div><a href="https://www.greening.gov.hk/tc/community-outreach/qrcode-tree-labels/index.html" target="_blank">二維條碼樹木標籤</a><div style="font-size:11px; color:#777;">發展局綠化、園境及樹木管理組</div></div>
+                            <span class="source-badge">植物資料</span>
+                        </li>
+                        <li class="source-item">
+                            <div><a href="https://portal.csdi.gov.hk/geoportal/#metadataInfoPanel" target="_blank">CSDI 空間數據共享平台</a><div style="font-size:11px; color:#777;">古樹名木、石牆樹、康文署及渠務署等資料</div></div>
+                            <span class="source-badge">樹木位置</span>
+                        </li>
+                        <li class="source-item">
+                            <div><a href="https://benjaminficusmicrocarpa.github.io/map/wkcd-trees.html?lat=22.300083&lng=114.156058&zoom=18" target="_blank">西九文化區樹木地圖</a><div style="font-size:11px; color:#777;">西九園區樹木專項點位</div></div>
+                            <span class="source-badge">樹木位置</span>
                         </li>
                     </ul>
+                </div>
+
+                <div class="modal-section">
+                    <div class="modal-section-title">⚠️ 免責聲明與觀賞禮儀</div>
+                    <div class="disclaimer-box">
+                        <div class="disclaimer-item"><b>1）位置參考</b>：地圖內標註的點位座標主要來自開放數據整合，不一定為 100% 精準位置，僅供賞樹與行程參考。</div>
+                        <div class="disclaimer-item"><b>2）愛惜自然</b>：前往觀賞樹木及季節景點時，請愛護樹木與植物，切勿採摘、攀折樹枝或留下垃圾。</div>
+                        <div class="disclaimer-item"><b>3）安全提示</b>：部分樹木的汁液、花粉、果實或葉片可能帶有毒性，請勿撫摸後觸碰眼睛，並<b>切勿採摘或食用</b>任何野生樹木果實。</div>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <div class="modal-section-title">☕ 支持我們的營運</div>
+                    <div class="sponsor-box">
+                        <p style="margin-bottom: 8px; font-size: 13px;">如果你喜歡這個地圖，歡迎請我們喝一杯咖啡，支持伺服器與地圖維護費用！</p>
+                        <div class="bmc-wrapper">
+                            <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="gk_doodle" data-color="#FFDD00" data-emoji="" data-font="Arial" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff"></script>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <div class="modal-section-title">✨ 作者簡介</div>
+                    <div class="info-card-box">
+                        <p><b>GK Doodle</b> 是一個象徵着自由少女的插畫品牌，希望透過溫暖、窩心的插畫，讓大家遠離煩囂，一同進入被治癒的夢幻世界。</p>
+                        <p style="margin-top: 6px;"><a href="https://www.instagram.com/gk_doodle/" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: 600;">🔗 Instagram: @gk_doodle</a></p>
+                    </div>
                 </div>
 
                 <div class="footer-copyright">
@@ -481,7 +524,12 @@
             style: 'https://tiles.openfreemap.org/styles/positron'
         }).addTo(map);
 
-        var markersCluster = L.markerClusterGroup({ chunkedLoading: true, disableClusteringAtZoom: 18 });
+        // 徹底關閉 hover 時的藍色覆蓋範圍框 (showCoverageOnHover: false)
+        var markersCluster = L.markerClusterGroup({ 
+            chunkedLoading: true, 
+            disableClusteringAtZoom: 18,
+            showCoverageOnHover: false
+        });
         map.addLayer(markersCluster);
 
         var speciesDict = {}, seasonalData = [], sunsetData = [];
@@ -490,7 +538,7 @@
         var typeCounts = { ALL: 0, OVT: 0, SWT: 0, OVT_SWT: 0 };
         
         var activeTab = 'trees', activeTypeFilter = 'ALL', selectedSpeciesFilter = 'ALL'; 
-        var activeTreeMonthFilter = 'ALL'; // 樹木位置分頁的花期月份篩選
+        var activeTreeMonthFilter = 'ALL';
         var activeSeasonalCategory = 'ALL', activeSeasonalSpecies = 'ALL', activeMonthFilter = 'ALL'; 
         var activeSunsetCategory = 'ALL', activeSunsetMonth = 'ALL';
         var labelsEnabled = false, isMinimized = false;
@@ -615,6 +663,7 @@
                     var marker = L.marker([lat, lng], { icon: icon });
                     marker.category = category;
                     marker.sunsetMonth = month;
+                    marker.spotTitle = title;
 
                     var gmapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
                     marker.bindPopup(`
@@ -667,6 +716,7 @@
                     marker.category = category;
                     marker.seasonalMonths = months;
                     marker.species = species;
+                    marker.spotTitle = title;
 
                     var gmapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
                     marker.bindPopup(`
@@ -772,7 +822,6 @@
                 allGovTreeMarkers.forEach(function(m) {
                     var matchType = (activeTypeFilter === 'ALL' || m.categoryType === activeTypeFilter || (activeTypeFilter === 'OVT' && m.categoryType === 'OVT_SWT') || (activeTypeFilter === 'SWT' && m.categoryType === 'OVT_SWT'));
                     var matchSpecies = (selectedSpeciesFilter === 'ALL' || m.speciesName === selectedSpeciesFilter);
-                    // 樹木位置的花期月份過濾（如果該品種在 seasonalData 中有對應花期月份）
                     var matchMonth = true;
                     if (activeTreeMonthFilter !== 'ALL') {
                         var foundSeasonItem = seasonalData.find(d => (d.細分品種 || '').includes(m.speciesName));
@@ -955,13 +1004,21 @@
 
         function toggleFamilyAccordion(id) { document.getElementById(id)?.classList.toggle('open'); }
         function filterByType(type) { activeTypeFilter = type; updateMapMarkers(); renderPanelBody(); }
+        
         function selectTreeSpecies(sp) {
-            selectedSpeciesFilter = sp; updateMapMarkers(); renderPanelBody();
+            selectedSpeciesFilter = sp; 
+            updateMapMarkers(); 
+            renderPanelBody();
+            // 點擊樹種時保持當前地圖縮放視角，只平移至相關樹木範圍（如果有的話，不強行 zoom out 全港）
             if (sp !== 'ALL') {
                 var matched = allGovTreeMarkers.filter(m => m.speciesName === sp);
-                if (matched.length > 0) map.fitBounds(new L.featureGroup(matched).getBounds().pad(0.1));
+                if (matched.length > 0) {
+                    var group = new L.featureGroup(matched);
+                    map.panTo(group.getBounds().getCenter());
+                }
             }
         }
+
         function filterTreeMonth(m) { activeTreeMonthFilter = m; updateMapMarkers(); renderPanelBody(); }
         function filterSeasonalCategory(cat) { activeSeasonalCategory = cat; updateMapMarkers(); renderPanelBody(); }
         function filterSeasonalSpecies(sp) { activeSeasonalSpecies = sp; updateMapMarkers(); renderPanelBody(); }
@@ -971,39 +1028,71 @@
         function filterSunsetMonth(m) { activeSunsetMonth = m; updateMapMarkers(); renderPanelBody(); }
 
         function flyToSunsetSpot(lat, lng, title) {
-            if (lat && lng) {
-                map.setView([lat, lng], 16);
-                var target = allSunsetMarkers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001);
-                if (target) target.openPopup();
-                else L.popup().setLatLng([lat, lng]).setContent('<b>' + title + '</b>').openOn(map);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                // 點擊選項後收合搜尋欄並清空
+                document.getElementById('searchInput').value = '';
+                document.getElementById('searchResults').style.display = 'none';
+
+                map.setView([lat, lng], 17);
+                var target = allSunsetMarkers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001);
+                if (target) {
+                    markersCluster.showLayer(target);
+                    target.openPopup();
+                } else {
+                    L.popup().setLatLng([lat, lng]).setContent('<b>' + title + '</b>').openOn(map);
+                }
             }
         }
 
         function flyToSpot(lat, lng, title) {
-            if (lat && lng) {
-                map.setView([lat, lng], 16);
-                var target = allSeasonalMarkers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001);
-                if (target) target.openPopup();
-                else L.popup().setLatLng([lat, lng]).setContent('<b>' + title + '</b>').openOn(map);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                // 點擊選項後收合搜尋欄並清空
+                document.getElementById('searchInput').value = '';
+                document.getElementById('searchResults').style.display = 'none';
+
+                map.setView([lat, lng], 17);
+                var target = allSeasonalMarkers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001);
+                if (target) {
+                    markersCluster.showLayer(target);
+                    target.openPopup();
+                } else {
+                    L.popup().setLatLng([lat, lng]).setContent('<b>' + title + '</b>').openOn(map);
+                }
             }
+        }
+
+        function selectSpeciesFromSearch(s) {
+            // 搜尋樹種時收合搜尋欄並清空
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchResults').style.display = 'none';
+            selectTreeSpecies(s);
         }
 
         function handleSearch() {
             var q = document.getElementById('searchInput').value.trim().toLowerCase();
             var resDiv = document.getElementById('searchResults');
             if (!q) { resDiv.style.display = 'none'; return; }
+            
             var matchedSpots = seasonalData.filter(d => ((d.地點名稱 || '') + (d.細分品種 || '')).toLowerCase().includes(q)).slice(0, 3);
             var matchedSunsets = sunsetData.filter(d => ((d.地點名稱 || '') + (d.分類 || '')).toLowerCase().includes(q)).slice(0, 3);
             var matchedSpecies = Object.keys(speciesCounts).filter(s => s.toLowerCase().includes(q)).slice(0, 3);
+            
             var html = '';
             matchedSunsets.forEach(m => {
-                html += `<div class="search-item" onclick="switchTab('sunset'); flyToSunsetSpot(${m.Latitude}, ${m.Longitude}, '${(m.地點名稱 || '').replace(/'/g, "\\'")}')"><span>🌅 日落：${m.地點名稱}</span></div>`;
+                var lat = parseFloat(m.Latitude || m.GeometryLatitude);
+                var lng = parseFloat(m.Longitude || m.GeometryLongitude);
+                var title = (m.地點名稱 || '').replace(/'/g, "\\'");
+                html += `<div class="search-item" onclick="switchTab('sunset'); flyToSunsetSpot(${lat}, ${lng}, '${title}')"><span>🌅 日落：${m.地點名稱}</span></div>`;
             });
             matchedSpots.forEach(m => {
-                html += `<div class="search-item" onclick="switchTab('seasonal'); flyToSpot(${m.Latitude || m.GeometryLatitude}, ${m.Longitude || m.GeometryLongitude}, '${(m.地點名稱 || '').replace(/'/g, "\\'")}')"><span>🌸 賞花：${m.地點名稱}</span></div>`;
+                var lat = parseFloat(m.Latitude || m.GeometryLatitude);
+                var lng = parseFloat(m.Longitude || m.GeometryLongitude);
+                var title = (m.地點名稱 || '').replace(/'/g, "\\'");
+                html += `<div class="search-item" onclick="switchTab('seasonal'); flyToSpot(${lat}, ${lng}, '${title}')"><span>🌸 賞花：${m.地點名稱}</span></div>`;
             });
             matchedSpecies.forEach(s => {
-                html += `<div class="search-item" onclick="switchTab('trees'); selectTreeSpecies('${s.replace(/'/g, "\\'")}')"><span>🌳 樹種：${s}</span><span style="font-size:11px; color:#888;">${speciesCounts[s]} 棵</span></div>`;
+                var safeS = s.replace(/'/g, "\\'");
+                html += `<div class="search-item" onclick="switchTab('trees'); selectSpeciesFromSearch('${safeS}')"><span>🌳 樹種：${s}</span><span style="font-size:11px; color:#888;">${speciesCounts[s]} 棵</span></div>`;
             });
             resDiv.innerHTML = html;
             resDiv.style.display = html ? 'block' : 'none';
