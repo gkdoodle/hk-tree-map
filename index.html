@@ -17,6 +17,8 @@
         :root {
             --primary-color: #2e7d32;
             --primary-light: #f1f8e9;
+            --sunset-color: #e65100;
+            --sunset-light: #fff3e0;
             --text-main: #2c3e50;
             --text-sub: #666666;
             --bg-white: #ffffff;
@@ -41,12 +43,8 @@
             z-index: 1;
         }
 
-        /* 隱藏 Leaflet 原生國旗圖示 */
-        .leaflet-attribution-flag {
-            display: none !important;
-        }
+        .leaflet-attribution-flag { display: none !important; }
 
-        /* 自訂可點擊收合/展開嘅版權宣告按鈕 */
         .custom-attrib-btn {
             background: rgba(255, 255, 255, 0.95) !important;
             box-shadow: 0 2px 10px rgba(0,0,0,0.12) !important;
@@ -82,16 +80,9 @@
             padding-right: 2px;
         }
 
-        .custom-attrib-content a {
-            color: #1976d2;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .custom-attrib-content a:hover {
-            text-decoration: underline;
-        }
+        .custom-attrib-content a { color: #1976d2; text-decoration: none; font-weight: 500; }
+        .custom-attrib-content a:hover { text-decoration: underline; }
 
-        /* 點擊展開後的狀態 */
         .custom-attrib-btn.open {
             width: auto !important;
             max-width: 85vw !important;
@@ -99,9 +90,7 @@
             justify-content: flex-start !important;
         }
 
-        .custom-attrib-btn.open .custom-attrib-content {
-            display: inline-block !important;
-        }
+        .custom-attrib-btn.open .custom-attrib-content { display: inline-block !important; }
 
         .loading-overlay {
             position: fixed; top: 20px; right: 90px; z-index: 2000;
@@ -131,74 +120,37 @@
         }
 
         .sidebar-panel.minimized {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            padding: 0;
-            overflow: hidden;
-            background: white;
+            width: 46px; height: 46px; border-radius: 50%;
+            padding: 0; overflow: hidden; background: white;
             box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-            opacity: 0;
-            transform: scale(0.2);
-            pointer-events: none;
+            opacity: 0; transform: scale(0.2); pointer-events: none;
         }
 
         .float-expand-btn {
-            position: absolute;
-            top: 20px; left: 20px;
-            width: 46px;
-            height: 46px;
-            background: white;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary-color);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-            z-index: 999;
-            opacity: 0;
-            transform: scale(0.5);
+            position: absolute; top: 20px; left: 20px;
+            width: 46px; height: 46px; background: white; border: none;
+            border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-color); box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            z-index: 999; opacity: 0; transform: scale(0.5);
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, background 0.2s;
             pointer-events: none;
         }
 
-        .float-expand-btn.visible {
-            opacity: 1;
-            transform: scale(1);
-            pointer-events: auto;
-        }
-
-        .float-expand-btn:hover {
-            background: #f4f5f4;
-            transform: scale(1.08);
-        }
+        .float-expand-btn.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
+        .float-expand-btn:hover { background: #f4f5f4; transform: scale(1.08); }
 
         .panel-header {
             padding: 16px 20px 12px 20px;
             border-bottom: 1px solid #f0f0f0;
-            background: #fff;
-            position: relative;
+            background: #fff; position: relative;
         }
 
-        .panel-title-group {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-        }
+        .panel-title-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .panel-title-left { display: flex; align-items: center; gap: 8px; }
+        .panel-title { font-size: 17px; font-weight: 700; color: var(--primary-color); letter-spacing: -0.3px; }
+        .panel-actions-right { display: flex; align-items: center; gap: 8px; }
 
-        .panel-title-left {
-            display: flex; align-items: center; gap: 8px;
-        }
-
-        .panel-title {
-            font-size: 17px; font-weight: 700; color: var(--primary-color); letter-spacing: -0.3px;
-        }
-
-        .panel-actions-right {
-            display: flex; align-items: center; gap: 8px;
-        }
-
-        /* 使用 SVG 圖形統一按鈕圖示 */
         .collapse-icon-btn {
             background: #f4f5f4; border: 1px solid #e2e8f0; color: #555;
             width: 36px; height: 36px; border-radius: 50%;
@@ -215,134 +167,80 @@
         }
         .about-btn:hover { background: #e1ede3; }
 
-        .search-container {
-            position: relative;
-            margin-bottom: 10px;
-        }
-
-        /* 防止 iOS 點擊放大：輸入框字體設定為 16px */
+        .search-container { position: relative; margin-bottom: 10px; }
         .search-input {
-            width: 100%;
-            padding: 9px 14px;
-            padding-right: 36px;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 16px; 
-            outline: none;
-            transition: border-color 0.2s;
-            background: #fdfdfd;
+            width: 100%; padding: 9px 14px; padding-right: 36px;
+            border: 1px solid #e2e8f0; border-radius: 10px; font-size: 16px; 
+            outline: none; transition: border-color 0.2s; background: #fdfdfd;
         }
         .search-input:focus { border-color: var(--primary-color); background: #fff; }
 
         .search-results-dropdown {
-            position: absolute;
-            top: 100%; left: 0; right: 0;
-            background: #fff; border-radius: 10px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-            max-height: 250px; overflow-y: auto;
-            z-index: 1010; display: none; margin-top: 4px;
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: #fff; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            max-height: 250px; overflow-y: auto; z-index: 1010; display: none; margin-top: 4px;
         }
 
         .search-item {
             padding: 10px 12px; font-size: 12.5px; cursor: pointer;
-            border-bottom: 1px solid #f7f7f7;
-            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #f7f7f7; display: flex; justify-content: space-between; align-items: center;
         }
         .search-item:hover { background: var(--primary-light); }
 
-        .tab-group {
-            display: flex;
-            background: #f5f5f5; padding: 3px; border-radius: 10px;
-        }
-
+        .tab-group { display: flex; background: #f5f5f5; padding: 3px; border-radius: 10px; gap: 2px; }
         .tab-btn {
-            flex: 1; padding: 7px 0; border: none;
-            background: transparent; font-size: 12px; font-weight: 600;
-            color: var(--text-sub); border-radius: 8px; cursor: pointer;
-            transition: all 0.2s;
+            flex: 1; padding: 7px 0; border: none; background: transparent;
+            font-size: 11.5px; font-weight: 600; color: var(--text-sub); border-radius: 8px;
+            cursor: pointer; transition: all 0.2s; text-align: center;
         }
-        .tab-btn.active {
-            background: #fff; color: var(--primary-color);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-        }
+        .tab-btn.active { background: #fff; color: var(--primary-color); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
 
-        .panel-body {
-            padding: 14px 20px;
-            overflow-y: auto; flex: 1;
-            max-height: calc(100vh - 140px);
-        }
+        .panel-body { padding: 14px 20px; overflow-y: auto; flex: 1; max-height: calc(100vh - 140px); }
 
-        .chip-group {
-            display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;
-        }
-
+        .chip-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
         .chip {
-            padding: 5px 12px; border-radius: 16px;
-            background: #f0f0f0; font-size: 11.5px;
-            color: #555; cursor: pointer; border: none;
-            transition: all 0.2s;
+            padding: 5px 11px; border-radius: 16px; background: #f0f0f0;
+            font-size: 11.5px; color: #555; cursor: pointer; border: none; transition: all 0.2s;
         }
-        .chip.active { background: var(--primary-color); color: #fff; }
+        .chip.active { background: var(--primary-color) !important; color: #fff !important; }
 
-        .section-label {
-            font-size: 12px; font-weight: 700; color: var(--text-main); margin: 8px 0 4px 0;
+        .section-label { font-size: 12px; font-weight: 700; color: var(--text-main); margin: 8px 0 4px 0; }
+
+        .section-divider {
+            border: 0; border-top: 1px solid #e2e8f0; margin: 14px 0 10px 0;
         }
 
         .family-accordion {
-            border: 1px solid #eef2ee;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            overflow: hidden;
-            background: #fff;
+            border: 1px solid #eef2ee; border-radius: 10px;
+            margin-bottom: 8px; overflow: hidden; background: #fff;
         }
         .family-header {
-            padding: 10px 14px;
-            background: #fdfdfd;
-            cursor: pointer;
+            padding: 10px 14px; background: #fdfdfd; cursor: pointer;
             display: flex; justify-content: space-between; align-items: center;
-            font-size: 13px; font-weight: 700; color: var(--text-main);
-            transition: background 0.2s;
+            font-size: 13px; font-weight: 700; color: var(--text-main); transition: background 0.2s;
         }
         .family-header:hover { background: var(--primary-light); }
         .family-count {
             font-size: 11px; color: var(--primary-color); font-weight: 600;
             background: var(--primary-light); padding: 2px 8px; border-radius: 10px;
         }
-        .family-content {
-            display: none;
-            padding: 10px;
-            border-top: 1px solid #f0f0f0;
-            background: #fafafa;
-        }
+        .family-content { display: none; padding: 10px; border-top: 1px solid #f0f0f0; background: #fafafa; }
         .family-content.open { display: block; }
 
-        .species-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-
+        .species-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .species-square-card {
-            background: #fff;
-            border: 1px solid #eef2ee;
-            border-radius: 12px;
-            aspect-ratio: 1 / 1;
-            padding: 6px;
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            text-align: center; cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            background: #fff; border: 1px solid #eef2ee; border-radius: 12px;
+            aspect-ratio: 1 / 1; padding: 6px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center; cursor: pointer;
+            transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.02);
         }
-        .species-square-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--primary-color);
-            box-shadow: 0 4px 12px rgba(46,125,50,0.12);
+        .species-square-card:hover, .species-square-card.active-species {
+            transform: translateY(-2px); border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(46,125,50,0.18); background: var(--primary-light);
         }
         .species-card-name {
-            font-size: 11.5px; font-weight: 700; color: var(--text-main);
-            margin-bottom: 4px; display: -webkit-box;
-            -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+            font-size: 11.5px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
         .species-card-count {
             font-size: 10.5px; color: var(--primary-color); font-weight: 600;
@@ -350,11 +248,9 @@
         }
 
         .tree-label {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid #2e7d32; border-radius: 4px;
-            padding: 2px 5px; font-size: 10px; font-weight: bold;
-            color: #1b5e20; white-space: nowrap;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+            background: rgba(255, 255, 255, 0.95); border: 1px solid #2e7d32;
+            border-radius: 4px; padding: 2px 5px; font-size: 10px; font-weight: bold;
+            color: #1b5e20; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.12);
         }
 
         .seasonal-emoji-marker {
@@ -369,22 +265,56 @@
         .seasonal-emoji-sunset { background: #fffde7; color: #f57f17; }
         .seasonal-emoji-nature { background: #e8f5e9; color: #2e7d32; }
 
-        .control-group {
-            position: absolute; top: 20px; right: 20px; z-index: 1000;
-            display: flex; flex-direction: column; gap: 8px;
+        .sunset-info-card {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-radius: 12px; padding: 14px; margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(230,81,0,0.1); border: 1px solid #ffcc80;
         }
+        .sunset-title-main { font-size: 13.5px; font-weight: 700; color: var(--sunset-color); margin-bottom: 2px; display: flex; align-items: center; gap: 4px; }
+        .sunset-range-val { font-size: 22px; font-weight: 800; color: #d84315; margin-bottom: 6px; }
+        .sunset-tip-text { font-size: 11.5px; color: #bf360c; }
+
+        .weather-box {
+            background: #ffffff; border: 1px solid #ffe0b2; border-radius: 12px;
+            padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .weather-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+        .weather-item {
+            background: #fff8e1; padding: 8px 10px; border-radius: 8px;
+            font-size: 12px; color: #5d4037; display: flex; flex-direction: column;
+        }
+        .weather-item-label { font-size: 10.5px; color: #8d6e63; font-weight: 600; }
+        .weather-item-val { font-size: 13px; font-weight: 700; color: #d84315; margin-top: 2px; }
+
+        .forecast-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+        .forecast-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 12px; background: #fdfdfd; border: 1px solid #f0f0f0;
+            border-radius: 8px; font-size: 12.5px; color: var(--text-main);
+        }
+        .forecast-main-line { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+        .forecast-desc-text { color: #555; }
+        .forecast-temp-text { color: #d84315; font-weight: 700; }
+        .forecast-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; flex-shrink: 0; }
+        .tag-good { background: #e8f5e9; color: #2e7d32; }
+        .tag-fair { background: #fff8e1; color: #f57f17; }
+
+        .data-source-footnote {
+            font-size: 11px; color: #888; text-align: right; margin-top: 8px; padding-top: 4px; border-top: 1px dashed #eee;
+        }
+        .data-source-footnote a { color: #1976d2; text-decoration: none; font-weight: 600; }
+
+        .control-group { position: absolute; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
         .icon-map-btn {
-            background: white; border: 2px solid rgba(0,0,0,0.15);
-            width: 38px; height: 38px; border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-size: 18px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
+            background: white; border: 2px solid rgba(0,0,0,0.15); width: 38px; height: 38px;
+            border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-size: 18px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;
         }
         .icon-map-btn:hover { background: #f4f4f4; transform: scale(1.05); }
 
         .leaflet-control-zoom {
             border: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
-            border-radius: 8px !important; overflow: hidden;
+            border-radius: 8px !important; overflow: hidden; margin: 0 !important;
         }
         .leaflet-control-zoom a {
             width: 38px !important; height: 38px !important;
@@ -395,79 +325,35 @@
 
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(5px);
-            z-index: 3000; display: none; justify-content: center; align-items: center; padding: 20px;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); z-index: 3000;
+            display: none; justify-content: center; align-items: center; padding: 20px;
         }
         .modal-card {
-            background: #fff; width: 100%; max-width: 580px; 
-            max-height: 80vh;
+            background: #fff; width: 100%; max-width: 580px; max-height: 80vh;
             border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             display: flex; flex-direction: column; overflow: hidden;
         }
-        .modal-header {
-            padding: 20px 24px; border-bottom: 1px solid #eee;
-            display: flex; justify-content: space-between; align-items: center;
-            flex-shrink: 0;
-        }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .modal-title { font-size: 18px; font-weight: 700; color: var(--primary-color); }
-        .modal-close {
-            background: #f0f0f0; border: none; width: 32px; height: 32px;
-            border-radius: 50%; cursor: pointer; font-size: 16px; color: #666;
-        }
+        .modal-close { background: #f0f0f0; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; color: #666; }
         
-        .modal-body { 
-            padding: 24px; 
-            padding-bottom: 60px !important;
-            overflow-y: auto; 
-            line-height: 1.6; 
-            font-size: 13.5px; 
-            color: #444; 
-            flex: 1;
-            -webkit-overflow-scrolling: touch;
-        }
+        .modal-body { padding: 24px; padding-bottom: 60px !important; overflow-y: auto; line-height: 1.6; font-size: 13.5px; color: #444; flex: 1; -webkit-overflow-scrolling: touch; }
         .modal-section { margin-bottom: 22px; }
-        .modal-section-title {
-            font-size: 15px; font-weight: 700; color: var(--text-main);
-            margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
-            border-left: 3px solid var(--primary-color); padding-left: 8px;
-        }
+        .modal-section-title { font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; border-left: 3px solid var(--primary-color); padding-left: 8px; }
         .source-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-        .source-item {
-            display: flex; justify-content: space-between; align-items: center;
-            background: #f9f9f9; padding: 8px 12px; border-radius: 8px;
-        }
+        .source-item { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 8px 12px; border-radius: 8px; }
         .source-item a { color: #1976d2; text-decoration: none; font-size: 12.5px; font-weight: 600; }
         .source-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #e8f5e9; color: #2e7d32; font-weight: 600; }
         .info-card-box { background: #f9fbf9; border: 1px solid #eef2ee; border-radius: 12px; padding: 14px 16px; color: #444; font-size: 13px; }
-        .disclaimer-box { background: #fff8e1; border: 1px solid #fcf3d6; border-radius: 12px; padding: 14px 16px; color: #795548; font-size: 13px; }
-        .disclaimer-item { margin-bottom: 6px; }
-        .sponsor-box { background: #f1f8e9; border: 1px solid #e2f0d9; border-radius: 12px; padding: 16px; text-align: center; }
-        .bmc-wrapper { display: flex; justify-content: center; transform: scale(0.85); transform-origin: center; margin-top: 6px; }
         .footer-copyright { text-align: center; font-size: 12px; color: #888; margin-top: 20px; padding-top: 14px; border-top: 1px solid #eee; }
 
         @media (max-width: 768px) {
-            .sidebar-panel {
-                top: auto; bottom: 0; left: 0; width: 100%; max-height: 50vh;
-                border-radius: 20px 20px 0 0;
-                transform-origin: bottom center;
-            }
-            .sidebar-panel.minimized {
-                width: 46px; height: 46px; bottom: 20px; left: 20px;
-                border-radius: 50%;
-            }
-            .float-expand-btn {
-                bottom: 20px; left: 20px; top: auto;
-            }
+            .sidebar-panel { top: auto; bottom: 0; left: 0; width: 100%; max-height: 50vh; border-radius: 20px 20px 0 0; transform-origin: bottom center; }
+            .sidebar-panel.minimized { width: 46px; height: 46px; bottom: 20px; left: 20px; border-radius: 50%; }
+            .float-expand-btn { bottom: 20px; left: 20px; top: auto; }
             .control-group { top: 15px; right: 15px; }
-
-            .modal-overlay {
-                align-items: flex-start;
-                padding: 15px 12px;
-            }
-            .modal-card {
-                max-height: calc(100dvh - 80px) !important;
-                border-radius: 16px;
-            }
+            .modal-overlay { align-items: flex-start; padding: 15px 12px; }
+            .modal-card { max-height: calc(100dvh - 80px) !important; border-radius: 16px; }
         }
     </style>
 </head>
@@ -476,7 +362,7 @@
     <div id="map"></div>
 
     <div id="loading" class="loading-overlay">
-        <span>🌱 正在讀取樹木數據與季節景點...</span>
+        <span>🌱 正在讀取樹木數據與日落景點...</span>
     </div>
 
     <div class="sidebar-panel" id="sidebarPanel">
@@ -494,13 +380,14 @@
             </div>
 
             <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="搜尋樹木品種、地點或季節景點..." oninput="handleSearch()">
+                <input type="text" id="searchInput" class="search-input" placeholder="搜尋樹木品種、地點或日落景點..." oninput="handleSearch()">
                 <div id="searchResults" class="search-results-dropdown"></div>
             </div>
 
             <div class="tab-group">
                 <button class="tab-btn active" id="tabTrees" onclick="switchTab('trees')">🌳 樹木位置</button>
-                <button class="tab-btn" id="tabSeasonal" onclick="switchTab('seasonal')">🌸 季節景點</button>
+                <button class="tab-btn" id="tabSeasonal" onclick="switchTab('seasonal')">🌸 季節賞花</button>
+                <button class="tab-btn" id="tabSunset" onclick="switchTab('sunset')">🌅 日落景點</button>
             </div>
         </div>
 
@@ -516,6 +403,7 @@
         <button class="icon-map-btn" onclick="locateUser()" title="我的位置">📍</button>
     </div>
 
+    <!-- 關於本站彈窗 -->
     <div class="modal-overlay" id="aboutModal">
         <div class="modal-card">
             <div class="modal-header">
@@ -526,7 +414,7 @@
                 <div class="modal-section">
                     <div class="modal-section-title">📖 網頁介紹</div>
                     <div class="info-card-box">
-                        《香港樹木地圖》整合了全港樹木、賞花、紅葉與日落位置，方便大家尋找心儀的樹木與花海，以及有助了解城市樹木的分佈。
+                        《香港樹木地圖》整合了全港樹木、賞花、紅葉與日落位置，方便大家尋找心儀的樹木與花海，以及了解城市樹木與絕美日落分佈。
                     </div>
                 </div>
 
@@ -538,49 +426,10 @@
                             <span class="source-badge">地圖底圖</span>
                         </li>
                         <li class="source-item">
-                            <div><a href="https://www.herbarium.gov.hk/tc/home/index.html" target="_blank">香港植物標本室</a><div style="font-size:11px; color:#777;">植物學學名與特徵檢索</div></div>
-                            <span class="source-badge">植物資料</span>
-                        </li>
-                        <li class="source-item">
-                            <div><a href="https://www.greening.gov.hk/tc/community-outreach/qrcode-tree-labels/index.html" target="_blank">二維條碼樹木標籤</a><div style="font-size:11px; color:#777;">發展局綠化、園境及樹木管理組</div></div>
-                            <span class="source-badge">植物資料</span>
-                        </li>
-                        <li class="source-item">
-                            <div><a href="https://portal.csdi.gov.hk/geoportal/#metadataInfoPanel" target="_blank">CSDI 空間數據共享平台</a><div style="font-size:11px; color:#777;">古樹名木、石牆樹、康文署及渠務署等資料</div></div>
-                            <span class="source-badge">樹木位置</span>
-                        </li>
-                        <li class="source-item">
-                            <div><a href="https://benjaminficusmicrocarpa.github.io/map/wkcd-trees.html?lat=22.300083&lng=114.156058&zoom=18" target="_blank">西九文化區樹木地圖</a><div style="font-size:11px; color:#777;">西九園區樹木專項點位</div></div>
-                            <span class="source-badge">樹木位置</span>
+                            <div><a href="https://www.hko.gov.hk/tc/index.html" target="_blank">香港天文台 (HKO)</a><div style="font-size:11px; color:#777;">官方實時天氣、紫外線及九天預報 RSS</div></div>
+                            <span class="source-badge">天氣數據</span>
                         </li>
                     </ul>
-                </div>
-
-                <div class="modal-section">
-                    <div class="modal-section-title">⚠️ 免責聲明與觀賞禮儀</div>
-                    <div class="disclaimer-box">
-                        <div class="disclaimer-item"><b>1）位置參考</b>：地圖內標註的點位座標主要來自開放數據整合，不一定為 100% 精準位置，僅供賞樹與行程參考。</div>
-                        <div class="disclaimer-item"><b>2）愛惜自然</b>：前往觀賞樹木及季節景點時，請愛護樹木與植物，切勿採摘、攀折樹枝或留下垃圾。</div>
-                        <div class="disclaimer-item"><b>3）安全提示</b>：部分樹木的汁液、花粉、果實或葉片可能帶有毒性，請勿撫摸後觸碰眼睛，並<b>切勿採摘或食用</b>任何野生樹木果實。</div>
-                    </div>
-                </div>
-
-                <div class="modal-section">
-                    <div class="modal-section-title">☕ 支持我們的營運</div>
-                    <div class="sponsor-box">
-                        <p style="margin-bottom: 8px; font-size: 13px;">如果你喜歡這個地圖，歡迎請我們喝一杯咖啡，支持伺服器與地圖維護費用！</p>
-                        <div class="bmc-wrapper">
-                            <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="gk_doodle" data-color="#FFDD00" data-emoji="" data-font="Arial" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff"></script>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-section">
-                    <div class="modal-section-title">✨ 作者簡介</div>
-                    <div class="info-card-box">
-                        <p><b>GK Doodle</b> 是一個象徵着自由少女的插畫品牌，希望透過溫暖、窩心的插畫，讓大家遠離煩囂，一同進入被治癒的夢幻世界。</p>
-                        <p style="margin-top: 6px;"><a href="https://www.instagram.com/gk_doodle/" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: 600;">🔗 Instagram: @gk_doodle</a></p>
-                    </div>
                 </div>
 
                 <div class="footer-copyright">
@@ -605,7 +454,6 @@
             attributionControl: false 
         }).setView([22.3193, 114.1694], 12);
 
-        // 建立自訂帶有超連結且可點擊展開/收合嘅 Attribution 控制項
         var customAttrib = L.control({ position: 'bottomright' });
         customAttrib.onAdd = function() {
             var div = L.DomUtil.create('div', 'custom-attrib-btn');
@@ -613,16 +461,12 @@
                 <span class="custom-attrib-content">
                     <a href="https://openfreemap.org/" target="_blank" onclick="event.stopPropagation();">OpenFreeMap</a> 
                     © <a href="https://openmaptiles.org/" target="_blank" onclick="event.stopPropagation();">OpenMapTiles</a> 
-                    Data from <a href="https://www.openstreetmap.org/copyright" target="_blank" onclick="event.stopPropagation();">OpenStreetMap</a>
                 </span>
             `;
-            
-            // 點擊事件：按一下開啟，再按一下收合
             L.DomEvent.on(div, 'click', function(e) {
                 L.DomEvent.stopPropagation(e);
                 div.classList.toggle('open');
             });
-
             return div;
         };
         customAttrib.addTo(map);
@@ -637,29 +481,63 @@
             style: 'https://tiles.openfreemap.org/styles/positron'
         }).addTo(map);
 
-        var markersCluster = L.markerClusterGroup({ 
-            chunkedLoading: true, 
-            disableClusteringAtZoom: 18,
-            spiderfyOnMaxZoom: false,
-            showCoverageOnHover: false
-        });
+        var markersCluster = L.markerClusterGroup({ chunkedLoading: true, disableClusteringAtZoom: 18 });
         map.addLayer(markersCluster);
 
-        var speciesDict = {};
-        var seasonalData = [];
-        var allGovTreeMarkers = [];
-        var allSeasonalMarkers = [];
-        var speciesCounts = {};
-        var familySpeciesDict = {};
+        var speciesDict = {}, seasonalData = [], sunsetData = [];
+        var allGovTreeMarkers = [], allSeasonalMarkers = [], allSunsetMarkers = [];
+        var speciesCounts = {}, familySpeciesDict = {}, seasonalSpeciesList = []; 
         var typeCounts = { ALL: 0, OVT: 0, SWT: 0, OVT_SWT: 0 };
-        var activeTab = 'trees';
-        var activeTypeFilter = 'ALL';
-        var activeSeasonalCategory = 'ALL';
-        var activeMonthFilter = 'ALL';
-        var labelsEnabled = false;
-        var isMinimized = false;
+        
+        var activeTab = 'trees', activeTypeFilter = 'ALL', selectedSpeciesFilter = 'ALL'; 
+        var activeTreeMonthFilter = 'ALL'; // 樹木位置分頁的花期月份篩選
+        var activeSeasonalCategory = 'ALL', activeSeasonalSpecies = 'ALL', activeMonthFilter = 'ALL'; 
+        var activeSunsetCategory = 'ALL', activeSunsetMonth = 'ALL';
+        var labelsEnabled = false, isMinimized = false;
 
-        // 1. 載入樹木品種資料（包含花期與果期）
+        var hkoWeatherData = {
+            currentTemp: "27°C - 31°C",
+            currentDesc: "大致天晴",
+            uvIndex: "UV 7 (極高)",
+            wind: "東風",
+            forecast: [
+                { date: "10/20 (周二)", desc: "天晴乾燥炎熱", temp: "27°C - 32°C", tag: "極佳 🌅", tagClass: "tag-good" },
+                { date: "10/21 (周三)", desc: "大致天晴酷熱", temp: "26°C - 33°C", tag: "極佳 🌅", tagClass: "tag-good" },
+                { date: "10/22 (周四)", desc: "日間大致天晴", temp: "25°C - 32°C", tag: "極佳 🌅", tagClass: "tag-good" },
+                { date: "10/23 (周五)", desc: "大致天晴乾燥", temp: "26°C - 33°C", tag: "極佳 🌅", tagClass: "tag-good" },
+                { date: "10/24 (周六)", desc: "大致天晴乾燥", temp: "26°C - 32°C", tag: "極佳 🌅", tagClass: "tag-good" },
+                { date: "10/25 (周日)", desc: "部分陽光後驟雨", temp: "26°C - 31°C", tag: "良好 ⛅", tagClass: "tag-fair" },
+                { date: "10/26 (周一)", desc: "短暫陽光有陣雨", temp: "26°C - 30°C", tag: "普通 ☁️", tagClass: "tag-fair" }
+            ]
+        };
+
+        function getSolarTimes(date = new Date()) {
+            const startOfYear = new Date(date.getFullYear(), 0, 1);
+            const dayOfYear = Math.floor((date - startOfYear) / (1000 * 60 * 60 * 24)) + 1;
+            
+            const declination = 23.44 * Math.sin((360 * (284 + dayOfYear) / 365) * (Math.PI / 180));
+            const lat = 22.3193 * (Math.PI / 180);
+            const decRad = declination * (Math.PI / 180);
+            
+            let val = -Math.tan(lat) * Math.tan(decRad);
+            val = Math.max(-1.0, Math.min(1.0, val));
+            const hAngle = Math.acos(val) * (180 / Math.PI);
+            
+            const sunsetHourDecimal = 12.35 + (hAngle / 15.0);
+            const sunsetH = Math.floor(sunsetHourDecimal);
+            const sunsetM = Math.round((sunsetHourDecimal - sunsetH) * 60);
+            
+            const sunsetDate = new Date(date);
+            sunsetDate.setHours(sunsetH, sunsetM, 0);
+            
+            const formatTime = (d) => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+            
+            const rangeStart = new Date(sunsetDate.getTime() - 6 * 60 * 1000);
+            const rangeEnd = new Date(sunsetDate.getTime() + 12 * 60 * 1000);
+            
+            return formatTime(rangeStart) + ' - ' + formatTime(rangeEnd);
+        }
+
         Papa.parse('tree_species.csv', {
             download: true, header: true, skipEmptyLines: true,
             complete: function(res) {
@@ -669,10 +547,8 @@
                         if (sName) {
                             speciesDict[sName] = {
                                 scientificName: row.Scientific_Name || '',
-                                family: row['科名'] || '常見植物科',
+                                family: (row['科名'] || '常見植物科').trim(),
                                 origin: row['品種屬性'] || '本地 / 外來',
-                                flowering: (row['花期'] || '').trim(),
-                                fruiting: (row['果期'] || '').trim(),
                                 url: row['樹木網頁'] || ''
                             };
                         }
@@ -683,49 +559,85 @@
             error: loadSeasonalSpots
         });
 
-        // 2. 載入季節景點
         function loadSeasonalSpots() {
             Papa.parse('seasonal_spots.csv', {
                 download: true, header: true, skipEmptyLines: true,
                 complete: function(res) {
                     if (res && res.data && res.data.length > 0) {
                         seasonalData = res.data;
-                    } else {
-                        fallbackSeasonalSpots();
+                        var spSet = new Set();
+                        seasonalData.forEach(function(d) {
+                            var sp = (d.細分品種 || d.Chinese_Name || '').trim();
+                            if (sp) spSet.add(sp);
+                        });
+                        seasonalSpeciesList = Array.from(spSet);
                     }
                     buildSeasonalMarkers();
+                    loadSunsetSpots();
+                },
+                error: function() { buildSeasonalMarkers(); loadSunsetSpots(); }
+            });
+        }
+
+        function loadSunsetSpots() {
+            Papa.parse('sunset_spots.csv', {
+                download: true, header: true, skipEmptyLines: true,
+                complete: function(res) {
+                    if (res && res.data && res.data.length > 0) {
+                        sunsetData = res.data;
+                    }
+                    buildSunsetMarkers();
                     loadGovTrees();
                 },
-                error: function() {
-                    fallbackSeasonalSpots();
-                    buildSeasonalMarkers();
-                    loadGovTrees();
+                error: function() { buildSunsetMarkers(); loadGovTrees(); }
+            });
+        }
+
+        function buildSunsetMarkers() {
+            allSunsetMarkers = [];
+            sunsetData.forEach(function(item) {
+                var lat = parseFloat(item.Latitude || item.GeometryLatitude);
+                var lng = parseFloat(item.Longitude || item.GeometryLongitude);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    var title = item.地點名稱 || '日落景點';
+                    var category = (item.分類 || '海旁／海濱長廊').trim();
+                    var landscape = (item.景觀類型 || '').trim();
+                    var desc = item.特色 || '';
+                    var month = (item.建議拍攝月份 || '').trim();
+                    var remark = item.備註 || '';
+
+                    var icon = L.divIcon({
+                        className: 'custom-seasonal-div-icon',
+                        html: '<div class="seasonal-emoji-marker seasonal-emoji-sunset">🌅</div>',
+                        iconSize: [30, 30], iconAnchor: [15, 15]
+                    });
+
+                    var marker = L.marker([lat, lng], { icon: icon });
+                    marker.category = category;
+                    marker.sunsetMonth = month;
+
+                    var gmapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
+                    marker.bindPopup(`
+                        <div style="min-width: 220px; font-family: sans-serif; padding: 2px;">
+                            <div style="font-size: 16px; font-weight: 700; color: #e65100; margin-bottom: 4px;">${title}</div>
+                            ${landscape ? '<div style="font-size: 12.5px; font-weight: 600; color: #d84315; margin-bottom: 4px;">景觀：' + landscape + '</div>' : ''}
+                            <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
+                            ${desc ? '<div style="font-size: 12px; margin-bottom: 4px; color: #444;">✨ ' + desc + '</div>' : ''}
+                            ${month ? '<div style="font-size: 12px; margin-bottom: 4px; color: #555;">📅 <b>最佳拍攝月份：</b>' + month + '</div>' : ''}
+                            ${remark ? '<div style="font-size: 11.5px; margin-bottom: 6px; color: #777;">📌 ' + remark + '</div>' : ''}
+                            <a href="${gmapsUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: 8px;">在 Google 地圖中開啟導航 🗺️</a>
+                        </div>
+                    `);
+                    allSunsetMarkers.push(marker);
                 }
             });
         }
 
-        function fallbackSeasonalSpots() {
-            seasonalData = [
-                { 地點名稱: "大棠楓香林", 大分類: "紅葉秋景", 細分品種: "楓香", 觀賞月份: "12月 - 1月", Latitude: 22.4283, Longitude: 114.0275 },
-                { 地點名稱: "粉嶺流水響水塘", 大分類: "紅葉秋景", 細分品種: "落羽松", 觀賞月份: "12月 - 1月", Latitude: 22.5025, Longitude: 114.1528 },
-                { 地點名稱: "機場櫻花園", 大分類: "季節賞花", 細分品種: "櫻花", 觀賞月份: "2月 - 3月", Latitude: 22.2911, Longitude: 113.9321 }
-            ];
-        }
-
-        function matchMonthRange(monthsStr, rangeKey) {
-            if (!monthsStr || rangeKey === 'ALL') return true;
-            
-            let targetMonths = [];
-            if (rangeKey === '2-4') targetMonths = [2, 3, 4];
-            else if (rangeKey === '5-7') targetMonths = [5, 6, 7];
-            else if (rangeKey === '8-10') targetMonths = [8, 9, 10];
-            else if (rangeKey === '11-1') targetMonths = [11, 12, 1];
-
+        function matchExactMonth(monthsStr, targetMonthNum) {
+            if (!monthsStr || targetMonthNum === 'ALL') return true;
             let matches = monthsStr.match(/\d+/g);
             if (!matches) return false;
-            let spotMonths = matches.map(Number);
-
-            return spotMonths.some(m => targetMonths.includes(m));
+            return matches.map(Number).includes(parseInt(targetMonthNum));
         }
 
         function buildSeasonalMarkers() {
@@ -736,58 +648,42 @@
                 if (!isNaN(lat) && !isNaN(lng)) {
                     var title = item.地點名稱 || item.Location_Name || item.名稱 || '景點';
                     var category = (item.大分類 || '').trim();
-                    var species = item.細分品種 || item.Chinese_Name || '';
-                    var months = (item.觀賞月份 || item.最佳觀賞月份 || item.Best_Months || '').trim();
-                    var sci = item.學名 ? item.學名 : '';
+                    var species = (item.細分品種 || item.Chinese_Name || '').trim();
+                    var months = (item.觀賞月份 || item.最佳觀賞月份 || '').trim();
                     var desc = item.說明 || '';
 
-                    let emoji = "🌸";
-                    let styleClass = "seasonal-emoji-flower";
-
-                    if (category.includes("榕樹")) {
-                        emoji = "🌳"; styleClass = "seasonal-emoji-nature";
-                    } else if (category.includes("紅葉")) {
-                        emoji = "🍁"; styleClass = "seasonal-emoji-maple";
-                    } else if (category.includes("日落")) {
-                        emoji = "🌅"; styleClass = "seasonal-emoji-sunset";
-                    } else if (category.includes("自然生態")) {
-                        emoji = "🍃"; styleClass = "seasonal-emoji-nature";
-                    }
+                    let emoji = "🌸", styleClass = "seasonal-emoji-flower";
+                    if (category.includes("榕樹")) { emoji = "🌳"; styleClass = "seasonal-emoji-nature"; }
+                    else if (category.includes("紅葉")) { emoji = "🍁"; styleClass = "seasonal-emoji-maple"; }
+                    else if (category.includes("自然生態")) { emoji = "🍃"; styleClass = "seasonal-emoji-nature"; }
 
                     var icon = L.divIcon({
                         className: 'custom-seasonal-div-icon',
                         html: '<div class="seasonal-emoji-marker ' + styleClass + '">' + emoji + '</div>',
-                        iconSize: [30, 30],
-                        iconAnchor: [15, 15]
+                        iconSize: [30, 30], iconAnchor: [15, 15]
                     });
 
                     var marker = L.marker([lat, lng], { icon: icon });
                     marker.category = category;
                     marker.seasonalMonths = months;
-                    marker.titleName = title;
-                    marker.spotData = item;
+                    marker.species = species;
 
-                    var targetUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
-                    
-                    var popupContent = `
+                    var gmapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
+                    marker.bindPopup(`
                         <div style="min-width: 210px; font-family: sans-serif; padding: 2px;">
                             <div style="font-size: 16px; font-weight: 700; color: var(--primary-color); margin-bottom: 6px;">${title}</div>
                             <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
                             ${species ? '<div style="font-size: 13px; margin-bottom: 2px; font-weight:600;">品種：' + species + '</div>' : ''}
-                            ${sci ? '<div style="font-size: 11.5px; font-style: italic; color: #666; margin-bottom: 6px;">學名：' + sci + '</div>' : ''}
                             ${months ? '<div style="font-size: 12.5px; margin-bottom: 4px; color:#444;"><b>觀賞月份：</b>' + months + '</div>' : ''}
                             ${desc ? '<div style="font-size: 12px; margin-bottom: 8px; color: #555;">📌 ' + desc + '</div>' : ''}
-                            <a href="${targetUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: 8px;">在 Google 地圖中開啟導航 🗺️</a>
+                            <a href="${gmapsUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: 8px;">在 Google 地圖中開啟導航 🗺️</a>
                         </div>
-                    `;
-
-                    marker.bindPopup(popupContent);
+                    `);
                     allSeasonalMarkers.push(marker);
                 }
             });
         }
 
-        // 3. 載入官方樹木資料
         function loadGovTrees() {
             Papa.parse('csdi_gov_trees_named.csv', {
                 download: true, header: true, skipEmptyLines: true,
@@ -810,11 +706,12 @@
             var loadingEl = document.getElementById('loading');
             if (loadingEl) loadingEl.style.display = 'none';
             
+            familySpeciesDict = {};
             Object.keys(speciesCounts).forEach(function(spName) {
                 var info = speciesDict[spName] || {};
-                var fam = info.family || '常見植物科';
+                var fam = (info.family || '常見植物科').trim();
                 if (!familySpeciesDict[fam]) familySpeciesDict[fam] = [];
-                familySpeciesDict[fam].push(spName);
+                if (!familySpeciesDict[fam].includes(spName)) familySpeciesDict[fam].push(spName);
             });
 
             updateMapMarkers();
@@ -831,17 +728,10 @@
                 speciesCounts[treeName] = (speciesCounts[treeName] || 0) + 1;
                 typeCounts.ALL++;
 
-                let category = "OTHER";
-                let color = "#2e7d32";
-                let radiusSize = 5;
-
-                if (treeType === 'OVT') {
-                    category = "OVT"; color = "#fbc02d"; radiusSize = 6; typeCounts.OVT++;
-                } else if (treeType === 'SWT') {
-                    category = "SWT"; color = "#795548"; radiusSize = 6; typeCounts.SWT++;
-                } else if (treeType.includes('OVT') && treeType.includes('SWT')) {
-                    category = "OVT_SWT"; color = "#fb8c00"; radiusSize = 7; typeCounts.OVT_SWT++;
-                }
+                let category = "OTHER", color = "#2e7d32", radiusSize = 5;
+                if (treeType === 'OVT') { category = "OVT"; color = "#fbc02d"; radiusSize = 6; typeCounts.OVT++; }
+                else if (treeType === 'SWT') { category = "SWT"; color = "#795548"; radiusSize = 6; typeCounts.SWT++; }
+                else if (treeType.includes('OVT') && treeType.includes('SWT')) { category = "OVT_SWT"; color = "#fb8c00"; radiusSize = 7; typeCounts.OVT_SWT++; }
 
                 var marker = L.circleMarker([lat, lng], {
                     radius: radiusSize, fillColor: color, color: "#ffffff", weight: 1.5, fillOpacity: 0.9
@@ -851,16 +741,11 @@
                 var sciName = row.Scientific_Name || speciesInfo.scientificName || '';
                 var familyName = speciesInfo.family || '常見植物科';
                 var originStatus = speciesInfo.origin || '本地 / 外來';
-                var floweringTime = speciesInfo.flowering || '';
-                var fruitingTime = speciesInfo.fruiting || '';
                 var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
-                var treeId = row.OVTNo || row.TR_no_ || row.TMCP_ID || '';
-                var dataSource = row.Source || '樹木登記冊 / CSDI';
                 var targetUrl = speciesInfo.url || 'https://zh.wikipedia.org/wiki/' + encodeURIComponent(treeName);
                 var gmapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
 
-                /* 移除花期同果期前面嘅 Icon */
-                var popupContent = `
+                marker.bindPopup(`
                     <div style="min-width: 220px; font-family: sans-serif; padding: 2px;">
                         <div style="font-size: 16px; font-weight: 700; margin-bottom: 2px;">
                             <a href="${targetUrl}" target="_blank" style="color: var(--primary-color); text-decoration: none;">${treeName} 🔗</a>
@@ -869,16 +754,10 @@
                         <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
                         <div style="font-size: 12.5px; margin-bottom: 3px;"><b>科名：</b>${familyName}</div>
                         <div style="font-size: 12.5px; margin-bottom: 3px;"><b>屬性：</b>${originStatus}</div>
-                        ${floweringTime ? '<div style="font-size: 12.5px; margin-bottom: 3px;"><b>花期：</b>' + floweringTime + '</div>' : ''}
-                        ${fruitingTime ? '<div style="font-size: 12.5px; margin-bottom: 3px;"><b>果期：</b>' + fruitingTime.replace('果', '') + '</div>' : ''}
                         <div style="font-size: 12.5px; margin-bottom: 3px;"><b>地點：</b>${locationName}</div>
-                        ${treeId ? '<div style="font-size: 12px; color: #666; margin-bottom: 3px;"><b>編號：</b>' + treeId + '</div>' : ''}
-                        <div style="font-size: 11px; color: #888; margin-top: 4px;"><b>來源：</b>${dataSource}</div>
                         <a href="${gmapsUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: 8px;">在 Google 地圖中開啟導航 🗺️</a>
                     </div>
-                `;
-
-                marker.bindPopup(popupContent);
+                `);
                 marker.bindTooltip(treeName, { direction: 'right', offset: [5, 0], className: 'tree-label', permanent: false });
                 marker.speciesName = treeName;
                 marker.categoryType = category;
@@ -889,23 +768,36 @@
         function updateMapMarkers() {
             markersCluster.clearLayers();
             var combined = [];
-            
             if (activeTab === 'trees') {
                 allGovTreeMarkers.forEach(function(m) {
-                    if (activeTypeFilter === 'ALL' || m.categoryType === activeTypeFilter) {
-                        combined.push(m);
+                    var matchType = (activeTypeFilter === 'ALL' || m.categoryType === activeTypeFilter || (activeTypeFilter === 'OVT' && m.categoryType === 'OVT_SWT') || (activeTypeFilter === 'SWT' && m.categoryType === 'OVT_SWT'));
+                    var matchSpecies = (selectedSpeciesFilter === 'ALL' || m.speciesName === selectedSpeciesFilter);
+                    // 樹木位置的花期月份過濾（如果該品種在 seasonalData 中有對應花期月份）
+                    var matchMonth = true;
+                    if (activeTreeMonthFilter !== 'ALL') {
+                        var foundSeasonItem = seasonalData.find(d => (d.細分品種 || '').includes(m.speciesName));
+                        if (foundSeasonItem) {
+                            matchMonth = matchExactMonth(foundSeasonItem.觀賞月份 || foundSeasonItem.最佳觀賞月份 || '', activeTreeMonthFilter);
+                        } else {
+                            matchMonth = false;
+                        }
                     }
+                    if (matchType && matchSpecies && matchMonth) combined.push(m);
                 });
-            } else {
+            } else if (activeTab === 'seasonal') {
                 allSeasonalMarkers.forEach(function(m) {
                     var matchCat = (activeSeasonalCategory === 'ALL' || m.category.includes(activeSeasonalCategory));
-                    var matchMonth = matchMonthRange(m.seasonalMonths, activeMonthFilter);
-                    if (matchCat && matchMonth) {
-                        combined.push(m);
-                    }
+                    var matchMonth = (m.category.includes("榕樹") || m.category.includes("常綠")) ? true : matchExactMonth(m.seasonalMonths, activeMonthFilter);
+                    var matchSpecies = (activeSeasonalSpecies === 'ALL' || m.species.includes(activeSeasonalSpecies));
+                    if (matchCat && matchMonth && matchSpecies) combined.push(m);
+                });
+            } else if (activeTab === 'sunset') {
+                allSunsetMarkers.forEach(function(m) {
+                    var matchCat = (activeSunsetCategory === 'ALL' || m.category === activeSunsetCategory);
+                    var matchMonth = matchExactMonth(m.sunsetMonth, activeSunsetMonth);
+                    if (matchCat && matchMonth) combined.push(m);
                 });
             }
-
             markersCluster.addLayers(combined);
             updateLabelsVisibility();
         }
@@ -914,29 +806,33 @@
             activeTab = tab;
             document.getElementById('tabTrees').classList.toggle('active', tab === 'trees');
             document.getElementById('tabSeasonal').classList.toggle('active', tab === 'seasonal');
+            document.getElementById('tabSunset').classList.toggle('active', tab === 'sunset');
+
             updateMapMarkers();
             renderPanelBody();
         }
 
         function renderPanelBody() {
             var body = document.getElementById('panelBody');
-            
             if (activeTab === 'trees') {
-                var familyKeys = Object.keys(familySpeciesDict).sort();
+                var popTrees = ["洋紫荊", "榕樹(細葉榕)", "木棉", "白千層", "台灣相思", "鳳凰木", "宮粉羊蹄甲"];
+                var popChipsHtml = popTrees.map(sp => `<button class="chip ${selectedSpeciesFilter === sp ? 'active' : ''}" onclick="selectTreeSpecies('${sp}')">${sp}</button>`).join('');
+
+                var treeMonthsButtonsHtml = Array.from({length: 12}, (_, i) => i + 1).map(m => `<button class="chip ${activeTreeMonthFilter === m.toString() ? 'active' : ''}" onclick="filterTreeMonth('${m}')">${m}月</button>`).join('');
+
+                var familyKeys = Object.keys(familySpeciesDict).sort((a, b) => {
+                    return familySpeciesDict[b].reduce((s, sp) => s + (speciesCounts[sp] || 0), 0) - familySpeciesDict[a].reduce((s, sp) => s + (speciesCounts[sp] || 0), 0);
+                });
                 
-                var familyAccordionHtml = familyKeys.map(function(fam, index) {
+                var familyAccordionHtml = familyKeys.map((fam, index) => {
                     var speciesList = familySpeciesDict[fam];
                     var totalFamTrees = speciesList.reduce((acc, sp) => acc + (speciesCounts[sp] || 0), 0);
-
-                    var speciesCardsHtml = speciesList.map(function(sp) {
-                        var count = speciesCounts[sp] || 0;
-                        return `
-                            <div class="species-square-card" onclick="filterBySpecies('${sp}')">
-                                <div class="species-card-name">${sp}</div>
-                                <div class="species-card-count">${count.toLocaleString()} 棵</div>
-                            </div>
-                        `;
-                    }).join('');
+                    var speciesCardsHtml = speciesList.map(sp => `
+                        <div class="species-square-card ${selectedSpeciesFilter === sp ? 'active-species' : ''}" onclick="selectTreeSpecies('${sp}')">
+                            <div class="species-card-name">${sp}</div>
+                            <div class="species-card-count">${(speciesCounts[sp] || 0).toLocaleString()} 棵</div>
+                        </div>
+                    `).join('');
 
                     return `
                         <div class="family-accordion">
@@ -944,23 +840,36 @@
                                 <span>🌿 ${fam} (${speciesList.length} 種)</span>
                                 <span class="family-count">${totalFamTrees.toLocaleString()} 棵 ▾</span>
                             </div>
-                            <div class="family-content" id="fam-${index}">
-                                <div class="species-grid">${speciesCardsHtml}</div>
-                            </div>
+                            <div class="family-content" id="fam-${index}"><div class="species-grid">${speciesCardsHtml}</div></div>
                         </div>
                     `;
                 }).join('');
 
                 body.innerHTML = `
+                    <div class="section-label">📌 類別：</div>
                     <div class="chip-group">
                         <button class="chip ${activeTypeFilter === 'ALL' ? 'active' : ''}" onclick="filterByType('ALL')">全部品種 (${typeCounts.ALL.toLocaleString()})</button>
                         <button class="chip ${activeTypeFilter === 'OVT' ? 'active' : ''}" onclick="filterByType('OVT')">古樹名木 (${typeCounts.OVT})</button>
                         <button class="chip ${activeTypeFilter === 'SWT' ? 'active' : ''}" onclick="filterByType('SWT')">石牆樹 (${typeCounts.SWT})</button>
                     </div>
-                    <div style="font-size:11.5px; color:#666; margin-bottom:10px;">點擊科名展開樹種選單，選取樹木可顯示分佈。</div>
+                    <div class="section-label">🔥 常見樹木品種：</div>
+                    <div class="chip-group">
+                        <button class="chip ${selectedSpeciesFilter === 'ALL' ? 'active' : ''}" onclick="selectTreeSpecies('ALL')">全部樹種</button>
+                        ${popChipsHtml}
+                    </div>
+                    <div class="section-label">🌸 花期月份篩選：</div>
+                    <div class="chip-group">
+                        <button class="chip ${activeTreeMonthFilter === 'ALL' ? 'active' : ''}" onclick="filterTreeMonth('ALL')">全部月份</button>
+                        ${treeMonthsButtonsHtml}
+                    </div>
+                    <hr class="section-divider">
+                    <div class="section-label">📚 所有植物科名分類：</div>
                     <div>${familyAccordionHtml}</div>
                 `;
-            } else {
+            } else if (activeTab === 'seasonal') {
+                var allSeasonalChipsHtml = seasonalSpeciesList.map(sp => `<button class="chip ${activeSeasonalSpecies === sp ? 'active' : ''}" onclick="filterSeasonalSpecies('${sp}')">${sp}</button>`).join('');
+                var monthsButtonsHtml = Array.from({length: 12}, (_, i) => i + 1).map(m => `<button class="chip ${activeMonthFilter === m.toString() ? 'active' : ''}" onclick="filterMonth('${m}')">${m}月</button>`).join('');
+
                 body.innerHTML = `
                     <div class="section-label">🌸 景點分類：</div>
                     <div class="chip-group">
@@ -969,165 +878,166 @@
                         <button class="chip ${activeSeasonalCategory === '紅葉' ? 'active' : ''}" onclick="filterSeasonalCategory('紅葉')">紅葉秋景</button>
                         <button class="chip ${activeSeasonalCategory === '賞花' ? 'active' : ''}" onclick="filterSeasonalCategory('賞花')">季節賞花</button>
                         <button class="chip ${activeSeasonalCategory === '自然生態' ? 'active' : ''}" onclick="filterSeasonalCategory('自然生態')">自然生態</button>
-                        <button class="chip ${activeSeasonalCategory === '日落' ? 'active' : ''}" onclick="filterSeasonalCategory('日落')">日落景點</button>
                     </div>
-
-                    <div class="section-label">🗓️ 月份篩選：</div>
+                    <div class="section-label">🌺 品種分類：</div>
+                    <div class="chip-group">
+                        <button class="chip ${activeSeasonalSpecies === 'ALL' ? 'active' : ''}" onclick="filterSeasonalSpecies('ALL')">全部品種</button>
+                        ${allSeasonalChipsHtml}
+                    </div>
+                    <div class="section-label">🗓️ 花期與果期月份篩選：</div>
                     <div class="chip-group">
                         <button class="chip ${activeMonthFilter === 'ALL' ? 'active' : ''}" onclick="filterMonth('ALL')">全部月份</button>
-                        <button class="chip ${activeMonthFilter === '2-4' ? 'active' : ''}" onclick="filterMonth('2-4')">2-4月</button>
-                        <button class="chip ${activeMonthFilter === '5-7' ? 'active' : ''}" onclick="filterMonth('5-7')">5-7月</button>
-                        <button class="chip ${activeMonthFilter === '8-10' ? 'active' : ''}" onclick="filterMonth('8-10')">8-10月</button>
-                        <button class="chip ${activeMonthFilter === '11-1' ? 'active' : ''}" onclick="filterMonth('11-1')">11-1月</button>
+                        ${monthsButtonsHtml}
+                    </div>
+                `;
+            } else if (activeTab === 'sunset') {
+                var todaySunsetRange = getSolarTimes(new Date());
+
+                var sunsetCatList = ["海旁／海濱長廊", "山頂／觀景台", "公園／主題場地", "天橋／街道", "沙灘／石灘／泥灘"];
+                var sunsetCatChipsHtml = sunsetCatList.map(cat => `<button class="chip ${activeSunsetCategory === cat ? 'active' : ''}" onclick="filterSunsetCategory('${cat}')">${cat}</button>`).join('');
+                
+                var sunsetMonthButtonsHtml = Array.from({length: 12}, (_, i) => i + 1).map(m => `<button class="chip ${activeSunsetMonth === m.toString() ? 'active' : ''}" onclick="filterSunsetMonth('${m}')">${m}月</button>`).join('');
+
+                var forecastHtml = hkoWeatherData.forecast.map(f => `
+                    <div class="forecast-item">
+                        <div class="forecast-main-line">
+                            <span><b>${f.date}</b></span>
+                            <span class="forecast-desc-text">｜ ${f.desc}</span>
+                            <span class="forecast-temp-text">${f.temp}</span>
+                        </div>
+                        <span class="forecast-tag ${f.tagClass}">${f.tag}</span>
+                    </div>
+                `).join('');
+
+                body.innerHTML = `
+                    <div class="section-label">🌅 日落景點分類：</div>
+                    <div class="chip-group">
+                        <button class="chip ${activeSunsetCategory === 'ALL' ? 'active' : ''}" onclick="filterSunsetCategory('ALL')">全部類別</button>
+                        ${sunsetCatChipsHtml}
+                    </div>
+
+                    <div class="section-label">📅 最佳拍攝月份篩選：</div>
+                    <div class="chip-group">
+                        <button class="chip ${activeSunsetMonth === 'ALL' ? 'active' : ''}" onclick="filterSunsetMonth('ALL')">全部月份</button>
+                        ${sunsetMonthButtonsHtml}
+                    </div>
+
+                    <hr class="section-divider">
+
+                    <div class="sunset-info-card">
+                        <div class="sunset-title-main">☀️ 今日香港預計日落時間</div>
+                        <div class="sunset-range-val">${todaySunsetRange}</div>
+                        <div class="sunset-tip-text">💡 建議於日落前 30 分鐘到達海旁或高處，捕捉金黃夕陽！</div>
+                    </div>
+                    <div class="weather-box">
+                        <div style="font-size:13px; font-weight:700; color:#d84315;">🌤️ 今日香港即時天氣概況</div>
+                        <div class="weather-grid">
+                            <div class="weather-item">
+                                <span class="weather-item-label">天況 / 氣溫</span>
+                                <span class="weather-item-val">${hkoWeatherData.currentDesc} ｜ ${hkoWeatherData.currentTemp}</span>
+                            </div>
+                            <div class="weather-item">
+                                <span class="weather-item-label">紫外線 / 風向</span>
+                                <span class="weather-item-val">${hkoWeatherData.uvIndex} ｜ ${hkoWeatherData.wind}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="weather-box">
+                        <div style="font-size:13px; font-weight:700; color:#d84315; margin-bottom:6px;">📅 未來 7 天日落觀賞指數預測</div>
+                        <div class="forecast-list">${forecastHtml}</div>
+                        <div class="data-source-footnote">
+                            資料來源：<a href="https://www.hko.gov.hk/tc/wxinfo/currwx/fnd.htm" target="_blank" rel="noopener noreferrer">香港天文台 (HKO) 官方 RSS 數據</a>
+                        </div>
                     </div>
                 `;
             }
         }
 
-        function toggleFamilyAccordion(elementId) {
-            var content = document.getElementById(elementId);
-            if (content) {
-                content.classList.toggle('open');
+        function toggleFamilyAccordion(id) { document.getElementById(id)?.classList.toggle('open'); }
+        function filterByType(type) { activeTypeFilter = type; updateMapMarkers(); renderPanelBody(); }
+        function selectTreeSpecies(sp) {
+            selectedSpeciesFilter = sp; updateMapMarkers(); renderPanelBody();
+            if (sp !== 'ALL') {
+                var matched = allGovTreeMarkers.filter(m => m.speciesName === sp);
+                if (matched.length > 0) map.fitBounds(new L.featureGroup(matched).getBounds().pad(0.1));
             }
         }
+        function filterTreeMonth(m) { activeTreeMonthFilter = m; updateMapMarkers(); renderPanelBody(); }
+        function filterSeasonalCategory(cat) { activeSeasonalCategory = cat; updateMapMarkers(); renderPanelBody(); }
+        function filterSeasonalSpecies(sp) { activeSeasonalSpecies = sp; updateMapMarkers(); renderPanelBody(); }
+        function filterMonth(m) { activeMonthFilter = m; updateMapMarkers(); renderPanelBody(); }
 
-        function filterByType(type) {
-            activeTypeFilter = type;
-            updateMapMarkers();
-            renderPanelBody();
-        }
+        function filterSunsetCategory(cat) { activeSunsetCategory = cat; updateMapMarkers(); renderPanelBody(); }
+        function filterSunsetMonth(m) { activeSunsetMonth = m; updateMapMarkers(); renderPanelBody(); }
 
-        function filterSeasonalCategory(cat) {
-            activeSeasonalCategory = cat;
-            updateMapMarkers();
-            renderPanelBody();
-        }
-
-        function filterMonth(monthRange) {
-            activeMonthFilter = monthRange;
-            updateMapMarkers();
-            renderPanelBody();
-        }
-
-        function filterBySpecies(speciesName) {
-            if (activeTab !== 'trees') switchTab('trees');
-
-            markersCluster.clearLayers();
-            var filtered = [];
-            allGovTreeMarkers.forEach(function(m) {
-                if (m.speciesName === speciesName) filtered.push(m);
-            });
-
-            markersCluster.addLayers(filtered);
-
-            if (filtered.length > 0) {
-                var group = new L.featureGroup(filtered);
-                map.fitBounds(group.getBounds().pad(0.1));
+        function flyToSunsetSpot(lat, lng, title) {
+            if (lat && lng) {
+                map.setView([lat, lng], 16);
+                var target = allSunsetMarkers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001);
+                if (target) target.openPopup();
+                else L.popup().setLatLng([lat, lng]).setContent('<b>' + title + '</b>').openOn(map);
             }
         }
 
         function flyToSpot(lat, lng, title) {
             if (lat && lng) {
-                if (activeTab !== 'seasonal') switchTab('seasonal');
-
                 map.setView([lat, lng], 16);
-                
-                var targetMarker = allSeasonalMarkers.find(function(m) {
-                    var pos = m.getLatLng();
-                    return Math.abs(pos.lat - lat) < 0.0001 && Math.abs(pos.lng - lng) < 0.0001;
-                });
-
-                if (targetMarker) {
-                    targetMarker.openPopup();
-                } else {
-                    L.popup().setLatLng([lat, lng]).setContent('<b>' + title + '</b>').openOn(map);
-                }
+                var target = allSeasonalMarkers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001);
+                if (target) target.openPopup();
+                else L.popup().setLatLng([lat, lng]).setContent('<b>' + title + '</b>').openOn(map);
             }
         }
 
         function handleSearch() {
-            var query = document.getElementById('searchInput').value.trim().toLowerCase();
-            var resultsDiv = document.getElementById('searchResults');
-
-            if (!query) { resultsDiv.style.display = 'none'; return; }
-
-            var matchedSpots = seasonalData.filter(function(d) {
-                var text = (d.地點名稱 || '') + (d.細分品種 || '') + (d.名稱 || '');
-                return text.toLowerCase().includes(query);
-            }).slice(0, 5);
-
-            var matchedSpecies = Object.keys(speciesCounts).filter(function(s) {
-                return s.toLowerCase().includes(query);
-            }).slice(0, 5);
-
+            var q = document.getElementById('searchInput').value.trim().toLowerCase();
+            var resDiv = document.getElementById('searchResults');
+            if (!q) { resDiv.style.display = 'none'; return; }
+            var matchedSpots = seasonalData.filter(d => ((d.地點名稱 || '') + (d.細分品種 || '')).toLowerCase().includes(q)).slice(0, 3);
+            var matchedSunsets = sunsetData.filter(d => ((d.地點名稱 || '') + (d.分類 || '')).toLowerCase().includes(q)).slice(0, 3);
+            var matchedSpecies = Object.keys(speciesCounts).filter(s => s.toLowerCase().includes(q)).slice(0, 3);
             var html = '';
-            matchedSpots.forEach(function(m) {
-                var title = m.地點名稱 || m.Location_Name || m.名稱;
-                var lat = m.Latitude || m.GeometryLatitude;
-                var lng = m.Longitude || m.GeometryLongitude;
-                html += '<div class="search-item" onclick="flyToSpot(' + lat + ',' + lng + ',\'' + title.replace(/'/g, "\\'") + '\'); document.getElementById(\'searchResults\').style.display=\'none\';">' +
-                    '<span>🌸 景點：' + title + '</span>' +
-                    '<span style="font-size:11px; color:#888;">' + (m.細分品種 || '') + '</span>' +
-                '</div>';
+            matchedSunsets.forEach(m => {
+                html += `<div class="search-item" onclick="switchTab('sunset'); flyToSunsetSpot(${m.Latitude}, ${m.Longitude}, '${(m.地點名稱 || '').replace(/'/g, "\\'")}')"><span>🌅 日落：${m.地點名稱}</span></div>`;
             });
-
-            matchedSpecies.forEach(function(s) {
-                html += '<div class="search-item" onclick="filterBySpecies(\'' + s.replace(/'/g, "\\'") + '\'); document.getElementById(\'searchResults\').style.display=\'none\';">' +
-                    '<span>🌳 樹種：' + s + '</span>' +
-                    '<span style="font-size:11px; color:#888;">' + speciesCounts[s] + ' 棵</span>' +
-                '</div>';
+            matchedSpots.forEach(m => {
+                html += `<div class="search-item" onclick="switchTab('seasonal'); flyToSpot(${m.Latitude || m.GeometryLatitude}, ${m.Longitude || m.GeometryLongitude}, '${(m.地點名稱 || '').replace(/'/g, "\\'")}')"><span>🌸 賞花：${m.地點名稱}</span></div>`;
             });
-
-            if (html) { resultsDiv.innerHTML = html; resultsDiv.style.display = 'block'; } 
-            else { resultsDiv.style.display = 'none'; }
+            matchedSpecies.forEach(s => {
+                html += `<div class="search-item" onclick="switchTab('trees'); selectTreeSpecies('${s.replace(/'/g, "\\'")}')"><span>🌳 樹種：${s}</span><span style="font-size:11px; color:#888;">${speciesCounts[s]} 棵</span></div>`;
+            });
+            resDiv.innerHTML = html;
+            resDiv.style.display = html ? 'block' : 'none';
         }
 
         function updateLabelsVisibility() {
-            var currentZoom = map.getZoom();
-            allGovTreeMarkers.forEach(function(marker) {
-                if (markersCluster.hasLayer(marker)) {
-                    if (labelsEnabled && currentZoom >= 18) {
-                        if (!marker.isTooltipOpen()) marker.openTooltip();
-                    } else {
-                        if (marker.isTooltipOpen()) marker.closeTooltip();
-                    }
+            var zoom = map.getZoom();
+            allGovTreeMarkers.forEach(m => {
+                if (markersCluster.hasLayer(m)) {
+                    if (labelsEnabled && zoom >= 18) { if (!m.isTooltipOpen()) m.openTooltip(); }
+                    else { if (m.isTooltipOpen()) m.closeTooltip(); }
                 }
             });
         }
-
         function toggleLabels() {
             labelsEnabled = !labelsEnabled;
-            var btn = document.getElementById('toggleLabelBtn');
-            btn.style.opacity = labelsEnabled ? '1' : '0.5';
+            document.getElementById('toggleLabelBtn').style.opacity = labelsEnabled ? '1' : '0.5';
             updateLabelsVisibility();
         }
-
         map.on('moveend zoomend', updateLabelsVisibility);
 
         function toggleSidebar() {
             isMinimized = !isMinimized;
-            var panel = document.getElementById('sidebarPanel');
-            var expandBtn = document.getElementById('expandBtn');
-
-            if (isMinimized) {
-                panel.classList.add('minimized');
-                expandBtn.classList.add('visible');
-            } else {
-                panel.classList.remove('minimized');
-                expandBtn.classList.remove('visible');
-            }
+            document.getElementById('sidebarPanel').classList.toggle('minimized', isMinimized);
+            document.getElementById('expandBtn').classList.toggle('visible', isMinimized);
         }
 
         function openAboutModal() { document.getElementById('aboutModal').style.display = 'flex'; }
         function closeAboutModal() { document.getElementById('aboutModal').style.display = 'none'; }
-
         function locateUser() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(pos) {
-                    map.setView([pos.coords.latitude, pos.coords.longitude], 16);
-                    L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map).bindPopup("你在這裡！").openPopup();
-                });
-            }
+            navigator.geolocation?.getCurrentPosition(pos => {
+                map.setView([pos.coords.latitude, pos.coords.longitude], 16);
+                L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map).bindPopup("你在這裡！").openPopup();
+            });
         }
     </script>
 </body>
