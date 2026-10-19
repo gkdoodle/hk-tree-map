@@ -524,7 +524,6 @@
             style: 'https://tiles.openfreemap.org/styles/positron'
         }).addTo(map);
 
-        // 徹底關閉 spiderfyOnMaxZoom（點擊數字時不展開放射線）與藍色覆蓋範圍框
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true, 
             disableClusteringAtZoom: 18,
@@ -934,7 +933,7 @@
                         <button class="chip ${activeSeasonalSpecies === 'ALL' ? 'active' : ''}" onclick="filterSeasonalSpecies('ALL')">全部品種</button>
                         ${allSeasonalChipsHtml}
                     </div>
-                    <div class="section-label">🗓️ 花期與果期月份篩選：</div>
+                    <div class="section-label">🗓️ 月份篩選：</div>
                     <div class="chip-group">
                         <button class="chip ${activeMonthFilter === 'ALL' ? 'active' : ''}" onclick="filterMonth('ALL')">全部月份</button>
                         ${monthsButtonsHtml}
