@@ -18,11 +18,11 @@
         :root {
             --primary-color: #2e7d32;
             --primary-light: #f1f8e9;
-            --sunset-color: #e65100;
+            --sunset-color: #f57f17; /* 溫和橙色，不刺眼 */
             --sunset-light: #fff3e0;
             --sunset-soft-text: #f57f17;
             --text-main: #2c3e50;
-            --text-sub: #666666;
+            --text-sub: #555555; /* 加深灰色，確保清晰易讀 */
             --bg-white: #ffffff;
             --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.08);
             --border-radius: 16px;
@@ -36,7 +36,7 @@
             --sunset-light: #2d1810;
             --sunset-soft-text: #ff8a65;
             --text-main: #f1f5f9;
-            --text-sub: #cbd5e1;
+            --text-sub: #cbd5e1; /* 深色模式下清晰的亮灰白 */
             --bg-white: #1e293b;
             --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
@@ -56,7 +56,7 @@
             border-color: #334155 !important;
         }
 
-        /* 修正深色模式下 Leaflet 原生 Popup 卡片的白色背景 */
+        /* 修正深色模式下 Leaflet 原生 Popup 卡片的背景與文字 */
         body.dark-mode .leaflet-popup-content-wrapper, 
         body.dark-mode .leaflet-popup-tip {
             background-color: #1e293b !important;
@@ -66,6 +66,13 @@
         }
         body.dark-mode .leaflet-popup-content {
             color: #f1f5f9 !important;
+        }
+        /* 確保 Popup 內的說明文字在深色模式下清晰顯示 */
+        body.dark-mode .leaflet-popup-content div {
+            color: #cbd5e1;
+        }
+        body.dark-mode .leaflet-popup-content b {
+            color: #f1f5f9;
         }
 
         body.dark-mode .search-input { background-color: #0f172a !important; color: #fff !important; border-color: #334155 !important; }
@@ -90,11 +97,11 @@
         body.dark-mode .weather-box { background-color: #1e293b !important; border-color: #334155 !important; }
         body.dark-mode .weather-title { color: #ffb74d !important; }
         body.dark-mode .weather-item { background-color: #0f172a !important; color: #e2e8f0 !important; }
-        body.dark-mode .weather-item-label { color: #94a3b8 !important; }
+        body.dark-mode .weather-item-label { color: #cbd5e1 !important; }
         body.dark-mode .weather-item-val { color: #ff8a65 !important; }
         body.dark-mode .forecast-desc-text { color: #cbd5e1 !important; } 
         body.dark-mode .forecast-temp-text { color: #ff8a65 !important; }
-        body.dark-mode .data-source-footnote { color: #94a3b8 !important; border-top-color: #334155 !important; }
+        body.dark-mode .data-source-footnote { color: #cbd5e1 !important; border-top-color: #334155 !important; }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -353,7 +360,7 @@
         }
         .sunset-title-main { font-size: 13.5px; font-weight: 700; color: var(--sunset-color); margin-bottom: 2px; display: flex; align-items: center; gap: 4px; }
         .sunset-range-val { font-size: 22px; font-weight: 800; color: var(--sunset-soft-text); margin-bottom: 6px; }
-        .sunset-tip-text { font-size: 11.5px; color: #bf360c; }
+        .sunset-tip-text { font-size: 11.5px; color: var(--text-sub); }
 
         .weather-box {
             background: #ffffff; border: 1px solid #ffe0b2; border-radius: 12px;
@@ -365,7 +372,7 @@
             background: #fff8e1; padding: 8px 10px; border-radius: 8px;
             font-size: 12px; color: #5d4037; display: flex; flex-direction: column;
         }
-        .weather-item-label { font-size: 10.5px; color: #8d6e63; font-weight: 600; }
+        .weather-item-label { font-size: 10.5px; color: var(--text-sub); font-weight: 600; }
         .weather-item-val { font-size: 13px; font-weight: 700; color: var(--sunset-soft-text); margin-top: 2px; }
 
         .forecast-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
@@ -375,14 +382,14 @@
             border-radius: 8px; font-size: 12.5px; color: var(--text-main);
         }
         .forecast-main-line { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
-        .forecast-desc-text { color: #666; }
+        .forecast-desc-text { color: var(--text-sub); }
         .forecast-temp-text { color: var(--sunset-soft-text); font-weight: 700; }
         .forecast-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; flex-shrink: 0; }
         .tag-good { background: #e8f5e9; color: #2e7d32; }
         .tag-fair { background: #fff8e1; color: #f57f17; }
 
         .data-source-footnote {
-            font-size: 11px; color: #888; text-align: right; margin-top: 8px; padding-top: 4px; border-top: 1px dashed #eee;
+            font-size: 11px; color: var(--text-sub); text-align: right; margin-top: 8px; padding-top: 4px; border-top: 1px dashed #eee;
         }
         .data-source-footnote a { color: #1976d2; text-decoration: none; font-weight: 600; }
 
@@ -431,7 +438,7 @@
         .disclaimer-item { margin-bottom: 6px; }
         .sponsor-box { background: #f1f8e9; border: 1px solid #e2f0d9; border-radius: 12px; padding: 16px; text-align: center; }
         .bmc-wrapper { display: flex; justify-content: center; transform: scale(0.85); transform-origin: center; margin-top: 6px; }
-        .footer-copyright { text-align: center; font-size: 12px; color: #888; margin-top: 20px; padding-top: 14px; border-top: 1px solid #eee; }
+        .footer-copyright { text-align: center; font-size: 12px; color: var(--text-sub); margin-top: 20px; padding-top: 14px; border-top: 1px solid #eee; }
 
         @media (max-width: 768px) {
             .sidebar-panel { top: auto; bottom: 0; left: 0; width: 100%; max-height: 50vh; border-radius: 20px 20px 0 0; transform-origin: bottom center; }
@@ -642,7 +649,7 @@
 
         var favorites = JSON.parse(localStorage.getItem('hk_tree_map_favs') || '[]');
 
-        /* 收藏功能優化：加入開啓收藏頁面 logic */
+        /* 收藏切換與按鈕實時更新邏輯 */
         function toggleFavorite(id, title, type, lat, lng, autoOpenTab = false) {
             var index = favorites.findIndex(item => item.id === id);
             if (index > -1) {
@@ -653,9 +660,9 @@
             localStorage.setItem('hk_tree_map_favs', JSON.stringify(favorites));
             updateMapMarkers();
             
+            var isFav = favorites.some(item => item.id === id);
             var btn = document.getElementById('fav-btn-' + id);
             if (btn) {
-                var isFav = favorites.some(item => item.id === id);
                 btn.innerHTML = isFav ? '⭐ 已收藏' : '⭐ 收藏此點';
                 btn.style.background = isFav ? '#f57f17' : '#f0f0f0';
                 btn.style.color = isFav ? '#fff' : '#333';
@@ -912,12 +919,12 @@
                     var gmapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
                     marker.bindPopup(`
                         <div style="min-width: 220px; font-family: sans-serif; padding: 2px;">
-                            <div style="font-size: 16px; font-weight: 700; color: #e65100; margin-bottom: 4px;">${title}</div>
-                            ${landscape ? '<div style="font-size: 12.5px; font-weight: 600; color: #d84315; margin-bottom: 4px;">景觀：' + landscape + '</div>' : ''}
+                            <div style="font-size: 16px; font-weight: 700; color: var(--sunset-color); margin-bottom: 4px;">${title}</div>
+                            ${landscape ? '<div style="font-size: 12.5px; font-weight: 600; color: var(--sunset-color); margin-bottom: 4px;">景觀：' + landscape + '</div>' : ''}
                             <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
-                            ${desc ? '<div style="font-size: 12px; margin-bottom: 4px; color: #444;">✨ ' + desc + '</div>' : ''}
-                            ${month ? '<div style="font-size: 12px; margin-bottom: 4px; color: #555;">📅 <b>最佳拍攝月份：</b>' + month + '</div>' : ''}
-                            ${remark ? '<div style="font-size: 11.5px; margin-bottom: 6px; color: #777;">📌 ' + remark + '</div>' : ''}
+                            ${desc ? '<div style="font-size: 12px; margin-bottom: 4px; color: var(--text-sub);">✨ ' + desc + '</div>' : ''}
+                            ${month ? '<div style="font-size: 12px; margin-bottom: 4px; color: var(--text-sub);">📅 <b>最佳拍攝月份：</b>' + month + '</div>' : ''}
+                            ${remark ? '<div style="font-size: 11.5px; margin-bottom: 6px; color: var(--text-sub);">📌 ' + remark + '</div>' : ''}
                             <div style="display: flex; gap: 6px; margin-top: 8px;">
                                 <button id="fav-btn-${favId}" onclick="toggleFavorite('${favId}', '${title.replace(/'/g, "\\'")}', '日落景點', ${lat}, ${lng}, true)" style="flex: 1; background: ${isFav ? '#f57f17' : '#f0f0f0'}; color: ${isFav ? '#fff' : '#333'}; border: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">${isFav ? '⭐ 已收藏' : '⭐ 收藏此點'}</button>
                                 <a href="${gmapsUrl}" target="_blank" style="flex: 1; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600;">導航 🗺️</a>
@@ -968,8 +975,8 @@
                             <div style="font-size: 16px; font-weight: 700; color: var(--primary-color); margin-bottom: 6px;">${title}</div>
                             <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
                             ${species ? '<div style="font-size: 13px; margin-bottom: 2px; font-weight:600;">品種：' + species + '</div>' : ''}
-                            ${months ? '<div style="font-size: 12.5px; margin-bottom: 4px; color:#444;"><b>觀賞月份：</b>' + months + '</div>' : ''}
-                            ${desc ? '<div style="font-size: 12px; margin-bottom: 4px; color: #555;">📌 ' + desc + '</div>' : ''}
+                            ${months ? '<div style="font-size: 12.5px; margin-bottom: 4px; color:var(--text-sub);"><b>觀賞月份：</b>' + months + '</div>' : ''}
+                            ${desc ? '<div style="font-size: 12px; margin-bottom: 4px; color: var(--text-sub);">📌 ' + desc + '</div>' : ''}
                             ${src ? '<div style="font-size: 11px; margin-bottom: 8px;"><a href="' + src + '" target="_blank" style="color:#999;">🔗 資料來源</a></div>' : ''}
                             ${(!desc && !src) ? '<div style="margin-bottom: 8px;"></div>' : ''}
                             <div style="display: flex; gap: 6px; margin-top: 8px;">
@@ -1079,15 +1086,15 @@
                             <a href="${targetUrl}" target="_blank" style="color: var(--primary-color); text-decoration: none;">${treeName}</a>
                             <a href="${targetUrl}" target="_blank" style="text-decoration: none;">🔗</a>
                         </div>
-                        ${sciName ? '<div style="font-size: 13px; font-style: italic; color: #888; margin-bottom: 8px;">' + sciName + '</div>' : ''}
+                        ${sciName ? '<div style="font-size: 13px; font-style: italic; color: var(--text-sub); margin-bottom: 8px;">' + sciName + '</div>' : ''}
                         <hr style="border:0; border-top:1px solid #eef0ee; margin:8px 0;">
-                        <div style="font-size: 13.5px; line-height: 1.6;">
+                        <div style="font-size: 13.5px; line-height: 1.6; color: var(--text-main);">
                             <div><b>科名：</b>${familyName}</div>
                             <div><b>屬性：</b>${originStatus}</div>
                             ${flowering ? '<div><b>花期：</b>' + flowering + '</div>' : ''}
                             ${fruiting ? '<div><b>果期：</b>' + fruiting + '</div>' : ''}
                             <div><b>地點：</b>${locationName}</div>
-                            ${sourceName ? '<div style="font-size: 12.5px; opacity:0.8;"><b>來源：</b>' + sourceName + '</div>' : ''}
+                            ${sourceName ? '<div style="font-size: 12.5px; color: var(--text-sub);"><b>來源：</b>' + sourceName + '</div>' : ''}
                         </div>
                         <div style="display: flex; gap: 6px; margin-top: 12px;">
                             <button id="fav-btn-${favId}" onclick="toggleFavorite('${favId}', '${treeName.replace(/'/g, "\\'")}', '樹木位置', ${lat}, ${lng}, true)" style="flex: 1; background: ${isFav ? '#f57f17' : '#f0f0f0'}; color: ${isFav ? '#fff' : '#333'}; border: none; padding: 8px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;">${isFav ? '⭐ 已收藏' : '⭐ 收藏此點'}</button>
@@ -1261,7 +1268,7 @@
                         </div>
                         <span class="forecast-tag ${f.tagClass}">${f.tag}</span>
                     </div>
-                `).join('') : '<div style="font-size:12px; color:#94a3b8; padding:10px; text-align:center;">正在從香港天文台加載最新預報數據...</div>';
+                `).join('') : '<div style="font-size:12px; color:var(--text-sub); padding:10px; text-align:center;">正在從香港天文台加載最新預報數據...</div>';
 
                 body.innerHTML = `
                     <div class="section-label">🌅 日落景點分類：</div>
@@ -1329,7 +1336,7 @@
             }
         }
 
-        /* 飛往收藏景點：解決解開 Cluster 聚合與彈出 Popup 的問題 */
+        /* 飛往收藏位置：使用 zoomToShowLayer 100% 精準定位並彈出 Popup */
         function flyToFav(favId, lat, lng) {
             if (!isNaN(lat) && !isNaN(lng)) {
                 var allMarkers = allGovTreeMarkers.concat(allSeasonalMarkers, allSunsetMarkers);
@@ -1447,10 +1454,10 @@
                 html += `<div class="search-item" onclick="searchPick('spot', ${i})"><span>🌸 景點：${escapeHtml(item.title)}</span></div>`;
             });
             searchResultsCache.species.forEach(function(s, i) {
-                html += `<div class="search-item" onclick="searchPick('species', ${i})"><span>🌳 樹種：${escapeHtml(s)}</span><span style="font-size:11px; color:#888;">${speciesCounts[s]} 棵</span></div>`;
+                html += `<div class="search-item" onclick="searchPick('species', ${i})"><span>🌳 樹種：${escapeHtml(s)}</span><span style="font-size:11px; color:var(--text-sub);">${speciesCounts[s]} 棵</span></div>`;
             });
             searchResultsCache.locations.forEach(function(item, i) {
-                html += `<div class="search-item" onclick="searchPick('location', ${i})"><span>📍 地點：${escapeHtml(item.name)}</span><span style="font-size:11px; color:#888;">${item.e.count} 棵</span></div>`;
+                html += `<div class="search-item" onclick="searchPick('location', ${i})"><span>📍 地點：${escapeHtml(item.name)}</span><span style="font-size:11px; color:var(--text-sub);">${item.e.count} 棵</span></div>`;
             });
             resDiv.innerHTML = html;
             resDiv.style.display = html ? 'block' : 'none';
