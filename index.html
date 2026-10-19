@@ -260,6 +260,11 @@
             color: #1b5e20; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.12);
         }
 
+        /* 彈出資訊卡：限制最大高度並可在卡內捲動，避免在細螢幕被頂部／底部邊界裁走 */
+        .leaflet-popup-content { max-height: 62vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        @media (max-width: 768px) { .leaflet-popup-content { max-height: 38vh; } }
+        @media (max-width: 768px) and (max-height: 650px) { .leaflet-popup-content { max-height: 30vh; } }
+
         .seasonal-emoji-marker {
             width: 30px; height: 30px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
@@ -559,6 +564,15 @@
 
         var showTreesLayer = true, showSeasonalLayer = true, showSunsetLayer = true;
 
+        /* 彈出資訊卡選項：手機版底部有面板（約佔半個螢幕高度），autoPan 要預留底部空間，避免卡片被面板遮住 */
+        function getPopupOptions() {
+            var opts = { maxWidth: 300, autoPan: true, autoPanPadding: [50, 50] };
+            if (window.innerWidth <= 768) {
+                opts.autoPanPaddingBottomRight = [50, Math.round(window.innerHeight * 0.52)];
+            }
+            return opts;
+        }
+
         var hkoWeatherData = {
             currentTemp: "27°C - 31°C",
             currentDesc: "大致天晴",
@@ -721,7 +735,7 @@
                             ${remark ? '<div style="font-size: 11.5px; margin-bottom: 6px; color: #777;">📌 ' + remark + '</div>' : ''}
                             <a href="${gmapsUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: 8px;">在 Google 地圖中開啟導航 🗺️</a>
                         </div>
-                    `);
+                    `, getPopupOptions());
                     allSunsetMarkers.push(marker);
                 }
             });
@@ -766,7 +780,7 @@
                             ${desc ? '<div style="font-size: 12px; margin-bottom: 8px; color: #555;">📌 ' + desc + '</div>' : ''}
                             <a href="${gmapsUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: 8px;">在 Google 地圖中開啟導航 🗺️</a>
                         </div>
-                    `);
+                    `, getPopupOptions());
                     allSeasonalMarkers.push(marker);
                 }
             });
@@ -854,7 +868,7 @@
                         </div>
                         <a href="${gmapsUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 8px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-top: 12px; box-shadow: 0 2px 6px rgba(25,118,210,0.2);">在 Google 地圖中開啟導航 🗺️</a>
                     </div>
-                `);
+                `, getPopupOptions());
                 marker.bindTooltip(treeName, { direction: 'right', offset: [5, 0], className: 'tree-label', permanent: false });
                 marker.speciesName = treeName;
                 marker.categoryType = category;
@@ -1084,13 +1098,12 @@
                 document.getElementById('searchInput').value = '';
                 document.getElementById('searchResults').style.display = 'none';
 
-                map.setView([lat, lng], 17);
+                map.setView([lat, lng], 17, { animate: false });
                 var target = allSunsetMarkers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001);
-                if (target) {
-                    markersCluster.showLayer(target);
-                    target.openPopup();
+                if (target && target.getPopup()) {
+                    L.popup(getPopupOptions()).setLatLng([lat, lng]).setContent(target.getPopup().getContent()).openOn(map);
                 } else {
-                    L.popup().setLatLng([lat, lng]).setContent('<b>' + title + '</b>').openOn(map);
+                    L.popup(getPopupOptions()).setLatLng([lat, lng]).setContent('<b>' + title + '</b>').openOn(map);
                 }
             }
         }
@@ -1100,13 +1113,12 @@
                 document.getElementById('searchInput').value = '';
                 document.getElementById('searchResults').style.display = 'none';
 
-                map.setView([lat, lng], 17);
+                map.setView([lat, lng], 17, { animate: false });
                 var target = allSeasonalMarkers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001);
-                if (target) {
-                    markersCluster.showLayer(target);
-                    target.openPopup();
+                if (target && target.getPopup()) {
+                    L.popup(getPopupOptions()).setLatLng([lat, lng]).setContent(target.getPopup().getContent()).openOn(map);
                 } else {
-                    L.popup().setLatLng([lat, lng]).setContent('<b>' + title + '</b>').openOn(map);
+                    L.popup(getPopupOptions()).setLatLng([lat, lng]).setContent('<b>' + title + '</b>').openOn(map);
                 }
             }
         }
