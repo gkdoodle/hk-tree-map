@@ -20,12 +20,69 @@
             --primary-light: #f1f8e9;
             --sunset-color: #e65100;
             --sunset-light: #fff3e0;
+            --sunset-soft-text: #f57f17; /* 溫和不刺眼的橙色 */
             --text-main: #2c3e50;
             --text-sub: #666666;
             --bg-white: #ffffff;
             --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.08);
             --border-radius: 16px;
         }
+
+        /* 深色模式變數優化 */
+        body.dark-mode {
+            --primary-color: #81c784;
+            --primary-light: #1b381e;
+            --sunset-color: #ffb74d;
+            --sunset-light: #2d1810;
+            --sunset-soft-text: #ff8a65; /* 深色模式下柔和的亮橙色 */
+            --text-main: #f1f5f9;
+            --text-sub: #cbd5e1;
+            --bg-white: #1e293b;
+            --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        body.dark-mode, body.dark-mode html { background: #0f172a !important; }
+        body.dark-mode .sidebar-panel, 
+        body.dark-mode .panel-header, 
+        body.dark-mode .search-results-dropdown,
+        body.dark-mode .modal-card,
+        body.dark-mode .family-accordion,
+        body.dark-mode .family-header,
+        body.dark-mode .family-content,
+        body.dark-mode .species-square-card,
+        body.dark-mode .weather-box,
+        body.dark-mode .forecast-item {
+            background-color: #1e293b !important;
+            color: #f1f5f9 !important;
+            border-color: #334155 !important;
+        }
+        body.dark-mode .search-input { background-color: #0f172a !important; color: #fff !important; border-color: #334155 !important; }
+        body.dark-mode .tab-group { background-color: #0f172a !important; }
+        body.dark-mode .tab-btn.active { background-color: #334155 !important; color: #81c784 !important; }
+        body.dark-mode .chip { background-color: #334155 !important; color: #cbd5e1 !important; }
+        body.dark-mode .chip.active { background-color: #2e7d32 !important; color: #fff !important; }
+        body.dark-mode .collapse-icon-btn, body.dark-mode .about-btn { background-color: #334155 !important; color: #cbd5e1 !important; border-color: #475569 !important; }
+        body.dark-mode .icon-map-btn { background-color: #1e293b !important; color: #fff !important; border-color: #475569 !important; }
+        body.dark-mode .source-item { background-color: #0f172a !important; }
+        body.dark-mode .info-card-box { background-color: #0f172a !important; border-color: #334155 !important; color: #cbd5e1 !important; }
+        body.dark-mode .disclaimer-box { background-color: #2c221e !important; border-color: #442c20 !important; color: #d7ccc8 !important; }
+        
+        /* 深色模式下的日落與天氣卡片視覺調優 */
+        body.dark-mode .sunset-info-card { 
+            background: linear-gradient(135deg, #331e14 0%, #20120a 100%) !important; 
+            border: 1px solid #7c2d12 !important; 
+        }
+        body.dark-mode .sunset-title-main { color: #ffb74d !important; }
+        body.dark-mode .sunset-range-val { color: #ff8a65 !important; }
+        body.dark-mode .sunset-tip-text { color: #ffcc80 !important; }
+        
+        body.dark-mode .weather-box { background-color: #1e293b !important; border-color: #334155 !important; }
+        body.dark-mode .weather-title { color: #ffb74d !important; }
+        body.dark-mode .weather-item { background-color: #0f172a !important; color: #e2e8f0 !important; }
+        body.dark-mode .weather-item-label { color: #94a3b8 !important; }
+        body.dark-mode .weather-item-val { color: #ff8a65 !important; }
+        body.dark-mode .forecast-desc-text { color: #cbd5e1 !important; } 
+        body.dark-mode .forecast-temp-text { color: #ff8a65 !important; }
+        body.dark-mode .data-source-footnote { color: #94a3b8 !important; border-top-color: #334155 !important; }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -188,19 +245,19 @@
         }
         .search-item:hover { background: var(--primary-light); }
 
-        .tab-group { display: flex; background: #f5f5f5; padding: 3px; border-radius: 10px; gap: 4px; }
+        .tab-group { display: flex; background: #f5f5f5; padding: 3px; border-radius: 10px; gap: 3px; }
         .tab-btn {
-            flex: 1; padding: 7px 4px; border: none; background: transparent;
-            font-size: 11px; font-weight: 600; color: var(--text-sub); border-radius: 8px;
+            flex: 1; padding: 7px 2px; border: none; background: transparent;
+            font-size: 10px; font-weight: 600; color: var(--text-sub); border-radius: 8px;
             cursor: pointer; transition: all 0.2s; text-align: center;
-            display: flex; align-items: center; justify-content: center; gap: 3px;
+            display: flex; align-items: center; justify-content: center; gap: 2px;
         }
         .tab-btn.active { background: #fff; color: var(--primary-color); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
         .tab-btn input[type="checkbox"] {
             accent-color: var(--primary-color);
             cursor: pointer;
-            width: 13px;
-            height: 13px;
+            width: 12px;
+            height: 12px;
         }
 
         .panel-body { padding: 14px 20px; overflow-y: auto; flex: 1; max-height: calc(100vh - 140px); }
@@ -261,7 +318,6 @@
             color: #1b5e20; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.12);
         }
 
-        /* 彈出資訊卡：限制最大高度並可在卡內捲動，避免在細螢幕被頂部／底部邊界裁走 */
         .leaflet-popup-content { max-height: 62vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         @media (max-width: 768px) { .leaflet-popup-content { max-height: 38vh; } }
         @media (max-width: 768px) and (max-height: 650px) { .leaflet-popup-content { max-height: 30vh; } }
@@ -284,20 +340,21 @@
             box-shadow: 0 2px 8px rgba(230,81,0,0.1); border: 1px solid #ffcc80;
         }
         .sunset-title-main { font-size: 13.5px; font-weight: 700; color: var(--sunset-color); margin-bottom: 2px; display: flex; align-items: center; gap: 4px; }
-        .sunset-range-val { font-size: 22px; font-weight: 800; color: #d84315; margin-bottom: 6px; }
+        .sunset-range-val { font-size: 22px; font-weight: 800; color: var(--sunset-soft-text); margin-bottom: 6px; }
         .sunset-tip-text { font-size: 11.5px; color: #bf360c; }
 
         .weather-box {
             background: #ffffff; border: 1px solid #ffe0b2; border-radius: 12px;
             padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);
         }
+        .weather-title { font-size: 13px; font-weight: 700; color: var(--sunset-color); }
         .weather-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
         .weather-item {
             background: #fff8e1; padding: 8px 10px; border-radius: 8px;
             font-size: 12px; color: #5d4037; display: flex; flex-direction: column;
         }
         .weather-item-label { font-size: 10.5px; color: #8d6e63; font-weight: 600; }
-        .weather-item-val { font-size: 13px; font-weight: 700; color: #d84315; margin-top: 2px; }
+        .weather-item-val { font-size: 13px; font-weight: 700; color: var(--sunset-soft-text); margin-top: 2px; }
 
         .forecast-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
         .forecast-item {
@@ -306,8 +363,8 @@
             border-radius: 8px; font-size: 12.5px; color: var(--text-main);
         }
         .forecast-main-line { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
-        .forecast-desc-text { color: #555; }
-        .forecast-temp-text { color: #d84315; font-weight: 700; }
+        .forecast-desc-text { color: #666; }
+        .forecast-temp-text { color: var(--sunset-soft-text); font-weight: 700; } /* 柔和橙色 */
         .forecast-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; flex-shrink: 0; }
         .tag-good { background: #e8f5e9; color: #2e7d32; }
         .tag-fair { background: #fff8e1; color: #f57f17; }
@@ -401,16 +458,18 @@
                 <div id="searchResults" class="search-results-dropdown"></div>
             </div>
 
-            <!-- 頂部頁籤按鈕：整合了真正可獨立勾選的 Checkbox 與切換功能 -->
             <div class="tab-group">
                 <button class="tab-btn active" id="tabTrees" onclick="switchTab('trees', event)">
-                    <input type="checkbox" id="layerTreesToggle" checked onclick="event.stopPropagation(); toggleLayerVisibility();" title="切換樹木圖層"> 🌳 樹木位置
+                    <input type="checkbox" id="layerTreesToggle" checked onclick="event.stopPropagation(); toggleLayerVisibility();" title="切換樹木圖層"> 🌳 樹木
                 </button>
                 <button class="tab-btn" id="tabSeasonal" onclick="switchTab('seasonal', event)">
-                    <input type="checkbox" id="layerSeasonalToggle" checked onclick="event.stopPropagation(); toggleLayerVisibility();" title="切換賞花圖層"> 🌸 季節景點
+                    <input type="checkbox" id="layerSeasonalToggle" checked onclick="event.stopPropagation(); toggleLayerVisibility();" title="切換景點圖層"> 🌸 景點
                 </button>
                 <button class="tab-btn" id="tabSunset" onclick="switchTab('sunset', event)">
-                    <input type="checkbox" id="layerSunsetToggle" checked onclick="event.stopPropagation(); toggleLayerVisibility();" title="切換日落圖層"> 🌅 日落景點
+                    <input type="checkbox" id="layerSunsetToggle" checked onclick="event.stopPropagation(); toggleLayerVisibility();" title="切換日落圖層"> 🌅 日落
+                </button>
+                <button class="tab-btn" id="tabFav" onclick="switchTab('fav', event)">
+                    ⭐ 收藏
                 </button>
             </div>
         </div>
@@ -423,6 +482,7 @@
     </button>
 
     <div class="control-group" id="mapControls">
+        <button class="icon-map-btn" id="darkModeBtn" onclick="toggleDarkMode()" title="切換深色模式">🌙</button>
         <button class="icon-map-btn" id="toggleLabelBtn" onclick="toggleLabels()" style="opacity: 0.5;" title="隱藏/顯示標籤">🏷️</button>
         <button class="icon-map-btn" onclick="locateUser()" title="我的位置">📍</button>
     </div>
@@ -540,7 +600,7 @@
         var controlGroup = document.getElementById('mapControls');
         controlGroup.insertBefore(zoomContainer, controlGroup.firstChild);
 
-        L.maplibreGL({
+        var maplibreLayer = L.maplibreGL({
             style: 'https://tiles.openfreemap.org/styles/positron'
         }).addTo(map);
 
@@ -568,7 +628,27 @@
 
         var showTreesLayer = true, showSeasonalLayer = true, showSunsetLayer = true;
 
-        /* 彈出資訊卡選項：手機版底部有面板（約佔半個螢幕高度），autoPan 要預留底部空間，避免卡片被面板遮住 */
+        var favorites = JSON.parse(localStorage.getItem('hk_tree_map_favs') || '[]');
+
+        function toggleFavorite(id, title, type, lat, lng) {
+            var index = favorites.findIndex(item => item.id === id);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push({ id, title, type, lat, lng });
+            }
+            localStorage.setItem('hk_tree_map_favs', JSON.stringify(favorites));
+            updateMapMarkers();
+            if (activeTab === 'fav') renderPanelBody();
+            var btn = document.getElementById('fav-btn-' + id);
+            if (btn) {
+                var isFav = favorites.some(item => item.id === id);
+                btn.innerHTML = isFav ? '⭐ 已收藏' : '⭐ 收藏此點';
+                btn.style.background = isFav ? '#f57f17' : '#f0f0f0';
+                btn.style.color = isFav ? '#fff' : '#333';
+            }
+        }
+
         function getPopupOptions() {
             var opts = { maxWidth: 300, autoPan: true, autoPanPadding: [50, 50] };
             if (window.innerWidth <= 768) {
@@ -577,21 +657,110 @@
             return opts;
         }
 
+        /* 天氣預報動態數據結構 */
         var hkoWeatherData = {
-            currentTemp: "27°C - 31°C",
+            currentTemp: "27°C",
             currentDesc: "大致天晴",
-            uvIndex: "UV 7 (極高)",
-            wind: "東風",
-            forecast: [
-                { date: "10/20 (周二)", desc: "天晴乾燥炎熱", temp: "27°C - 32°C", tag: "極佳 🌅", tagClass: "tag-good" },
-                { date: "10/21 (周三)", desc: "大致天晴酷熱", temp: "26°C - 33°C", tag: "極佳 🌅", tagClass: "tag-good" },
-                { date: "10/22 (周四)", desc: "日間大致天晴", temp: "25°C - 32°C", tag: "極佳 🌅", tagClass: "tag-good" },
-                { date: "10/23 (周五)", desc: "大致天晴乾燥", temp: "26°C - 33°C", tag: "極佳 🌅", tagClass: "tag-good" },
-                { date: "10/24 (周六)", desc: "大致天晴乾燥", temp: "26°C - 32°C", tag: "極佳 🌅", tagClass: "tag-good" },
-                { date: "10/25 (周日)", desc: "部分陽光後驟雨", temp: "26°C - 31°C", tag: "良好 ⛅", tagClass: "tag-fair" },
-                { date: "10/26 (周一)", desc: "短暫陽光有陣雨", temp: "26°C - 30°C", tag: "普通 ☁️", tagClass: "tag-fair" }
-            ]
+            uvIndex: "UV 6 (中等)",
+            wind: "東風 3級",
+            forecast: []
         };
+
+        /* 完整修正風向與實時天氣 API 邏輯 */
+        function fetchHKOWeatherData() {
+            // 1. 獲取實時天氣 (rhrread)
+            fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=tc')
+                .then(res => res.json())
+                .then(data => {
+                    if (data) {
+                        // 氣溫解析
+                        if (data.temperature && data.temperature.data) {
+                            let tempObj = data.temperature.data.find(t => t.place === '香港天文台') || data.temperature.data[0];
+                            if (tempObj) hkoWeatherData.currentTemp = tempObj.value + '°C';
+                        }
+                        
+                        // 天況解析
+                        if (data.weatherForecast && data.weatherForecast.length > 0 && data.weatherForecast[0].forecastDesc) {
+                            hkoWeatherData.currentDesc = data.weatherForecast[0].forecastDesc;
+                        } else if (data.customDesc) {
+                            hkoWeatherData.currentDesc = data.customDesc;
+                        } else {
+                            hkoWeatherData.currentDesc = "大致天晴";
+                        }
+
+                        // 紫外線解析
+                        if (data.uvindex && data.uvindex.data && data.uvindex.data.length > 0) {
+                            let uv = data.uvindex.data[0];
+                            hkoWeatherData.uvIndex = `UV ${uv.value} (${uv.desc || '中等'})`;
+                        } else {
+                            hkoWeatherData.uvIndex = 'UV 6 (中等)';
+                        }
+
+                        if (activeTab === 'sunset') renderPanelBody();
+                    }
+                }).catch(err => console.log('HKO rhrread error:', err));
+
+            // 2. 獲取本港天氣預報與風向 (flw)
+            fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=flw&lang=tc')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.forecastDesc) {
+                        // 從天氣預報簡述中自動提取風向
+                        let match = data.forecastDesc.match(/吹[一-龥]{1,8}風/);
+                        if (match) {
+                            hkoWeatherData.wind = match[0];
+                        } else {
+                            hkoWeatherData.wind = "和緩東風";
+                        }
+                        if (activeTab === 'sunset') renderPanelBody();
+                    }
+                }).catch(err => {
+                    hkoWeatherData.wind = "和緩東風";
+                });
+
+            // 3. 獲取七天天氣預報 (fnd)
+            fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=tc')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.weatherForecast) {
+                        hkoWeatherData.forecast = data.weatherForecast.slice(0, 7).map(item => {
+                            let fDateStr = item.forecastDate; 
+                            let year = fDateStr.slice(0, 4);
+                            let month = fDateStr.slice(4, 6);
+                            let day = fDateStr.slice(6, 8);
+                            
+                            let dateObj = new Date(`${year}-${month}-${day}`);
+                            let weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+                            let wDay = weekdays[dateObj.getDay()];
+
+                            let dateFormatted = `${month}/${day} (${wDay})`;
+                            let tempMin = item.forecastMintemp ? item.forecastMintemp.value : '';
+                            let tempMax = item.forecastMaxtemp ? item.forecastMaxtemp.value : '';
+                            let tempStr = (tempMin && tempMax) ? `${tempMin}°C - ${tempMax}°C` : (item.forecastWeather || '');
+
+                            let desc = item.forecastWeather || '大致天晴';
+                            
+                            let tag = "極佳 🌅", tagClass = "tag-good";
+                            if (desc.includes('雨') || desc.includes('雷暴')) {
+                                tag = "普通 ☁️"; tagClass = "tag-fair";
+                            } else if (desc.includes('多雲') || desc.includes('局部')) {
+                                tag = "良好 ⛅"; tagClass = "tag-fair";
+                            }
+
+                            return {
+                                date: dateFormatted,
+                                desc: desc,
+                                temp: tempStr,
+                                tag: tag,
+                                tagClass: tagClass
+                            };
+                        });
+                        if (activeTab === 'sunset') renderPanelBody();
+                    }
+                }).catch(err => console.log('HKO fnd error:', err));
+        }
+
+        fetchHKOWeatherData();
 
         function getSolarTimes(date = new Date()) {
             const lat = 22.3193; const lng = 114.1694; const tz = 8;
@@ -627,14 +796,11 @@
         }
 
         function matchExactMonth(monthsStr, targetMonthNum) {
-            /* 空白代表月份未收錄：除「全部」外，唔當任何月份都符合 */
             if (!monthsStr) return targetMonthNum === 'ALL';
             if (targetMonthNum === 'ALL') return true;
             if (monthsStr.indexOf('全年') >= 0) return true;
 
             var target = parseInt(targetMonthNum, 10);
-
-            /* 支援多段月份（如「3月–4月及10月–11月」）、長橫線 – — 及跨年範圍（如 10月–2月） */
             var segments = monthsStr.split(/及|,|、/);
             for (var i = 0; i < segments.length; i++) {
                 var seg = segments[i];
@@ -714,7 +880,7 @@
 
         function buildSunsetMarkers() {
             allSunsetMarkers = [];
-            sunsetData.forEach(function(item) {
+            sunsetData.forEach(function(item, index) {
                 var lat = parseFloat(item.Latitude || item.GeometryLatitude);
                 var lng = parseFloat(item.Longitude || item.GeometryLongitude);
                 if (!isNaN(lat) && !isNaN(lng)) {
@@ -724,6 +890,8 @@
                     var desc = item.特色 || '';
                     var month = (item.建議拍攝月份 || '').trim();
                     var remark = item.備註 || '';
+                    var favId = 'sunset-' + index + '-' + lat + '-' + lng;
+                    var isFav = favorites.some(f => f.id === favId);
 
                     var icon = L.divIcon({
                         className: 'custom-seasonal-div-icon',
@@ -735,6 +903,7 @@
                     marker.category = category;
                     marker.sunsetMonth = month;
                     marker.spotTitle = title;
+                    marker.favId = favId;
 
                     var gmapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
                     marker.bindPopup(`
@@ -745,7 +914,10 @@
                             ${desc ? '<div style="font-size: 12px; margin-bottom: 4px; color: #444;">✨ ' + desc + '</div>' : ''}
                             ${month ? '<div style="font-size: 12px; margin-bottom: 4px; color: #555;">📅 <b>最佳拍攝月份：</b>' + month + '</div>' : ''}
                             ${remark ? '<div style="font-size: 11.5px; margin-bottom: 6px; color: #777;">📌 ' + remark + '</div>' : ''}
-                            <a href="${gmapsUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: 8px;">在 Google 地圖中開啟導航 🗺️</a>
+                            <div style="display: flex; gap: 6px; margin-top: 8px;">
+                                <button id="fav-btn-${favId}" onclick="toggleFavorite('${favId}', '${title.replace(/'/g, "\\'")}', '日落景點', ${lat}, ${lng})" style="flex: 1; background: ${isFav ? '#f57f17' : '#f0f0f0'}; color: ${isFav ? '#fff' : '#333'}; border: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">${isFav ? '⭐ 已收藏' : '⭐ 收藏此點'}</button>
+                                <a href="${gmapsUrl}" target="_blank" style="flex: 1; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600;">導航 🗺️</a>
+                            </div>
                         </div>
                     `, getPopupOptions());
                     allSunsetMarkers.push(marker);
@@ -755,7 +927,7 @@
 
         function buildSeasonalMarkers() {
             allSeasonalMarkers = [];
-            seasonalData.forEach(function(item) {
+            seasonalData.forEach(function(item, index) {
                 var lat = parseFloat(item.Latitude || item.GeometryLatitude);
                 var lng = parseFloat(item.Longitude || item.GeometryLongitude);
                 if (!isNaN(lat) && !isNaN(lng)) {
@@ -765,6 +937,8 @@
                     var months = (item.觀賞月份 || item.最佳觀賞月份 || '').trim();
                     var desc = item.說明 || '';
                     var src = (item.說明來源 || '').trim();
+                    var favId = 'seasonal-' + index + '-' + lat + '-' + lng;
+                    var isFav = favorites.some(f => f.id === favId);
 
                     let emoji = "🌸", styleClass = "seasonal-emoji-flower";
                     if (category.includes("榕樹")) { emoji = "🌳"; styleClass = "seasonal-emoji-nature"; }
@@ -782,6 +956,7 @@
                     marker.seasonalMonths = months;
                     marker.species = species;
                     marker.spotTitle = title;
+                    marker.favId = favId;
 
                     var gmapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
                     marker.bindPopup(`
@@ -793,7 +968,10 @@
                             ${desc ? '<div style="font-size: 12px; margin-bottom: 4px; color: #555;">📌 ' + desc + '</div>' : ''}
                             ${src ? '<div style="font-size: 11px; margin-bottom: 8px;"><a href="' + src + '" target="_blank" style="color:#999;">🔗 資料來源</a></div>' : ''}
                             ${(!desc && !src) ? '<div style="margin-bottom: 8px;"></div>' : ''}
-                            <a href="${gmapsUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: 8px;">在 Google 地圖中開啟導航 🗺️</a>
+                            <div style="display: flex; gap: 6px; margin-top: 8px;">
+                                <button id="fav-btn-${favId}" onclick="toggleFavorite('${favId}', '${title.replace(/'/g, "\\'")}', '景點', ${lat}, ${lng})" style="flex: 1; background: ${isFav ? '#f57f17' : '#f0f0f0'}; color: ${isFav ? '#fff' : '#333'}; border: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">${isFav ? '⭐ 已收藏' : '⭐ 收藏此點'}</button>
+                                <a href="${gmapsUrl}" target="_blank" style="flex: 1; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600;">導航 🗺️</a>
+                            </div>
                         </div>
                     `, getPopupOptions());
                     allSeasonalMarkers.push(marker);
@@ -834,7 +1012,6 @@
             updateMapMarkers();
             renderPanelBody();
 
-            /* 建立地點索引：供搜尋「樹木所在地點」用，記錄每個地點嘅記錄數同範圍 */
             locationIndex = {};
             allGovTreeMarkers.forEach(function(m) {
                 if (!m.locationName) return;
@@ -848,7 +1025,6 @@
                 e.minLng = Math.min(e.minLng, ll.lng); e.maxLng = Math.max(e.maxLng, ll.lng);
             });
 
-            /* 學名 → 品種中文名對照：供搜尋「位置記錄上嘅學名」用 */
             sciNameToSpecies = {};
             allGovTreeMarkers.forEach(function(m) {
                 if (m.sciName) {
@@ -859,6 +1035,7 @@
             });
         }
 
+        var treeCounter = 0;
         function processTreeRow(row) {
             var lat = parseFloat(row.GeometryLatitude);
             var lng = parseFloat(row.GeometryLongitude);
@@ -877,6 +1054,9 @@
                 var marker = L.circleMarker([lat, lng], {
                     radius: radiusSize, fillColor: color, color: "#ffffff", weight: 1.5, fillOpacity: 0.9
                 });
+
+                var favId = 'tree-' + (treeCounter++) + '-' + lat.toFixed(4) + '-' + lng.toFixed(4);
+                var isFav = favorites.some(f => f.id === favId);
 
                 var speciesInfo = speciesDict[treeName] || {};
                 var sciName = row.Scientific_Name || speciesInfo.scientificName || '';
@@ -905,7 +1085,10 @@
                             <div><b>地點：</b>${locationName}</div>
                             ${sourceName ? '<div style="color: #666; font-size: 12.5px;"><b>來源：</b>' + sourceName + '</div>' : ''}
                         </div>
-                        <a href="${gmapsUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 8px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-top: 12px; box-shadow: 0 2px 6px rgba(25,118,210,0.2);">在 Google 地圖中開啟導航 🗺️</a>
+                        <div style="display: flex; gap: 6px; margin-top: 12px;">
+                            <button id="fav-btn-${favId}" onclick="toggleFavorite('${favId}', '${treeName.replace(/'/g, "\\'")}', '樹木位置', ${lat}, ${lng})" style="flex: 1; background: ${isFav ? '#f57f17' : '#f0f0f0'}; color: ${isFav ? '#fff' : '#333'}; border: none; padding: 8px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;">${isFav ? '⭐ 已收藏' : '⭐ 收藏此點'}</button>
+                            <a href="${gmapsUrl}" target="_blank" style="flex: 1; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 8px; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 6px rgba(25,118,210,0.2);">導航 🗺️</a>
+                        </div>
                     </div>
                 `, getPopupOptions());
                 marker.bindTooltip(treeName, { direction: 'right', offset: [5, 0], className: 'tree-label', permanent: false });
@@ -915,6 +1098,7 @@
                 marker.originStatus = originStatus;
                 marker.locationName = locationName;
                 marker.sciName = sciName;
+                marker.favId = favId;
                 allGovTreeMarkers.push(marker);
             }
         }
@@ -967,6 +1151,7 @@
             document.getElementById('tabTrees').classList.toggle('active', tab === 'trees');
             document.getElementById('tabSeasonal').classList.toggle('active', tab === 'seasonal');
             document.getElementById('tabSunset').classList.toggle('active', tab === 'sunset');
+            document.getElementById('tabFav').classList.toggle('active', tab === 'fav');
 
             renderPanelBody();
         }
@@ -1063,7 +1248,7 @@
                 
                 var sunsetMonthButtonsHtml = Array.from({length: 12}, (_, i) => i + 1).map(m => `<button class="chip ${activeSunsetMonth === m.toString() ? 'active' : ''}" onclick="filterSunsetMonth('${m}')">${m}月</button>`).join('');
 
-                var forecastHtml = hkoWeatherData.forecast.map(f => `
+                var forecastHtml = hkoWeatherData.forecast.length > 0 ? hkoWeatherData.forecast.map(f => `
                     <div class="forecast-item">
                         <div class="forecast-main-line">
                             <span><b>${f.date}</b></span>
@@ -1072,7 +1257,7 @@
                         </div>
                         <span class="forecast-tag ${f.tagClass}">${f.tag}</span>
                     </div>
-                `).join('');
+                `).join('') : '<div style="font-size:12px; color:#94a3b8; padding:10px; text-align:center;">正在從香港天文台加載最新預報數據...</div>';
 
                 body.innerHTML = `
                     <div class="section-label">🌅 日落景點分類：</div>
@@ -1095,7 +1280,7 @@
                         <div class="sunset-tip-text">💡 建議於日落前 30 分鐘到達海旁或高處，捕捉金黃夕陽！</div>
                     </div>
                     <div class="weather-box">
-                        <div style="font-size:13px; font-weight:700; color:#d84315;">🌤️ 今日香港即時天氣概況</div>
+                        <div class="weather-title">🌤️ 今日香港即時天氣概況</div>
                         <div class="weather-grid">
                             <div class="weather-item">
                                 <span class="weather-item-label">天況 / 氣溫</span>
@@ -1108,13 +1293,46 @@
                         </div>
                     </div>
                     <div class="weather-box">
-                        <div style="font-size:13px; font-weight:700; color:#d84315; margin-bottom:6px;">📅 未來 7 天日落觀賞指數預測</div>
+                        <div class="weather-title" style="margin-bottom:6px;">📅 未來幾天日落觀賞指數預測 (天文台自動更新)</div>
                         <div class="forecast-list">${forecastHtml}</div>
                         <div class="data-source-footnote">
-                            資料來源：<a href="https://www.hko.gov.hk/tc/wxinfo/currwx/fnd.htm" target="_blank" rel="noopener noreferrer">香港天文台 (HKO) 官方 RSS 數據</a>
+                            資料來源：<a href="https://www.hko.gov.hk/tc/wxinfo/currwx/fnd.htm" target="_blank" rel="noopener noreferrer">香港天文台 (HKO) 官方 API 數據</a>
                         </div>
                     </div>
                 `;
+            } else if (activeTab === 'fav') {
+                var favListHtml = '';
+                if (favorites.length === 0) {
+                    favListHtml = '<div style="text-align: center; color: var(--text-sub); padding: 30px 0; font-size: 13px;">你還沒有收藏任何景點或樹木。<br>點擊地圖上的標記並按下「⭐ 收藏此點」即可加入！</div>';
+                } else {
+                    favListHtml = favorites.map(item => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-white); border: 1px solid #eef2ee; border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+                            <div>
+                                <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">${escapeHtml(item.title)}</div>
+                                <div style="font-size: 11px; color: var(--primary-color); margin-top: 2px;">📍 ${item.type}</div>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="flyToFav(${item.lat}, ${item.lng})" style="background: #1976d2; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer;">查看 🔍</button>
+                                <button onclick="toggleFavorite('${item.id}', '', '', 0, 0); renderPanelBody();" style="background: #f0f0f0; color: #d32f2f; border: none; padding: 5px 8px; border-radius: 6px; font-size: 11.5px; cursor: pointer;" title="移除收藏">✕</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                body.innerHTML = `
+                    <div class="section-label">⭐ 我的收藏清單 (${favorites.length})：</div>
+                    <div style="margin-top: 8px;">${favListHtml}</div>
+                `;
+            }
+        }
+
+        function flyToFav(lat, lng) {
+            if (!isNaN(lat) && !isNaN(lng)) {
+                map.setView([lat, lng], 17, { animate: false });
+                var target = allGovTreeMarkers.concat(allSeasonalMarkers, allSunsetMarkers).find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001);
+                if (target && target.getPopup()) {
+                    markersCluster.showLayer(target);
+                    target.openPopup();
+                }
             }
         }
 
@@ -1179,7 +1397,6 @@
             selectTreeSpecies(s);
         }
 
-        /* 搜尋結果快取：onclick 只傳類型同索引，名稱唔會拼入 HTML，避開引號問題 */
         var searchResultsCache = { sunsets: [], spots: [], species: [], locations: [] };
 
         function escapeHtml(s) {
@@ -1212,7 +1429,7 @@
                 html += `<div class="search-item" onclick="searchPick('sunset', ${i})"><span>🌅 日落：${escapeHtml(item.title)}</span></div>`;
             });
             searchResultsCache.spots.forEach(function(item, i) {
-                html += `<div class="search-item" onclick="searchPick('spot', ${i})"><span>🌸 賞花：${escapeHtml(item.title)}</span></div>`;
+                html += `<div class="search-item" onclick="searchPick('spot', ${i})"><span>🌸 景點：${escapeHtml(item.title)}</span></div>`;
             });
             searchResultsCache.species.forEach(function(s, i) {
                 html += `<div class="search-item" onclick="searchPick('species', ${i})"><span>🌳 樹種：${escapeHtml(s)}</span><span style="font-size:11px; color:#888;">${speciesCounts[s]} 棵</span></div>`;
@@ -1244,6 +1461,37 @@
             }
         }
 
+        function toggleLabels() {
+            labelsEnabled = !labelsEnabled;
+            document.getElementById('toggleLabelBtn').style.opacity = labelsEnabled ? '1' : '0.5';
+            updateLabelsVisibility();
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            var isDark = document.body.classList.contains('dark-mode');
+            document.getElementById('darkModeBtn').innerHTML = isDark ? '☀️' : '🌙';
+            localStorage.setItem('hk_tree_map_dark', isDark ? '1' : '0');
+
+            var newStyle = isDark 
+                ? 'https://tiles.openfreemap.org/styles/dark' 
+                : 'https://tiles.openfreemap.org/styles/positron';
+            
+            if (maplibreLayer && maplibreLayer.getMaplibreMap) {
+                maplibreLayer.getMaplibreMap().setStyle(newStyle);
+            }
+        }
+
+        if (localStorage.getItem('hk_tree_map_dark') === '1') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkModeBtn').innerHTML = '☀️';
+            setTimeout(() => {
+                if (maplibreLayer && maplibreLayer.getMaplibreMap) {
+                    maplibreLayer.getMaplibreMap().setStyle('https://tiles.openfreemap.org/styles/dark');
+                }
+            }, 300);
+        }
+
         function updateLabelsVisibility() {
             var zoom = map.getZoom();
             allGovTreeMarkers.forEach(m => {
@@ -1252,11 +1500,6 @@
                     else { if (m.isTooltipOpen()) m.closeTooltip(); }
                 }
             });
-        }
-        function toggleLabels() {
-            labelsEnabled = !labelsEnabled;
-            document.getElementById('toggleLabelBtn').style.opacity = labelsEnabled ? '1' : '0.5';
-            updateLabelsVisibility();
         }
         map.on('moveend zoomend', updateLabelsVisibility);
 
