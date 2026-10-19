@@ -556,11 +556,14 @@
         var speciesCounts = {}, familySpeciesDict = {}, seasonalSpeciesList = []; 
         var typeCounts = { ALL: 0, OVT: 0, SWT: 0, OVT_SWT: 0 };
         
-        var activeTab = 'trees', activeTypeFilter = 'ALL', selectedSpeciesFilter = 'ALL'; 
+        var activeTab = 'trees', activeTypeFilter = 'ALL', selectedSpeciesFilter = 'ALL';
+        var activeOriginFilter = 'ALL'; 
         var activeTreeMonthFilter = 'ALL';
         var activeSeasonalCategory = 'ALL', activeSeasonalSpecies = 'ALL', activeMonthFilter = 'ALL'; 
         var activeSunsetCategory = 'ALL', activeSunsetMonth = 'ALL';
         var labelsEnabled = false, isMinimized = false;
+        var locationIndex = {}, searchLocationResults = [];
+        var sciNameToSpecies = {};
 
         var showTreesLayer = true, showSeasonalLayer = true, showSunsetLayer = true;
 
@@ -623,24 +626,32 @@
         }
 
         function matchExactMonth(monthsStr, targetMonthNum) {
-            if (!monthsStr || targetMonthNum === 'ALL') return true;
-            
+            /* 空白代表月份未收錄：除「全部」外，唔當任何月份都符合 */
+            if (!monthsStr) return targetMonthNum === 'ALL';
+            if (targetMonthNum === 'ALL') return true;
+            if (monthsStr.indexOf('全年') >= 0) return true;
+
             var target = parseInt(targetMonthNum, 10);
-            
-            var rangeMatch = monthsStr.match(/(\d+)\s*月?\s*[-~～至]\s*(\d+)/);
-            if (rangeMatch) {
-                var start = parseInt(rangeMatch[1], 10);
-                var end = parseInt(rangeMatch[2], 10);
-                if (start <= end) {
-                    return target >= start && target <= end;
+
+            /* 支援多段月份（如「3月–4月及10月–11月」）、長橫線 – — 及跨年範圍（如 10月–2月） */
+            var segments = monthsStr.split(/及|,|、/);
+            for (var i = 0; i < segments.length; i++) {
+                var seg = segments[i];
+                var rangeMatch = seg.match(/(\d+)\s*月?\s*[-–—~～至]\s*(\d+)/);
+                if (rangeMatch) {
+                    var start = parseInt(rangeMatch[1], 10);
+                    var end = parseInt(rangeMatch[2], 10);
+                    if (start <= end) {
+                        if (target >= start && target <= end) return true;
+                    } else {
+                        if (target >= start || target <= end) return true;
+                    }
                 } else {
-                    return target >= start || target <= end;
+                    var matches = seg.match(/\d+/g);
+                    if (matches && matches.map(Number).includes(target)) return true;
                 }
             }
-
-            var matches = monthsStr.match(/\d+/g);
-            if (!matches) return false;
-            return matches.map(Number).includes(target);
+            return false;
         }
 
         Papa.parse('tree_species.csv', {
@@ -652,8 +663,8 @@
                         if (sName) {
                             speciesDict[sName] = {
                                 scientificName: row.Scientific_Name || '',
-                                family: (row['科名'] || '常見植物科').trim(),
-                                origin: row['品種屬性'] || '本地 / 外來',
+                                family: (row['科名'] || '科名暫缺').trim(),
+                                origin: row['品種屬性'] || '屬性暫缺',
                                 url: row['樹木網頁'] || '',
                                 floweringPeriod: (row['花期'] || row.Flowering_Period || row.flowering_period || '').trim(),
                                 fruitingPeriod: (row['果期'] || row.Fruiting_Period || row.fruiting_period || '').trim()
@@ -752,6 +763,7 @@
                     var species = (item.細分品種 || item.Chinese_Name || '').trim();
                     var months = (item.觀賞月份 || item.最佳觀賞月份 || '').trim();
                     var desc = item.說明 || '';
+                    var src = (item.說明來源 || '').trim();
 
                     let emoji = "🌸", styleClass = "seasonal-emoji-flower";
                     if (category.includes("榕樹")) { emoji = "🌳"; styleClass = "seasonal-emoji-nature"; }
@@ -777,7 +789,9 @@
                             <hr style="border:0; border-top:1px solid #eee; margin:6px 0;">
                             ${species ? '<div style="font-size: 13px; margin-bottom: 2px; font-weight:600;">品種：' + species + '</div>' : ''}
                             ${months ? '<div style="font-size: 12.5px; margin-bottom: 4px; color:#444;"><b>觀賞月份：</b>' + months + '</div>' : ''}
-                            ${desc ? '<div style="font-size: 12px; margin-bottom: 8px; color: #555;">📌 ' + desc + '</div>' : ''}
+                            ${desc ? '<div style="font-size: 12px; margin-bottom: 4px; color: #555;">📌 ' + desc + '</div>' : ''}
+                            ${src ? '<div style="font-size: 11px; margin-bottom: 8px;"><a href="' + src + '" target="_blank" style="color:#999;">🔗 資料來源</a></div>' : ''}
+                            ${(!desc && !src) ? '<div style="margin-bottom: 8px;"></div>' : ''}
                             <a href="${gmapsUrl}" target="_blank" style="display: block; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: 8px;">在 Google 地圖中開啟導航 🗺️</a>
                         </div>
                     `, getPopupOptions());
@@ -811,13 +825,37 @@
             familySpeciesDict = {};
             Object.keys(speciesCounts).forEach(function(spName) {
                 var info = speciesDict[spName] || {};
-                var fam = (info.family || '常見植物科').trim();
+                var fam = (info.family || '科名暫缺').trim();
                 if (!familySpeciesDict[fam]) familySpeciesDict[fam] = [];
                 if (!familySpeciesDict[fam].includes(spName)) familySpeciesDict[fam].push(spName);
             });
 
             updateMapMarkers();
             renderPanelBody();
+
+            /* 建立地點索引：供搜尋「樹木所在地點」用，記錄每個地點嘅記錄數同範圍 */
+            locationIndex = {};
+            allGovTreeMarkers.forEach(function(m) {
+                if (!m.locationName) return;
+                var ll = m.getLatLng();
+                var e = locationIndex[m.locationName];
+                if (!e) {
+                    e = locationIndex[m.locationName] = { count: 0, minLat: ll.lat, minLng: ll.lng, maxLat: ll.lat, maxLng: ll.lng };
+                }
+                e.count++;
+                e.minLat = Math.min(e.minLat, ll.lat); e.maxLat = Math.max(e.maxLat, ll.lat);
+                e.minLng = Math.min(e.minLng, ll.lng); e.maxLng = Math.max(e.maxLng, ll.lng);
+            });
+
+            /* 學名 → 品種中文名對照：供搜尋「位置記錄上嘅學名」用 */
+            sciNameToSpecies = {};
+            allGovTreeMarkers.forEach(function(m) {
+                if (m.sciName) {
+                    var key = m.sciName.toLowerCase();
+                    if (!sciNameToSpecies[key]) sciNameToSpecies[key] = {};
+                    sciNameToSpecies[key][m.speciesName] = true;
+                }
+            });
         }
 
         function processTreeRow(row) {
@@ -841,8 +879,8 @@
 
                 var speciesInfo = speciesDict[treeName] || {};
                 var sciName = row.Scientific_Name || speciesInfo.scientificName || '';
-                var familyName = speciesInfo.family || '常見植物科';
-                var originStatus = speciesInfo.origin || '本地 / 外來';
+                var familyName = speciesInfo.family || '科名暫缺';
+                var originStatus = speciesInfo.origin || '屬性暫缺';
                 var flowering = speciesInfo.floweringPeriod || row.Flowering_Period || row['花期'] || '';
                 var fruiting = speciesInfo.fruitingPeriod || row.Fruiting_Period || row['果期'] || '';
                 var locationName = row.Location_in_Chinese || row.Location_in_English || '不詳';
@@ -873,6 +911,9 @@
                 marker.speciesName = treeName;
                 marker.categoryType = category;
                 marker.floweringPeriod = flowering;
+                marker.originStatus = originStatus;
+                marker.locationName = locationName;
+                marker.sciName = sciName;
                 allGovTreeMarkers.push(marker);
             }
         }
@@ -893,8 +934,9 @@
                     var matchType = (activeTypeFilter === 'ALL' || m.categoryType === activeTypeFilter || (activeTypeFilter === 'OVT' && m.categoryType === 'OVT_SWT') || (activeTypeFilter === 'SWT' && m.categoryType === 'OVT_SWT'));
                     var matchSpecies = (selectedSpeciesFilter === 'ALL' || m.speciesName === selectedSpeciesFilter);
                     var matchMonth = matchExactMonth(m.floweringPeriod, activeTreeMonthFilter);
+                    var matchOrigin = (activeOriginFilter === 'ALL' || m.originStatus === activeOriginFilter);
 
-                    if (matchType && matchSpecies && matchMonth) combined.push(m);
+                    if (matchType && matchSpecies && matchMonth && matchOrigin) combined.push(m);
                 });
             }
 
@@ -965,8 +1007,14 @@
                     <div class="section-label">📌 樹木類別：</div>
                     <div class="chip-group">
                         <button class="chip ${activeTypeFilter === 'ALL' ? 'active' : ''}" onclick="filterByType('ALL')">全部品種 (${typeCounts.ALL.toLocaleString()})</button>
-                        <button class="chip ${activeTypeFilter === 'OVT' ? 'active' : ''}" onclick="filterByType('OVT')">古樹名木 (${typeCounts.OVT})</button>
-                        <button class="chip ${activeTypeFilter === 'SWT' ? 'active' : ''}" onclick="filterByType('SWT')">石牆樹 (${typeCounts.SWT})</button>
+                        <button class="chip ${activeTypeFilter === 'OVT' ? 'active' : ''}" onclick="filterByType('OVT')">古樹名木 (${(typeCounts.OVT + typeCounts.OVT_SWT).toLocaleString()})</button>
+                        <button class="chip ${activeTypeFilter === 'SWT' ? 'active' : ''}" onclick="filterByType('SWT')">石牆樹 (${(typeCounts.SWT + typeCounts.OVT_SWT).toLocaleString()})</button>
+                    </div>
+                    <div class="section-label">🌿 品種屬性：</div>
+                    <div class="chip-group">
+                        <button class="chip ${activeOriginFilter === 'ALL' ? 'active' : ''}" onclick="filterByOrigin('ALL')">全部</button>
+                        <button class="chip ${activeOriginFilter === '原生' ? 'active' : ''}" onclick="filterByOrigin('原生')">原生</button>
+                        <button class="chip ${activeOriginFilter === '外來' ? 'active' : ''}" onclick="filterByOrigin('外來')">外來</button>
                     </div>
                     <div class="section-label">🔥 常見樹木品種：</div>
                     <div class="chip-group">
@@ -1086,6 +1134,7 @@
         }
 
         function filterTreeMonth(m) { activeTreeMonthFilter = m; updateMapMarkers(); renderPanelBody(); }
+        function filterByOrigin(o) { activeOriginFilter = o; updateMapMarkers(); renderPanelBody(); }
         function filterSeasonalCategory(cat) { activeSeasonalCategory = cat; updateMapMarkers(); renderPanelBody(); }
         function filterSeasonalSpecies(sp) { activeSeasonalSpecies = sp; updateMapMarkers(); renderPanelBody(); }
         function filterMonth(m) { activeMonthFilter = m; updateMapMarkers(); renderPanelBody(); }
@@ -1099,7 +1148,7 @@
                 document.getElementById('searchResults').style.display = 'none';
 
                 map.setView([lat, lng], 17, { animate: false });
-                var target = allSunsetMarkers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001);
+                var target = allSunsetMarkers.find(m => m.spotTitle === title && Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001) || allSunsetMarkers.find(m => m.spotTitle === title) || allSunsetMarkers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001);
                 if (target && target.getPopup()) {
                     L.popup(getPopupOptions()).setLatLng([lat, lng]).setContent(target.getPopup().getContent()).openOn(map);
                 } else {
@@ -1114,7 +1163,7 @@
                 document.getElementById('searchResults').style.display = 'none';
 
                 map.setView([lat, lng], 17, { animate: false });
-                var target = allSeasonalMarkers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001);
+                var target = allSeasonalMarkers.find(m => m.spotTitle === title && Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001) || allSeasonalMarkers.find(m => m.spotTitle === title) || allSeasonalMarkers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001);
                 if (target && target.getPopup()) {
                     L.popup(getPopupOptions()).setLatLng([lat, lng]).setContent(target.getPopup().getContent()).openOn(map);
                 } else {
@@ -1129,34 +1178,69 @@
             selectTreeSpecies(s);
         }
 
+        /* 搜尋結果快取：onclick 只傳類型同索引，名稱唔會拼入 HTML，避開引號問題 */
+        var searchResultsCache = { sunsets: [], spots: [], species: [], locations: [] };
+
+        function escapeHtml(s) {
+            var entities = { '&': '&' + 'amp;', '<': '&' + 'lt;', '>': '&' + 'gt;', '"': '&' + 'quot;', "'": '&' + '#39;' };
+            return String(s).replace(/[&<>"']/g, function(c) {
+                return entities[c];
+            });
+        }
+
         function handleSearch() {
             var q = document.getElementById('searchInput').value.trim().toLowerCase();
             var resDiv = document.getElementById('searchResults');
             if (!q) { resDiv.style.display = 'none'; return; }
             
-            var matchedSpots = seasonalData.filter(d => ((d.地點名稱 || '') + (d.細分品種 || '')).toLowerCase().includes(q)).slice(0, 3);
-            var matchedSunsets = sunsetData.filter(d => ((d.地點名稱 || '') + (d.分類 || '')).toLowerCase().includes(q)).slice(0, 3);
-            var matchedSpecies = Object.keys(speciesCounts).filter(s => s.toLowerCase().includes(q)).slice(0, 3);
+            searchResultsCache.spots = seasonalData.filter(d => ((d.地點名稱 || '') + (d.細分品種 || '') + (d.學名 || '')).toLowerCase().includes(q)).slice(0, 3).map(d => {
+                return { title: d.地點名稱 || '景點', latlng: [parseFloat(d.Latitude || d.GeometryLatitude), parseFloat(d.Longitude || d.GeometryLongitude)] };
+            });
+            searchResultsCache.sunsets = sunsetData.filter(d => ((d.地點名稱 || '') + (d.分類 || '')).toLowerCase().includes(q)).slice(0, 3).map(d => {
+                return { title: d.地點名稱 || '景點', latlng: [parseFloat(d.Latitude || d.GeometryLatitude), parseFloat(d.Longitude || d.GeometryLongitude)] };
+            });
+            searchResultsCache.species = Object.keys(speciesCounts).filter(s =>
+                s.toLowerCase().includes(q)
+                || ((speciesDict[s] || {}).scientificName || '').toLowerCase().includes(q)
+                || Object.keys(sciNameToSpecies).filter(k => k.includes(q)).some(k => sciNameToSpecies[k][s])
+            ).slice(0, 3);
+            searchResultsCache.locations = Object.keys(locationIndex).filter(n => n.toLowerCase().includes(q)).slice(0, 3).map(n => ({ name: n, e: locationIndex[n] }));
             
             var html = '';
-            matchedSunsets.forEach(m => {
-                var lat = parseFloat(m.Latitude || m.GeometryLatitude);
-                var lng = parseFloat(m.Longitude || m.GeometryLongitude);
-                var title = (m.地點名稱 || '').replace(/'/g, "\\'");
-                html += `<div class="search-item" onclick="switchTab('sunset'); flyToSunsetSpot(${lat}, ${lng}, '${title}')"><span>🌅 日落：${m.地點名稱}</span></div>`;
+            searchResultsCache.sunsets.forEach(function(item, i) {
+                html += `<div class="search-item" onclick="searchPick('sunset', ${i})"><span>🌅 日落：${escapeHtml(item.title)}</span></div>`;
             });
-            matchedSpots.forEach(m => {
-                var lat = parseFloat(m.Latitude || m.GeometryLatitude);
-                var lng = parseFloat(m.Longitude || m.GeometryLongitude);
-                var title = (m.地點名稱 || '').replace(/'/g, "\\'");
-                html += `<div class="search-item" onclick="switchTab('seasonal'); flyToSpot(${lat}, ${lng}, '${title}')"><span>🌸 賞花：${m.地點名稱}</span></div>`;
+            searchResultsCache.spots.forEach(function(item, i) {
+                html += `<div class="search-item" onclick="searchPick('spot', ${i})"><span>🌸 賞花：${escapeHtml(item.title)}</span></div>`;
             });
-            matchedSpecies.forEach(s => {
-                var safeS = s.replace(/'/g, "\\'");
-                html += `<div class="search-item" onclick="switchTab('trees'); selectSpeciesFromSearch('${safeS}')"><span>🌳 樹種：${s}</span><span style="font-size:11px; color:#888;">${speciesCounts[s]} 棵</span></div>`;
+            searchResultsCache.species.forEach(function(s, i) {
+                html += `<div class="search-item" onclick="searchPick('species', ${i})"><span>🌳 樹種：${escapeHtml(s)}</span><span style="font-size:11px; color:#888;">${speciesCounts[s]} 棵</span></div>`;
+            });
+            searchResultsCache.locations.forEach(function(item, i) {
+                html += `<div class="search-item" onclick="searchPick('location', ${i})"><span>📍 地點：${escapeHtml(item.name)}</span><span style="font-size:11px; color:#888;">${item.e.count} 棵</span></div>`;
             });
             resDiv.innerHTML = html;
             resDiv.style.display = html ? 'block' : 'none';
+        }
+
+        function searchPick(type, i) {
+            var cacheKey = { sunset: 'sunsets', spot: 'spots', species: 'species', location: 'locations' }[type] || type;
+            var item = (searchResultsCache[cacheKey] || [])[i];
+            if (!item) return;
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchResults').style.display = 'none';
+            if (type === 'sunset') {
+                switchTab('sunset'); flyToSunsetSpot(item.latlng[0], item.latlng[1], item.title);
+            } else if (type === 'spot') {
+                switchTab('seasonal'); flyToSpot(item.latlng[0], item.latlng[1], item.title);
+            } else if (type === 'species') {
+                switchTab('trees'); selectTreeSpecies(item);
+            } else if (type === 'location') {
+                switchTab('trees');
+                map.fitBounds([[item.e.minLat, item.e.minLng], [item.e.maxLat, item.e.maxLng]], { padding: [60, 60], maxZoom: 17, animate: false });
+                L.popup(getPopupOptions()).setLatLng([(item.e.minLat + item.e.maxLat) / 2, (item.e.minLng + item.e.maxLng) / 2])
+                    .setContent('<b>📍 ' + item.name + '</b><br>已收錄 ' + item.e.count + ' 個樹木記錄').openOn(map);
+            }
         }
 
         function updateLabelsVisibility() {
