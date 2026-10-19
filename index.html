@@ -524,11 +524,12 @@
             style: 'https://tiles.openfreemap.org/styles/positron'
         }).addTo(map);
 
-        // 徹底關閉 hover 時的藍色覆蓋範圍框 (showCoverageOnHover: false)
+        // 徹底關閉 spiderfyOnMaxZoom（點擊數字時不展開放射線）與藍色覆蓋範圍框
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true, 
             disableClusteringAtZoom: 18,
-            showCoverageOnHover: false
+            showCoverageOnHover: false,
+            spiderfyOnMaxZoom: false
         });
         map.addLayer(markersCluster);
 
@@ -1009,7 +1010,6 @@
             selectedSpeciesFilter = sp; 
             updateMapMarkers(); 
             renderPanelBody();
-            // 點擊樹種時保持當前地圖縮放視角，只平移至相關樹木範圍（如果有的話，不強行 zoom out 全港）
             if (sp !== 'ALL') {
                 var matched = allGovTreeMarkers.filter(m => m.speciesName === sp);
                 if (matched.length > 0) {
@@ -1029,7 +1029,6 @@
 
         function flyToSunsetSpot(lat, lng, title) {
             if (!isNaN(lat) && !isNaN(lng)) {
-                // 點擊選項後收合搜尋欄並清空
                 document.getElementById('searchInput').value = '';
                 document.getElementById('searchResults').style.display = 'none';
 
@@ -1046,7 +1045,6 @@
 
         function flyToSpot(lat, lng, title) {
             if (!isNaN(lat) && !isNaN(lng)) {
-                // 點擊選項後收合搜尋欄並清空
                 document.getElementById('searchInput').value = '';
                 document.getElementById('searchResults').style.display = 'none';
 
@@ -1062,7 +1060,6 @@
         }
 
         function selectSpeciesFromSearch(s) {
-            // 搜尋樹種時收合搜尋欄並清空
             document.getElementById('searchInput').value = '';
             document.getElementById('searchResults').style.display = 'none';
             selectTreeSpecies(s);
