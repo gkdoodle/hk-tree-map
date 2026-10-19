@@ -18,11 +18,11 @@
         :root {
             --primary-color: #2e7d32;
             --primary-light: #f1f8e9;
-            --sunset-color: #f57f17; /* 溫和橙色，不刺眼 */
+            --sunset-color: #f57f17;
             --sunset-light: #fff3e0;
             --sunset-soft-text: #f57f17;
             --text-main: #2c3e50;
-            --text-sub: #555555; /* 加深灰色，確保清晰易讀 */
+            --text-sub: #555555;
             --bg-white: #ffffff;
             --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.08);
             --border-radius: 16px;
@@ -36,7 +36,7 @@
             --sunset-light: #2d1810;
             --sunset-soft-text: #ff8a65;
             --text-main: #f1f5f9;
-            --text-sub: #cbd5e1; /* 深色模式下清晰的亮灰白 */
+            --text-sub: #cbd5e1;
             --bg-white: #1e293b;
             --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
@@ -56,7 +56,7 @@
             border-color: #334155 !important;
         }
 
-        /* 修正深色模式下 Leaflet 原生 Popup 卡片的背景與文字 */
+        /* 深色模式下 Leaflet 原生 Popup 卡片優化 */
         body.dark-mode .leaflet-popup-content-wrapper, 
         body.dark-mode .leaflet-popup-tip {
             background-color: #1e293b !important;
@@ -67,7 +67,6 @@
         body.dark-mode .leaflet-popup-content {
             color: #f1f5f9 !important;
         }
-        /* 確保 Popup 內的說明文字在深色模式下清晰顯示 */
         body.dark-mode .leaflet-popup-content div {
             color: #cbd5e1;
         }
@@ -649,8 +648,8 @@
 
         var favorites = JSON.parse(localStorage.getItem('hk_tree_map_favs') || '[]');
 
-        /* 收藏切換與按鈕實時更新邏輯 */
-        function toggleFavorite(id, title, type, lat, lng, autoOpenTab = false) {
+        /* 點擊收藏時原地更新按鈕狀態，不關閉卡片，不跳轉頁面 */
+        function toggleFavorite(id, title, type, lat, lng) {
             var index = favorites.findIndex(item => item.id === id);
             if (index > -1) {
                 favorites.splice(index, 1);
@@ -668,9 +667,7 @@
                 btn.style.color = isFav ? '#fff' : '#333';
             }
 
-            if (autoOpenTab) {
-                switchTab('fav');
-            } else if (activeTab === 'fav') {
+            if (activeTab === 'fav') {
                 renderPanelBody();
             }
         }
@@ -926,7 +923,7 @@
                             ${month ? '<div style="font-size: 12px; margin-bottom: 4px; color: var(--text-sub);">📅 <b>最佳拍攝月份：</b>' + month + '</div>' : ''}
                             ${remark ? '<div style="font-size: 11.5px; margin-bottom: 6px; color: var(--text-sub);">📌 ' + remark + '</div>' : ''}
                             <div style="display: flex; gap: 6px; margin-top: 8px;">
-                                <button id="fav-btn-${favId}" onclick="toggleFavorite('${favId}', '${title.replace(/'/g, "\\'")}', '日落景點', ${lat}, ${lng}, true)" style="flex: 1; background: ${isFav ? '#f57f17' : '#f0f0f0'}; color: ${isFav ? '#fff' : '#333'}; border: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">${isFav ? '⭐ 已收藏' : '⭐ 收藏此點'}</button>
+                                <button id="fav-btn-${favId}" onclick="toggleFavorite('${favId}', '${title.replace(/'/g, "\\'")}', '日落景點', ${lat}, ${lng})" style="flex: 1; background: ${isFav ? '#f57f17' : '#f0f0f0'}; color: ${isFav ? '#fff' : '#333'}; border: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">${isFav ? '⭐ 已收藏' : '⭐ 收藏此點'}</button>
                                 <a href="${gmapsUrl}" target="_blank" style="flex: 1; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600;">導航 🗺️</a>
                             </div>
                         </div>
@@ -980,7 +977,7 @@
                             ${src ? '<div style="font-size: 11px; margin-bottom: 8px;"><a href="' + src + '" target="_blank" style="color:#999;">🔗 資料來源</a></div>' : ''}
                             ${(!desc && !src) ? '<div style="margin-bottom: 8px;"></div>' : ''}
                             <div style="display: flex; gap: 6px; margin-top: 8px;">
-                                <button id="fav-btn-${favId}" onclick="toggleFavorite('${favId}', '${title.replace(/'/g, "\\'")}', '景點', ${lat}, ${lng}, true)" style="flex: 1; background: ${isFav ? '#f57f17' : '#f0f0f0'}; color: ${isFav ? '#fff' : '#333'}; border: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">${isFav ? '⭐ 已收藏' : '⭐ 收藏此點'}</button>
+                                <button id="fav-btn-${favId}" onclick="toggleFavorite('${favId}', '${title.replace(/'/g, "\\'")}', '景點', ${lat}, ${lng})" style="flex: 1; background: ${isFav ? '#f57f17' : '#f0f0f0'}; color: ${isFav ? '#fff' : '#333'}; border: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">${isFav ? '⭐ 已收藏' : '⭐ 收藏此點'}</button>
                                 <a href="${gmapsUrl}" target="_blank" style="flex: 1; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 7px; border-radius: 8px; font-size: 12px; font-weight: 600;">導航 🗺️</a>
                             </div>
                         </div>
@@ -1097,7 +1094,7 @@
                             ${sourceName ? '<div style="font-size: 12.5px; color: var(--text-sub);"><b>來源：</b>' + sourceName + '</div>' : ''}
                         </div>
                         <div style="display: flex; gap: 6px; margin-top: 12px;">
-                            <button id="fav-btn-${favId}" onclick="toggleFavorite('${favId}', '${treeName.replace(/'/g, "\\'")}', '樹木位置', ${lat}, ${lng}, true)" style="flex: 1; background: ${isFav ? '#f57f17' : '#f0f0f0'}; color: ${isFav ? '#fff' : '#333'}; border: none; padding: 8px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;">${isFav ? '⭐ 已收藏' : '⭐ 收藏此點'}</button>
+                            <button id="fav-btn-${favId}" onclick="toggleFavorite('${favId}', '${treeName.replace(/'/g, "\\'")}', '樹木位置', ${lat}, ${lng})" style="flex: 1; background: ${isFav ? '#f57f17' : '#f0f0f0'}; color: ${isFav ? '#fff' : '#333'}; border: none; padding: 8px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;">${isFav ? '⭐ 已收藏' : '⭐ 收藏此點'}</button>
                             <a href="${gmapsUrl}" target="_blank" style="flex: 1; text-align: center; background: #1976d2; color: white; text-decoration: none; padding: 8px; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 6px rgba(25,118,210,0.2);">導航 🗺️</a>
                         </div>
                     </div>
@@ -1336,7 +1333,7 @@
             }
         }
 
-        /* 飛往收藏位置：使用 zoomToShowLayer 100% 精準定位並彈出 Popup */
+        /* 飛往收藏位置：精準解開 Cluster 聚合並展開資訊卡片 */
         function flyToFav(favId, lat, lng) {
             if (!isNaN(lat) && !isNaN(lng)) {
                 var allMarkers = allGovTreeMarkers.concat(allSeasonalMarkers, allSunsetMarkers);
