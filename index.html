@@ -715,7 +715,7 @@
                         if (data.weatherForecast && data.weatherForecast.length > 0 && data.weatherForecast[0].forecastDesc) {
                             hkoWeatherData.currentDesc = data.weatherForecast[0].forecastDesc;
                         } else if (data.customDesc) {
-                            hkoWeatherData.customDesc = data.customDesc;
+                            hkoWeatherData.currentDesc = data.customDesc;
                         } else {
                             hkoWeatherData.currentDesc = "大致天晴";
                         }
@@ -1140,7 +1140,15 @@
                         </div>
                     </div>
                 `, getPopupOptions());
-                marker.bindTooltip(treeName, { direction: 'right', offset: [5, 0], className: 'tree-label', permanent: false });
+                
+                /* 點擊標記或開啟 Popup 時，確保標籤不會意外消失或支援點擊重開 */
+                marker.bindTooltip(treeName, { direction: 'right', offset: [5, 0], className: 'tree-label', permanent: false, interactive: true });
+                marker.on('click', function() {
+                    if (labelsEnabled && map.getZoom() >= 18) {
+                        setTimeout(() => { if (!marker.isTooltipOpen()) marker.openTooltip(); }, 200);
+                    }
+                });
+
                 marker.speciesName = treeName;
                 marker.categoryType = category;
                 marker.floweringPeriod = flowering;
@@ -1354,18 +1362,14 @@
             } else if (activeTab === 'monthly') {
                 var currentMonthNum = new Date().getMonth() + 1;
                 
-                /* 只篩選「花期」，排除果期與全年項目 */
                 var monthlyTrees = allGovTreeMarkers.filter(m => matchStrictMonth(m.floweringPeriod, currentMonthNum));
                 var monthlySpots = allSeasonalMarkers.filter(m => matchStrictMonth(m.seasonalMonths, currentMonthNum));
 
-                /* 按樹木品種分組 */
                 var treeSpeciesGroup = {};
                 monthlyTrees.forEach(m => {
                     if (!treeSpeciesGroup[m.speciesName]) treeSpeciesGroup[m.speciesName] = [];
                     treeSpeciesGroup[m.speciesName].push(m);
                 });
-
-                /* 按地點數量由多到少排序（高至低） */
                 var sortedTreeSpeciesKeys = Object.keys(treeSpeciesGroup).sort((a, b) => treeSpeciesGroup[b].length - treeSpeciesGroup[a].length);
 
                 var treeGroupHtml = sortedTreeSpeciesKeys.map((sp, idx) => {
@@ -1388,14 +1392,12 @@
                     `;
                 }).join('') || '<div style="font-size: 12px; color: var(--text-sub); text-align:center; padding:10px;">本月暫無記錄特定開花花期的樹木。</div>';
 
-                /* 按景點品種分組並排序 */
                 var spotSpeciesGroup = {};
                 monthlySpots.forEach(m => {
                     var spKey = m.species || m.category || '精選景點';
                     if (!spotSpeciesGroup[spKey]) spotSpeciesGroup[spKey] = [];
                     spotSpeciesGroup[spKey].push(m);
                 });
-
                 var sortedSpotSpeciesKeys = Object.keys(spotSpeciesGroup).sort((a, b) => spotSpeciesGroup[b].length - spotSpeciesGroup[a].length);
 
                 var spotGroupHtml = sortedSpotSpeciesKeys.map((sp, idx) => {
@@ -1418,14 +1420,15 @@
                     `;
                 }).join('') || '<div style="font-size: 12px; color: var(--text-sub); text-align:center; padding:10px;">本月暫無特別當造景點。</div>';
 
+                /* 將「當月觀賞植物地點」搬到上方，樹木品種放下面 */
                 body.innerHTML = `
                     <div class="section-label" style="font-size: 14px; color: var(--primary-color); margin-bottom: 12px;">📅 ${currentMonthNum} 月當造花期與景點總覽</div>
                     
-                    <div class="section-label">🌳 當造開花樹木品種 (${sortedTreeSpeciesKeys.length} 種)：</div>
-                    <div style="margin-bottom: 16px;">${treeGroupHtml}</div>
+                    <div class="section-label">🌸 當月觀賞植物地點 (${sortedSpotSpeciesKeys.length} 種)：</div>
+                    <div style="margin-bottom: 16px;">${spotGroupHtml}</div>
 
-                    <div class="section-label">🌸 當造景點花卉 (${sortedSpotSpeciesKeys.length} 種)：</div>
-                    <div>${spotGroupHtml}</div>
+                    <div class="section-label">🌳 當造開花樹木品種 (${sortedTreeSpeciesKeys.length} 種)：</div>
+                    <div>${treeGroupHtml}</div>
                 `;
             } else if (activeTab === 'fav') {
                 var favListHtml = '';
