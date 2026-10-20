@@ -341,9 +341,9 @@
         @media (max-width: 768px) and (max-height: 650px) { .leaflet-popup-content { max-height: 30vh; } }
 
         .seasonal-emoji-marker {
-            width: 30px; height: 30px; border-radius: 50%;
+            width: 32px; height: 32px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+            font-size: 16px; box-shadow: 0 3px 10px rgba(0,0,0,0.25);
             border: 2px solid #ffffff; cursor: pointer; transition: transform 0.2s;
         }
         .seasonal-emoji-marker:hover { transform: scale(1.15); }
@@ -485,6 +485,9 @@
                 </button>
                 <button class="tab-btn" id="tabSunset" onclick="switchTab('sunset', event)">
                     <input type="checkbox" id="layerSunsetToggle" checked onclick="event.stopPropagation(); toggleLayerVisibility();" title="切換日落圖層"> 🌅 日落
+                </button>
+                <button class="tab-btn" id="tabMonthly" onclick="switchTab('monthly', event)">
+                    📅 本月當造
                 </button>
                 <button class="tab-btn" id="tabFav" onclick="switchTab('fav', event)">
                     ⭐ 收藏
@@ -648,7 +651,7 @@
 
         var favorites = JSON.parse(localStorage.getItem('hk_tree_map_favs') || '[]');
 
-        /* 點擊收藏時原地更新按鈕狀態，不關閉卡片，不跳轉頁面 */
+        /* 完美同步：收藏切換、按鈕文字更新與 Popup 動態重繪 */
         function toggleFavorite(id, title, type, lat, lng) {
             var index = favorites.findIndex(item => item.id === id);
             if (index > -1) {
@@ -657,9 +660,22 @@
                 favorites.push({ id, title, type, lat, lng });
             }
             localStorage.setItem('hk_tree_map_favs', JSON.stringify(favorites));
-            updateMapMarkers();
             
             var isFav = favorites.some(item => item.id === id);
+
+            // 尋找對應的 Marker 並更新其內部 Popup 內容
+            var allMarkers = allGovTreeMarkers.concat(allSeasonalMarkers, allSunsetMarkers);
+            var m = allMarkers.find(item => item.favId === id);
+            if (m) {
+                var popup = m.getPopup();
+                if (popup) {
+                    var content = popup.getContent();
+                    var newBtnHtml = `<button id="fav-btn-${id}" onclick="toggleFavorite('${id}', '${title.replace(/'/g, "\\'")}', '${type}', ${lat}, ${lng})" style="flex: 1; background: ${isFav ? '#f57f17' : '#f0f0f0'}; color: ${isFav ? '#fff' : '#333'}; border: none; padding: 8px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;">${isFav ? '⭐ 已收藏' : '⭐ 收藏此點'}</button>`;
+                    content = content.replace(/<button id="fav-btn-[^"]+"[\s\S]*?<\/button>/, newBtnHtml);
+                    popup.setContent(content);
+                }
+            }
+
             var btn = document.getElementById('fav-btn-' + id);
             if (btn) {
                 btn.innerHTML = isFav ? '⭐ 已收藏' : '⭐ 收藏此點';
@@ -700,7 +716,7 @@
                         if (data.weatherForecast && data.weatherForecast.length > 0 && data.weatherForecast[0].forecastDesc) {
                             hkoWeatherData.currentDesc = data.weatherForecast[0].forecastDesc;
                         } else if (data.customDesc) {
-                            hkoWeatherData.currentDesc = data.customDesc;
+                            hkoWeatherData.customDesc = data.customDesc;
                         } else {
                             hkoWeatherData.currentDesc = "大致天晴";
                         }
@@ -904,7 +920,7 @@
                     var icon = L.divIcon({
                         className: 'custom-seasonal-div-icon',
                         html: '<div class="seasonal-emoji-marker seasonal-emoji-sunset">🌅</div>',
-                        iconSize: [30, 30], iconAnchor: [15, 15]
+                        iconSize: [32, 32], iconAnchor: [16, 16]
                     });
 
                     var marker = L.marker([lat, lng], { icon: icon });
@@ -956,7 +972,7 @@
                     var icon = L.divIcon({
                         className: 'custom-seasonal-div-icon',
                         html: '<div class="seasonal-emoji-marker ' + styleClass + '">' + emoji + '</div>',
-                        iconSize: [30, 30], iconAnchor: [15, 15]
+                        iconSize: [32, 32], iconAnchor: [16, 16]
                     });
 
                     var marker = L.marker([lat, lng], { icon: icon });
@@ -1054,13 +1070,14 @@
                 speciesCounts[treeName] = (speciesCounts[treeName] || 0) + 1;
                 typeCounts.ALL++;
 
-                let category = "OTHER", color = "#2e7d32", radiusSize = 5;
-                if (treeType === 'OVT') { category = "OVT"; color = "#fbc02d"; radiusSize = 6; typeCounts.OVT++; }
-                else if (treeType === 'SWT') { category = "SWT"; color = "#795548"; radiusSize = 6; typeCounts.SWT++; }
-                else if (treeType.includes('OVT') && treeType.includes('SWT')) { category = "OVT_SWT"; color = "#fb8c00"; radiusSize = 7; typeCounts.OVT_SWT++; }
+                let category = "OTHER", color = "#2e7d32", radiusSize = 7.5;
+                if (treeType === 'OVT') { category = "OVT"; color = "#fbc02d"; radiusSize = 8.5; typeCounts.OVT++; }
+                else if (treeType === 'SWT') { category = "SWT"; color = "#795548"; radiusSize = 8.5; typeCounts.SWT++; }
+                else if (treeType.includes('OVT') && treeType.includes('SWT')) { category = "OVT_SWT"; color = "#fb8c00"; radiusSize = 9.5; typeCounts.OVT_SWT++; }
 
+                /* 專為手機優化：加大透明邊框 (stroke) 擴大點擊感應區，解決「難㩒」的問題 */
                 var marker = L.circleMarker([lat, lng], {
-                    radius: radiusSize, fillColor: color, color: "#ffffff", weight: 1.5, fillOpacity: 0.9
+                    radius: radiusSize, fillColor: color, color: "#ffffff", weight: 8, stroke: true, opacity: 0.3, fillOpacity: 0.95
                 });
 
                 var favId = 'tree-' + (treeCounter++) + '-' + lat.toFixed(5) + '-' + lng.toFixed(5);
@@ -1103,6 +1120,7 @@
                 marker.speciesName = treeName;
                 marker.categoryType = category;
                 marker.floweringPeriod = flowering;
+                marker.fruitingPeriod = fruiting;
                 marker.originStatus = originStatus;
                 marker.locationName = locationName;
                 marker.sciName = sciName;
@@ -1159,6 +1177,7 @@
             document.getElementById('tabTrees').classList.toggle('active', tab === 'trees');
             document.getElementById('tabSeasonal').classList.toggle('active', tab === 'seasonal');
             document.getElementById('tabSunset').classList.toggle('active', tab === 'sunset');
+            document.getElementById('tabMonthly').classList.toggle('active', tab === 'monthly');
             document.getElementById('tabFav').classList.toggle('active', tab === 'fav');
 
             renderPanelBody();
@@ -1308,6 +1327,42 @@
                         </div>
                     </div>
                 `;
+            } else if (activeTab === 'monthly') {
+                var currentMonthNum = new Date().getMonth() + 1;
+                
+                var monthlyTrees = allGovTreeMarkers.filter(m => matchExactMonth(m.floweringPeriod, currentMonthNum) || matchExactMonth(m.fruitingPeriod, currentMonthNum)).slice(0, 50);
+                var monthlySpots = allSeasonalMarkers.filter(m => matchExactMonth(m.seasonalMonths, currentMonthNum) || m.category.includes("榕樹")).slice(0, 50);
+
+                var treeListHtml = monthlyTrees.length > 0 ? monthlyTrees.map(m => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-white); border: 1px solid #eef2ee; border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+                        <div>
+                            <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">${escapeHtml(m.speciesName)}</div>
+                            <div style="font-size: 11px; color: var(--primary-color); margin-top: 2px;">📍 ${escapeHtml(m.locationName)}</div>
+                        </div>
+                        <button onclick="flyToFav('${m.favId}', ${m.getLatLng().lat}, ${m.getLatLng().lng})" style="background: #1976d2; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer;">查看 🔍</button>
+                    </div>
+                `).join('') : '<div style="font-size: 12px; color: var(--text-sub); text-align:center; padding:10px;">本月暫無記錄特定花果期的樹木。</div>';
+
+                var spotListHtml = monthlySpots.length > 0 ? monthlySpots.map(m => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-white); border: 1px solid #eef2ee; border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+                        <div>
+                            <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">${escapeHtml(m.spotTitle)}</div>
+                            <div style="font-size: 11px; color: #d81b60; margin-top: 2px;">🌸 ${escapeHtml(m.species || m.category)}</div>
+                        </div>
+                        <button onclick="flyToFav('${m.favId}', ${m.getLatLng().lat}, ${m.getLatLng().lng})" style="background: #1976d2; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer;">查看 🔍</button>
+                    </div>
+                `).join('') : '<div style="font-size: 12px; color: var(--text-sub); text-align:center; padding:10px;">本月暫無特別景點。</div>';
+
+                body.innerHTML = `
+                    <div class="section-label" style="font-size: 14px; color: var(--primary-color); margin-bottom: 10px;">📅 ${currentMonthNum} 月當造花期與景點總覽</div>
+                    <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 14px;">以下為您列出今個月正值花期、果期或觀賞期的所有樹木與季節景點：</div>
+                    
+                    <div class="section-label">🌳 當造樹木 (${monthlyTrees.length})：</div>
+                    <div style="margin-bottom: 16px;">${treeListHtml}</div>
+
+                    <div class="section-label">🌸 當造景點 (${monthlySpots.length})：</div>
+                    <div>${spotListHtml}</div>
+                `;
             } else if (activeTab === 'fav') {
                 var favListHtml = '';
                 if (favorites.length === 0) {
@@ -1333,7 +1388,7 @@
             }
         }
 
-        /* 飛往收藏位置：精準解開 Cluster 聚合並展開資訊卡片 */
+        /* 飛往收藏或月度景點：精準解開 Cluster 聚合並展開資訊卡片 */
         function flyToFav(favId, lat, lng) {
             if (!isNaN(lat) && !isNaN(lng)) {
                 var allMarkers = allGovTreeMarkers.concat(allSeasonalMarkers, allSunsetMarkers);
