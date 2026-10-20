@@ -715,7 +715,7 @@
                         if (data.weatherForecast && data.weatherForecast.length > 0 && data.weatherForecast[0].forecastDesc) {
                             hkoWeatherData.currentDesc = data.weatherForecast[0].forecastDesc;
                         } else if (data.customDesc) {
-                            hkoWeatherData.currentDesc = data.customDesc;
+                            hkoWeatherData.customDesc = data.customDesc;
                         } else {
                             hkoWeatherData.currentDesc = "大致天晴";
                         }
@@ -1354,16 +1354,21 @@
             } else if (activeTab === 'monthly') {
                 var currentMonthNum = new Date().getMonth() + 1;
                 
-                var monthlyTrees = allGovTreeMarkers.filter(m => matchStrictMonth(m.floweringPeriod, currentMonthNum) || matchStrictMonth(m.fruitingPeriod, currentMonthNum));
+                /* 只篩選「花期」，排除果期與全年項目 */
+                var monthlyTrees = allGovTreeMarkers.filter(m => matchStrictMonth(m.floweringPeriod, currentMonthNum));
                 var monthlySpots = allSeasonalMarkers.filter(m => matchStrictMonth(m.seasonalMonths, currentMonthNum));
 
+                /* 按樹木品種分組 */
                 var treeSpeciesGroup = {};
                 monthlyTrees.forEach(m => {
                     if (!treeSpeciesGroup[m.speciesName]) treeSpeciesGroup[m.speciesName] = [];
                     treeSpeciesGroup[m.speciesName].push(m);
                 });
 
-                var treeGroupHtml = Object.keys(treeSpeciesGroup).sort().map((sp, idx) => {
+                /* 按地點數量由多到少排序（高至低） */
+                var sortedTreeSpeciesKeys = Object.keys(treeSpeciesGroup).sort((a, b) => treeSpeciesGroup[b].length - treeSpeciesGroup[a].length);
+
+                var treeGroupHtml = sortedTreeSpeciesKeys.map((sp, idx) => {
                     var items = treeSpeciesGroup[sp];
                     var subListHtml = items.map(m => `
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid #f0f0f0; font-size: 12.5px;">
@@ -1381,8 +1386,9 @@
                             <div class="family-content" id="m-tree-${idx}">${subListHtml}</div>
                         </div>
                     `;
-                }).join('') || '<div style="font-size: 12px; color: var(--text-sub); text-align:center; padding:10px;">本月暫無記錄特定當造期的樹木。</div>';
+                }).join('') || '<div style="font-size: 12px; color: var(--text-sub); text-align:center; padding:10px;">本月暫無記錄特定開花花期的樹木。</div>';
 
+                /* 按景點品種分組並排序 */
                 var spotSpeciesGroup = {};
                 monthlySpots.forEach(m => {
                     var spKey = m.species || m.category || '精選景點';
@@ -1390,7 +1396,9 @@
                     spotSpeciesGroup[spKey].push(m);
                 });
 
-                var spotGroupHtml = Object.keys(spotSpeciesGroup).sort().map((sp, idx) => {
+                var sortedSpotSpeciesKeys = Object.keys(spotSpeciesGroup).sort((a, b) => spotSpeciesGroup[b].length - spotSpeciesGroup[a].length);
+
+                var spotGroupHtml = sortedSpotSpeciesKeys.map((sp, idx) => {
                     var items = spotSpeciesGroup[sp];
                     var subListHtml = items.map(m => `
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid #f0f0f0; font-size: 12.5px;">
@@ -1413,10 +1421,10 @@
                 body.innerHTML = `
                     <div class="section-label" style="font-size: 14px; color: var(--primary-color); margin-bottom: 12px;">📅 ${currentMonthNum} 月當造花期與景點總覽</div>
                     
-                    <div class="section-label">🌳 當造樹木品種 (${Object.keys(treeSpeciesGroup).length} 種)：</div>
+                    <div class="section-label">🌳 當造開花樹木品種 (${sortedTreeSpeciesKeys.length} 種)：</div>
                     <div style="margin-bottom: 16px;">${treeGroupHtml}</div>
 
-                    <div class="section-label">🌸 當造景點花卉 (${Object.keys(spotSpeciesGroup).length} 種)：</div>
+                    <div class="section-label">🌸 當造景點花卉 (${sortedSpotSpeciesKeys.length} 種)：</div>
                     <div>${spotGroupHtml}</div>
                 `;
             } else if (activeTab === 'fav') {
@@ -1641,7 +1649,7 @@
         function openAboutModal() { document.getElementById('aboutModal').style.display = 'flex'; }
         function closeAboutModal() { document.getElementById('aboutModal').style.display = 'none'; }
 
-        /* GPS 定位改為藍色圓點（7px），不顯示文字卡片 */
+        /* GPS 定位 */
         var userLocationMarker = null;
         var isLocatingActive = false;
 
@@ -1670,7 +1678,6 @@
                     map.setView([lat, lng], 16);
 
                     if (userLocationMarker) map.removeLayer(userLocationMarker);
-                    // 使用與樹木圓點相同的樣式：半徑 7px，藍色填滿與白色外框
                     userLocationMarker = L.circleMarker([lat, lng], {
                         radius: 7, fillColor: '#1976d2', color: "#ffffff", weight: 6, stroke: true, opacity: 0.3, fillOpacity: 0.95
                     }).addTo(map).bindPopup("您的目前位置");
