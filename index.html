@@ -505,7 +505,7 @@
     <div class="control-group" id="mapControls">
         <button class="icon-map-btn" id="darkModeBtn" onclick="toggleDarkMode()" title="切換深色模式">🌙</button>
         <button class="icon-map-btn" id="toggleLabelBtn" onclick="toggleLabels()" style="opacity: 0.5;" title="隱藏/顯示標籤">🏷️</button>
-        <button class="icon-map-btn" onclick="locateUser()" title="我的位置">📍</button>
+        <button class="icon-map-btn" id="locateBtn" onclick="toggleLocation()" title="我的位置">📍</button>
     </div>
 
     <!-- 關於本站彈窗 -->
@@ -651,7 +651,7 @@
 
         var favorites = JSON.parse(localStorage.getItem('hk_tree_map_favs') || '[]');
 
-        /* 完美同步：收藏切換、按鈕文字更新與 Popup 動態重繪 */
+        /* 收藏切換與按鈕原地實時更新 */
         function toggleFavorite(id, title, type, lat, lng) {
             var index = favorites.findIndex(item => item.id === id);
             if (index > -1) {
@@ -663,7 +663,6 @@
             
             var isFav = favorites.some(item => item.id === id);
 
-            // 尋找對應的 Marker 並更新其內部 Popup 內容
             var allMarkers = allGovTreeMarkers.concat(allSeasonalMarkers, allSunsetMarkers);
             var m = allMarkers.find(item => item.favId === id);
             if (m) {
@@ -716,7 +715,7 @@
                         if (data.weatherForecast && data.weatherForecast.length > 0 && data.weatherForecast[0].forecastDesc) {
                             hkoWeatherData.currentDesc = data.weatherForecast[0].forecastDesc;
                         } else if (data.customDesc) {
-                            hkoWeatherData.customDesc = data.customDesc;
+                            hkoWeatherData.currentDesc = data.customDesc;
                         } else {
                             hkoWeatherData.currentDesc = "大致天晴";
                         }
@@ -817,6 +816,32 @@
             let rangeStart = new Date(exactSunsetDate.getTime() - 6 * 60 * 1000);
             let rangeEnd = new Date(exactSunsetDate.getTime() + 12 * 60 * 1000);
             return formatTime(rangeStart) + ' - ' + formatTime(rangeEnd);
+        }
+
+        /* 嚴格過濾：只計算該月份，排除「全年」 */
+        function matchStrictMonth(monthsStr, targetMonthNum) {
+            if (!monthsStr) return false;
+            if (monthsStr.indexOf('全年') >= 0) return false;
+
+            var target = parseInt(targetMonthNum, 10);
+            var segments = monthsStr.split(/及|,|、/);
+            for (var i = 0; i < segments.length; i++) {
+                var seg = segments[i];
+                var rangeMatch = seg.match(/(\d+)\s*月?\s*[-–—~～至]\s*(\d+)/);
+                if (rangeMatch) {
+                    var start = parseInt(rangeMatch[1], 10);
+                    var end = parseInt(rangeMatch[2], 10);
+                    if (start <= end) {
+                        if (target >= start && target <= end) return true;
+                    } else {
+                        if (target >= start || target <= end) return true;
+                    }
+                } else {
+                    var matches = seg.match(/\d+/g);
+                    if (matches && matches.map(Number).includes(target)) return true;
+                }
+            }
+            return false;
         }
 
         function matchExactMonth(monthsStr, targetMonthNum) {
@@ -1070,14 +1095,13 @@
                 speciesCounts[treeName] = (speciesCounts[treeName] || 0) + 1;
                 typeCounts.ALL++;
 
-                let category = "OTHER", color = "#2e7d32", radiusSize = 7.5;
-                if (treeType === 'OVT') { category = "OVT"; color = "#fbc02d"; radiusSize = 8.5; typeCounts.OVT++; }
-                else if (treeType === 'SWT') { category = "SWT"; color = "#795548"; radiusSize = 8.5; typeCounts.SWT++; }
-                else if (treeType.includes('OVT') && treeType.includes('SWT')) { category = "OVT_SWT"; color = "#fb8c00"; radiusSize = 9.5; typeCounts.OVT_SWT++; }
+                let category = "OTHER", color = "#2e7d32", radiusSize = 6.5;
+                if (treeType === 'OVT') { category = "OVT"; color = "#fbc02d"; radiusSize = 7.5; typeCounts.OVT++; }
+                else if (treeType === 'SWT') { category = "SWT"; color = "#795548"; radiusSize = 7.5; typeCounts.SWT++; }
+                else if (treeType.includes('OVT') && treeType.includes('SWT')) { category = "OVT_SWT"; color = "#fb8c00"; radiusSize = 8.5; typeCounts.OVT_SWT++; }
 
-                /* 專為手機優化：加大透明邊框 (stroke) 擴大點擊感應區，解決「難㩒」的問題 */
                 var marker = L.circleMarker([lat, lng], {
-                    radius: radiusSize, fillColor: color, color: "#ffffff", weight: 8, stroke: true, opacity: 0.3, fillOpacity: 0.95
+                    radius: radiusSize, fillColor: color, color: "#ffffff", weight: 6, stroke: true, opacity: 0.3, fillOpacity: 0.95
                 });
 
                 var favId = 'tree-' + (treeCounter++) + '-' + lat.toFixed(5) + '-' + lng.toFixed(5);
@@ -1330,38 +1354,70 @@
             } else if (activeTab === 'monthly') {
                 var currentMonthNum = new Date().getMonth() + 1;
                 
-                var monthlyTrees = allGovTreeMarkers.filter(m => matchExactMonth(m.floweringPeriod, currentMonthNum) || matchExactMonth(m.fruitingPeriod, currentMonthNum)).slice(0, 50);
-                var monthlySpots = allSeasonalMarkers.filter(m => matchExactMonth(m.seasonalMonths, currentMonthNum) || m.category.includes("榕樹")).slice(0, 50);
+                var monthlyTrees = allGovTreeMarkers.filter(m => matchStrictMonth(m.floweringPeriod, currentMonthNum) || matchStrictMonth(m.fruitingPeriod, currentMonthNum));
+                var monthlySpots = allSeasonalMarkers.filter(m => matchStrictMonth(m.seasonalMonths, currentMonthNum));
 
-                var treeListHtml = monthlyTrees.length > 0 ? monthlyTrees.map(m => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-white); border: 1px solid #eef2ee; border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
-                        <div>
-                            <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">${escapeHtml(m.speciesName)}</div>
-                            <div style="font-size: 11px; color: var(--primary-color); margin-top: 2px;">📍 ${escapeHtml(m.locationName)}</div>
-                        </div>
-                        <button onclick="flyToFav('${m.favId}', ${m.getLatLng().lat}, ${m.getLatLng().lng})" style="background: #1976d2; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer;">查看 🔍</button>
-                    </div>
-                `).join('') : '<div style="font-size: 12px; color: var(--text-sub); text-align:center; padding:10px;">本月暫無記錄特定花果期的樹木。</div>';
+                var treeSpeciesGroup = {};
+                monthlyTrees.forEach(m => {
+                    if (!treeSpeciesGroup[m.speciesName]) treeSpeciesGroup[m.speciesName] = [];
+                    treeSpeciesGroup[m.speciesName].push(m);
+                });
 
-                var spotListHtml = monthlySpots.length > 0 ? monthlySpots.map(m => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-white); border: 1px solid #eef2ee; border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
-                        <div>
-                            <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">${escapeHtml(m.spotTitle)}</div>
-                            <div style="font-size: 11px; color: #d81b60; margin-top: 2px;">🌸 ${escapeHtml(m.species || m.category)}</div>
+                var treeGroupHtml = Object.keys(treeSpeciesGroup).sort().map((sp, idx) => {
+                    var items = treeSpeciesGroup[sp];
+                    var subListHtml = items.map(m => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid #f0f0f0; font-size: 12.5px;">
+                            <span style="color: var(--text-main);">📍 ${escapeHtml(m.locationName)}</span>
+                            <button onclick="flyToFav('${m.favId}', ${m.getLatLng().lat}, ${m.getLatLng().lng})" style="background: #1976d2; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">查看 🔍</button>
                         </div>
-                        <button onclick="flyToFav('${m.favId}', ${m.getLatLng().lat}, ${m.getLatLng().lng})" style="background: #1976d2; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer;">查看 🔍</button>
-                    </div>
-                `).join('') : '<div style="font-size: 12px; color: var(--text-sub); text-align:center; padding:10px;">本月暫無特別景點。</div>';
+                    `).join('');
+
+                    return `
+                        <div class="family-accordion">
+                            <div class="family-header" onclick="toggleFamilyAccordion('m-tree-${idx}')">
+                                <span>🌳 ${escapeHtml(sp)}</span>
+                                <span class="family-count">${items.length} 處地點 ▾</span>
+                            </div>
+                            <div class="family-content" id="m-tree-${idx}">${subListHtml}</div>
+                        </div>
+                    `;
+                }).join('') || '<div style="font-size: 12px; color: var(--text-sub); text-align:center; padding:10px;">本月暫無記錄特定當造期的樹木。</div>';
+
+                var spotSpeciesGroup = {};
+                monthlySpots.forEach(m => {
+                    var spKey = m.species || m.category || '精選景點';
+                    if (!spotSpeciesGroup[spKey]) spotSpeciesGroup[spKey] = [];
+                    spotSpeciesGroup[spKey].push(m);
+                });
+
+                var spotGroupHtml = Object.keys(spotSpeciesGroup).sort().map((sp, idx) => {
+                    var items = spotSpeciesGroup[sp];
+                    var subListHtml = items.map(m => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid #f0f0f0; font-size: 12.5px;">
+                            <span style="color: var(--text-main);">📍 ${escapeHtml(m.spotTitle)}</span>
+                            <button onclick="flyToFav('${m.favId}', ${m.getLatLng().lat}, ${m.getLatLng().lng})" style="background: #1976d2; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">查看 🔍</button>
+                        </div>
+                    `).join('');
+
+                    return `
+                        <div class="family-accordion">
+                            <div class="family-header" onclick="toggleFamilyAccordion('m-spot-${idx}')">
+                                <span>🌸 ${escapeHtml(sp)}</span>
+                                <span class="family-count">${items.length} 個景點 ▾</span>
+                            </div>
+                            <div class="family-content" id="m-spot-${idx}">${subListHtml}</div>
+                        </div>
+                    `;
+                }).join('') || '<div style="font-size: 12px; color: var(--text-sub); text-align:center; padding:10px;">本月暫無特別當造景點。</div>';
 
                 body.innerHTML = `
-                    <div class="section-label" style="font-size: 14px; color: var(--primary-color); margin-bottom: 10px;">📅 ${currentMonthNum} 月當造花期與景點總覽</div>
-                    <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 14px;">以下為您列出今個月正值花期、果期或觀賞期的所有樹木與季節景點：</div>
+                    <div class="section-label" style="font-size: 14px; color: var(--primary-color); margin-bottom: 12px;">📅 ${currentMonthNum} 月當造花期與景點總覽</div>
                     
-                    <div class="section-label">🌳 當造樹木 (${monthlyTrees.length})：</div>
-                    <div style="margin-bottom: 16px;">${treeListHtml}</div>
+                    <div class="section-label">🌳 當造樹木品種 (${Object.keys(treeSpeciesGroup).length} 種)：</div>
+                    <div style="margin-bottom: 16px;">${treeGroupHtml}</div>
 
-                    <div class="section-label">🌸 當造景點 (${monthlySpots.length})：</div>
-                    <div>${spotListHtml}</div>
+                    <div class="section-label">🌸 當造景點花卉 (${Object.keys(spotSpeciesGroup).length} 種)：</div>
+                    <div>${spotGroupHtml}</div>
                 `;
             } else if (activeTab === 'fav') {
                 var favListHtml = '';
@@ -1388,7 +1444,6 @@
             }
         }
 
-        /* 飛往收藏或月度景點：精準解開 Cluster 聚合並展開資訊卡片 */
         function flyToFav(favId, lat, lng) {
             if (!isNaN(lat) && !isNaN(lng)) {
                 var allMarkers = allGovTreeMarkers.concat(allSeasonalMarkers, allSunsetMarkers);
@@ -1585,11 +1640,47 @@
 
         function openAboutModal() { document.getElementById('aboutModal').style.display = 'flex'; }
         function closeAboutModal() { document.getElementById('aboutModal').style.display = 'none'; }
-        function locateUser() {
-            navigator.geolocation?.getCurrentPosition(pos => {
-                map.setView([pos.coords.latitude, pos.coords.longitude], 16);
-                L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map).bindPopup("你在這裡！").openPopup();
-            });
+
+        /* GPS 定位改為藍色圓點（7px），不顯示文字卡片 */
+        var userLocationMarker = null;
+        var isLocatingActive = false;
+
+        function toggleLocation() {
+            var btn = document.getElementById('locateBtn');
+            if (isLocatingActive) {
+                if (userLocationMarker) {
+                    map.removeLayer(userLocationMarker);
+                    userLocationMarker = null;
+                }
+                isLocatingActive = false;
+                btn.style.background = 'white';
+                btn.style.color = '#333';
+            } else {
+                if (!navigator.geolocation) {
+                    alert('你的瀏覽器不支援地理定位功能。');
+                    return;
+                }
+                isLocatingActive = true;
+                btn.style.background = 'var(--primary-light)';
+                btn.style.color = 'var(--primary-color)';
+
+                navigator.geolocation.getCurrentPosition(pos => {
+                    var lat = pos.coords.latitude;
+                    var lng = pos.coords.longitude;
+                    map.setView([lat, lng], 16);
+
+                    if (userLocationMarker) map.removeLayer(userLocationMarker);
+                    // 使用與樹木圓點相同的樣式：半徑 7px，藍色填滿與白色外框
+                    userLocationMarker = L.circleMarker([lat, lng], {
+                        radius: 7, fillColor: '#1976d2', color: "#ffffff", weight: 6, stroke: true, opacity: 0.3, fillOpacity: 0.95
+                    }).addTo(map).bindPopup("您的目前位置");
+                }, err => {
+                    alert('無法獲取您的GPS位置，請檢查權限設定。');
+                    isLocatingActive = false;
+                    btn.style.background = 'white';
+                    btn.style.color = '#333';
+                }, { enableHighAccuracy: true });
+            }
         }
     </script>
 </body>
