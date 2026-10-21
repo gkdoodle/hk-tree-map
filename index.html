@@ -329,7 +329,7 @@
     <div id="map"></div>
 
     <div id="loading" class="loading-overlay">
-        <span>🌱 正在讀取樹木數據與日落景點...</span>
+        <span>🌱 正在極速加載香港樹木與日落數據...</span>
     </div>
 
     <div class="sidebar-panel" id="sidebarPanel">
@@ -496,7 +496,7 @@
 
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true, 
-            disableClusteringAtZoom: 18,
+            disableClusteringAtZoom: 17,
             showCoverageOnHover: false,
             spiderfyOnMaxZoom: false
         });
@@ -584,8 +584,6 @@
                         }
                         if (data.weatherForecast && data.weatherForecast.length > 0 && data.weatherForecast[0].forecastDesc) {
                             hkoWeatherData.currentDesc = data.weatherForecast[0].forecastDesc;
-                        } else {
-                            hkoWeatherData.currentDesc = "大致天晴";
                         }
                         if (data.uvindex && data.uvindex.data && data.uvindex.data.length > 0) {
                             let uv = data.uvindex.data[0];
@@ -796,8 +794,12 @@
         function loadGovTrees() {
             Papa.parse('csdi_gov_trees_named.csv', {
                 download: true, header: true, skipEmptyLines: true,
-                step: function(results) { if (results && results.data) processTreeRow(results.data); },
-                complete: function() { loadOtherTrees(); },
+                complete: function(res) {
+                    if (res && res.data) {
+                        res.data.forEach(row => processTreeRow(row));
+                    }
+                    loadOtherTrees();
+                },
                 error: function() { loadOtherTrees(); }
             });
         }
@@ -805,8 +807,12 @@
         function loadOtherTrees() {
             Papa.parse('other_trees_location.csv', {
                 download: true, header: true, skipEmptyLines: true,
-                step: function(results) { if (results && results.data) processTreeRow(results.data); },
-                complete: function() { loadSeasonalSpotsIntoTrees(); },
+                complete: function(res) {
+                    if (res && res.data) {
+                        res.data.forEach(row => processTreeRow(row));
+                    }
+                    loadSeasonalSpotsIntoTrees();
+                },
                 error: function() { loadSeasonalSpotsIntoTrees(); }
             });
         }
@@ -885,8 +891,7 @@
             allGovTreeMarkers.forEach(function(m) {
                 if (!m.locationName) return;
                 var loc = m.locationName.trim();
-                // 排除「不詳」、「不明」或空白地點
-                if (!loc || loc === '不詳' || loc === '不明' || loc === 'N/A') return;
+                if (!loc || loc === '不詳' || loc === '不明' || loc === 'N/A' || loc === '-') return;
 
                 locationCounts[loc] = (locationCounts[loc] || 0) + 1;
 
@@ -899,6 +904,9 @@
                 e.minLat = Math.min(e.minLat, ll.lat); e.maxLat = Math.max(e.maxLat, ll.lat);
                 e.minLng = Math.min(e.minLng, ll.lng); e.maxLng = Math.max(e.maxLng, ll.lng);
             });
+            
+            // Re-render panel body to populate location ranking correctly now that counts are ready
+            renderPanelBody();
         }
 
         var treeCounter = 0;
@@ -1030,12 +1038,12 @@
                 }).join('');
 
                 var sortedLocations = Object.keys(locationCounts).sort((a, b) => locationCounts[b] - locationCounts[a]).slice(0, 10);
-                var topLocsHtml = sortedLocations.map(loc => `
+                var topLocsHtml = sortedLocations.length > 0 ? sortedLocations.map(loc => `
                     <div class="ranking-item" onclick="flyToLocation('${loc}')">
                         <span>📍 ${escapeHtml(loc)}</span>
                         <span style="font-weight:600; color:var(--primary-color);">${locationCounts[loc].toLocaleString()} 棵</span>
                     </div>
-                `).join('');
+                `).join('') : '<div style="font-size:12px; color:var(--text-sub); padding:10px; text-align:center;">正在計算地點排行...</div>';
 
                 var currentMonthText = activeSliderMonth === 'ALL' ? '全部月份（常年模式）' : activeSliderMonth + '月當造';
 
