@@ -46,7 +46,7 @@
         body.dark-mode .modal-card,
         body.dark-mode .region-stats-box,
         body.dark-mode .slider-dropdown-card,
-        body.dark-mode .accordion-card {
+        body.dark-mode .accordion-category {
             background-color: #1e293b !important;
             color: #f1f5f9 !important;
             border-color: #334155 !important;
@@ -140,7 +140,7 @@
             backdrop-filter: blur(8px); display: flex; align-items: center; gap: 8px;
         }
 
-        /* 側欄面板移至左下角 */
+        /* 側欄面板 (左下角) */
         .sidebar-panel {
             position: absolute; bottom: 20px; left: 20px; width: 380px; max-height: calc(100vh - 40px);
             z-index: 1000; background: var(--bg-white); border-radius: var(--border-radius);
@@ -153,12 +153,12 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.15); opacity: 0; transform: scale(0.2); pointer-events: none;
         }
 
-        /* 左下角展開按鈕 */
         .float-expand-btn {
             position: absolute; bottom: 20px; left: 20px; width: 42px; height: 42px; background: white; border: 1px solid #e2e8f0;
             border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
             color: var(--primary-color); box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 999; opacity: 0; transform: scale(0.5);
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, background 0.2s; pointer-events: none;
+            font-size: 15px; font-weight: bold;
         }
         .float-expand-btn.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
         .float-expand-btn:hover { background: #f4f5f4; transform: scale(1.08); }
@@ -232,15 +232,18 @@
         .region-stat-row:last-child { border-bottom: none; }
         .color-dot-badge { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; flex-shrink: 0; }
 
+        /* 折疊清單與動態箭頭 */
         .accordion-category { border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 8px; overflow: hidden; background: #fff; }
-        .accordion-cat-header { padding: 10px 14px; font-size: 13.5px; font-weight: 700; color: var(--text-main); background: #f8fafc; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .accordion-cat-header { padding: 10px 14px; font-size: 13.5px; font-weight: 700; color: var(--text-main); background: #f8fafc; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
         .accordion-cat-header:hover { background: #f1f5f9; }
         .accordion-species-list { padding: 6px 10px; display: none; background: #fff; border-top: 1px solid #f0f0f0; }
-        .accordion-species-item { padding: 6px 8px; font-size: 12.5px; font-weight: 600; color: var(--text-sub); cursor: pointer; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .accordion-species-item { padding: 6px 8px; font-size: 12.5px; font-weight: 600; color: var(--text-sub); cursor: pointer; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; user-select: none; }
         .accordion-species-item:hover { background: var(--primary-light); color: var(--primary-color); }
         .accordion-locations-list { padding: 4px 0 4px 12px; display: none; }
         .accordion-location-row { padding: 5px 8px; font-size: 12px; color: #444; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 6px; }
         .accordion-location-row:hover { background: #f0f4f1; color: var(--primary-color); font-weight: 600; }
+        
+        .arrow-icon { font-size: 11px; color: #888; transition: transform 0.2s; display: inline-block; }
 
         .tree-label {
             background: rgba(255, 255, 255, 0.95); border: 1px solid #2e7d32; border-radius: 4px; padding: 2px 5px;
@@ -363,7 +366,7 @@
         <span>🌱 正在讀取樹木數據與日落景點...</span>
     </div>
 
-    <!-- 側欄面板 (固定於左下角，收合按鈕向下/向左 ▼) -->
+    <!-- 側欄面板 -->
     <div class="sidebar-panel" id="sidebarPanel">
         <div class="panel-header">
             <div class="panel-title-group">
@@ -392,7 +395,7 @@
         <div class="panel-body" id="panelBody"></div>
     </div>
 
-    <button class="float-expand-btn" id="expandBtn" onclick="toggleSidebar()" title="展開面板">▲</button>
+    <button class="float-expand-btn" id="expandBtn" onclick="toggleSidebar()" title="展開面板">▶</button>
 
     <!-- 地圖右上角按鈕群組：純直排排列 -->
     <div class="control-group" id="mapControls">
@@ -618,7 +621,6 @@
                             hkoWeatherData.currentDesc = data.weatherForecast[0].forecastDesc;
                         }
                         
-                        /* 判斷夜間自動修正紫外線為 0，白天則讀取實時數據 */
                         let currentHour = new Date().getHours();
                         let isNight = (currentHour < 6 || currentHour >= 18);
                         if (isNight) {
@@ -1157,22 +1159,24 @@
                             </div>
                         `).join('');
 
+                        /* 未展開時預設顯示 ▶ */
                         speciesItemsHtml += `
                             <div style="margin-bottom: 4px;">
                                 <div class="accordion-species-item" onclick="toggleAccordionSpecies(this)">
                                     <span>🌿 ${sp} (${locs.length})</span>
-                                    <span>▼</span>
+                                    <span class="arrow-icon">▶</span>
                                 </div>
                                 <div class="accordion-locations-list">${locsHtml}</div>
                             </div>
                         `;
                     });
 
+                    /* 未展開時預設顯示 ▶ */
                     accordionHtml += `
                         <div class="accordion-category">
                             <div class="accordion-cat-header" onclick="toggleAccordionCategory(this)">
                                 <span>🌸 ${cat}</span>
-                                <span>▼</span>
+                                <span class="arrow-icon">▶</span>
                             </div>
                             <div class="accordion-species-list">${speciesItemsHtml}</div>
                         </div>
@@ -1200,11 +1204,12 @@
                         </div>
                     `).join('');
 
+                    /* 未展開時預設顯示 ▶ */
                     sunsetAccordionHtml += `
                         <div class="accordion-category">
                             <div class="accordion-cat-header" onclick="toggleAccordionCategory(this)">
                                 <span>🌅 ${cat} (${locs.length})</span>
-                                <span>▼</span>
+                                <span class="arrow-icon">▶</span>
                             </div>
                             <div class="accordion-locations-list" style="padding-left: 6px; display: none;">${locsHtml}</div>
                         </div>
@@ -1279,16 +1284,24 @@
             }
         }
 
+        /* 折疊動態切換：未展開為 ▶，展開後切換為 ▼ */
         function toggleAccordionCategory(headerEl) {
             var nextEl = headerEl.nextElementSibling;
+            var arrowEl = headerEl.querySelector('.arrow-icon');
             if (nextEl) {
-                nextEl.style.display = nextEl.style.display === 'block' ? 'none' : 'block';
+                var isOpen = (nextEl.style.display === 'block');
+                nextEl.style.display = isOpen ? 'none' : 'block';
+                if (arrowEl) arrowEl.innerText = isOpen ? '▶' : '▼';
             }
         }
+        
         function toggleAccordionSpecies(itemEl) {
             var nextEl = itemEl.nextElementSibling;
+            var arrowEl = itemEl.querySelector('.arrow-icon');
             if (nextEl) {
-                nextEl.style.display = nextEl.style.display === 'block' ? 'none' : 'block';
+                var isOpen = (nextEl.style.display === 'block');
+                nextEl.style.display = isOpen ? 'none' : 'block';
+                if (arrowEl) arrowEl.innerText = isOpen ? '▶' : '▼';
             }
         }
 
@@ -1318,6 +1331,9 @@
             if (!isNaN(lat) && !isNaN(lng)) {
                 var allMarkers = allGovTreeMarkers.concat(allSeasonalMarkers, allSunsetMarkers);
                 var target = allMarkers.find(m => m.favId === favId);
+                if (!target) {
+                    target = allMarkers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001);
+                }
                 if (target) {
                     markersCluster.zoomToShowLayer(target, function() { target.openPopup(); });
                 } else {
