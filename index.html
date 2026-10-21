@@ -637,7 +637,7 @@
         }
 
         function matchStrictMonth(monthsStr, targetMonthNum) {
-            if (!monthsStr || monthsStr.indexOf('全年') >= 0) return false;
+            if (!monthsStr || targetMonthNum === 'ALL' || monthsStr.indexOf('全年') >= 0) return true;
             var target = parseInt(targetMonthNum, 10);
             var segments = monthsStr.split(/及|,|、/);
             for (var i = 0; i < segments.length; i++) {
@@ -651,11 +651,6 @@
                 }
             }
             return false;
-        }
-
-        function matchExactMonth(monthsStr, targetMonthNum) {
-            if (!monthsStr || targetMonthNum === 'ALL' || monthsStr.indexOf('全年') >= 0) return true;
-            return matchStrictMonth(monthsStr, targetMonthNum);
         }
 
         function getTreeColorAndSize(treeName, treeType) {
@@ -952,7 +947,7 @@
                 allGovTreeMarkers.forEach(function(m) {
                     var matchType = (activeTypeFilter === 'ALL' || (activeTypeFilter === 'HOTSPOT' && m.isHotspot) || m.categoryType === activeTypeFilter || (activeTypeFilter === 'OVT' && m.categoryType === 'OVT_SWT') || (activeTypeFilter === 'SWT' && m.categoryType === 'OVT_SWT'));
                     var matchSpecies = (selectedSpeciesFilter === 'ALL' || m.speciesName === selectedSpeciesFilter);
-                    var matchMonth = matchExactMonth(m.floweringPeriod, activeSliderMonth);
+                    var matchMonth = matchStrictMonth(m.floweringPeriod, activeSliderMonth);
                     var matchOrigin = (activeOriginFilter === 'ALL' || m.originStatus === activeOriginFilter);
                     var matchDual = !dualPurposeFilter || isDualPurposePoint(m.getLatLng().lat, m.getLatLng().lng);
 
@@ -961,7 +956,7 @@
             } else if (activeTab === 'sunset') {
                 allSunsetMarkers.forEach(function(m) {
                     var matchCat = (activeSunsetCategory === 'ALL' || m.category === activeSunsetCategory);
-                    var matchMonth = matchExactMonth(m.sunsetMonth, activeSliderMonth);
+                    var matchMonth = matchStrictMonth(m.sunsetMonth, activeSliderMonth);
                     if (matchCat && matchMonth) combined.push(m);
                 });
             } else if (activeTab === 'fav') {
