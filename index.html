@@ -194,7 +194,6 @@
 
         .panel-body { padding: 14px 20px; overflow-y: auto; flex: 1; max-height: calc(100vh - 140px); }
 
-        /* 滑動式月份選擇器樣式 */
         .slider-box {
             background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; margin-bottom: 12px;
             display: flex; flex-direction: column; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);
@@ -219,7 +218,6 @@
         .section-label { font-size: 12px; font-weight: 700; color: var(--text-main); margin: 10px 0 6px 0; }
         .section-divider { border: 0; border-top: 1px solid #e2e8f0; margin: 14px 0 10px 0; }
 
-        /* 排行卡片風格 */
         .ranking-card {
             background: #fdfdfd; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; margin-bottom: 10px;
         }
@@ -519,7 +517,6 @@
 
         var favorites = JSON.parse(localStorage.getItem('hk_tree_map_favs') || '[]');
 
-        // 精簡顯示的日落分類選項 (與 CSV 精準對應)
         var sunsetCategories = [
             { label: "🌊 海旁海濱", value: "海旁／海濱長廊" },
             { label: "⛰️ 山頂觀景", value: "山頂／觀景台" },
@@ -888,6 +885,9 @@
             allGovTreeMarkers.forEach(function(m) {
                 if (!m.locationName) return;
                 var loc = m.locationName.trim();
+                // 排除「不詳」、「不明」或空白地點
+                if (!loc || loc === '不詳' || loc === '不明' || loc === 'N/A') return;
+
                 locationCounts[loc] = (locationCounts[loc] || 0) + 1;
 
                 var ll = m.getLatLng();
@@ -1029,7 +1029,7 @@
                     return `<button class="chip ${selectedSpeciesFilter === sp ? 'active' : ''}" onclick="selectTreeSpecies('${sp}')"><span style="width:8px; height:8px; border-radius:50%; background:${v.color}; display:inline-block;"></span>${sp} (${speciesCounts[sp].toLocaleString()})</button>`;
                 }).join('');
 
-                var sortedLocations = Object.keys(locationCounts).sort((a, b) => locationCounts[b] - locationCounts[a]).slice(0, 5);
+                var sortedLocations = Object.keys(locationCounts).sort((a, b) => locationCounts[b] - locationCounts[a]).slice(0, 10);
                 var topLocsHtml = sortedLocations.map(loc => `
                     <div class="ranking-item" onclick="flyToLocation('${loc}')">
                         <span>📍 ${escapeHtml(loc)}</span>
@@ -1075,7 +1075,7 @@
                         ${topSpeciesChipsHtml}
                     </div>
 
-                    <div class="section-label">📍 全港樹木最多地點 Top 5 (點擊定位)：</div>
+                    <div class="section-label">📍 全港樹木最多地點 Top 10 (點擊定位)：</div>
                     <div class="ranking-card">${topLocsHtml}</div>
                 `;
             } else if (activeTab === 'sunset') {
@@ -1169,7 +1169,6 @@
         function onMonthSliderChange(val) {
             activeSliderMonth = val === '0' ? 'ALL' : val;
             
-            // 即時更新右上角月份標籤顯示
             var labelEl = document.getElementById('sliderMonthLabel');
             if (labelEl) {
                 if (activeTab === 'trees') {
