@@ -218,16 +218,6 @@
         .section-label { font-size: 12px; font-weight: 700; color: var(--text-main); margin: 10px 0 6px 0; }
         .section-divider { border: 0; border-top: 1px solid #e2e8f0; margin: 14px 0 10px 0; }
 
-        .ranking-card {
-            background: #fdfdfd; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; margin-bottom: 10px;
-        }
-        .ranking-item {
-            display: flex; justify-content: space-between; align-items: center; padding: 6px 8px;
-            font-size: 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.2s; border-radius: 6px;
-        }
-        .ranking-item:hover { background: var(--primary-light); color: var(--primary-color); }
-        .ranking-item:last-child { border-bottom: none; }
-
         .tree-label {
             background: rgba(255, 255, 255, 0.95); border: 1px solid #2e7d32; border-radius: 4px; padding: 2px 5px;
             font-size: 10px; font-weight: bold; color: #1b5e20; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.12);
@@ -329,7 +319,7 @@
     <div id="map"></div>
 
     <div id="loading" class="loading-overlay">
-        <span>🌱 正在極速載入香港樹木與日落數據...</span>
+        <span>🌱 正在秒速載入香港樹木與日落數據...</span>
     </div>
 
     <div class="sidebar-panel" id="sidebarPanel">
@@ -494,10 +484,10 @@
             style: 'https://tiles.openfreemap.org/styles/positron'
         }).addTo(map);
 
-        // 調整 disableClusteringAtZoom 為 16，確保稍微放大就能看到個別樹木
+        // 設定 disableClusteringAtZoom 為 15，確保放大就能看到個別樹木
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true, 
-            disableClusteringAtZoom: 16,
+            disableClusteringAtZoom: 15,
             showCoverageOnHover: false,
             spiderfyOnMaxZoom: false
         });
@@ -505,7 +495,7 @@
 
         var speciesDict = {}, seasonalData = [], sunsetData = [];
         var allGovTreeMarkers = [], allSunsetMarkers = [];
-        var speciesCounts = {}, locationCounts = {}; 
+        var speciesCounts = {}; 
         var typeCounts = { ALL: 0, OVT: 0, SWT: 0, OVT_SWT: 0 };
         
         var activeTab = 'trees', activeTypeFilter = 'ALL', selectedSpeciesFilter = 'ALL';
@@ -514,7 +504,6 @@
         var activeSunsetCategory = 'ALL';
         var dualPurposeFilter = false; 
         var labelsEnabled = false, isMinimized = false;
-        var locationIndex = {};
 
         var favorites = JSON.parse(localStorage.getItem('hk_tree_map_favs') || '[]');
 
@@ -886,27 +875,6 @@
             
             updateMapMarkers();
             renderPanelBody();
-
-            locationIndex = {};
-            locationCounts = {};
-            allGovTreeMarkers.forEach(function(m) {
-                if (!m.locationName) return;
-                var loc = m.locationName.trim();
-                if (!loc || loc === '不詳' || loc === '不明' || loc === 'N/A' || loc === '-') return;
-
-                locationCounts[loc] = (locationCounts[loc] || 0) + 1;
-
-                var ll = m.getLatLng();
-                var e = locationIndex[loc];
-                if (!e) {
-                    e = locationIndex[loc] = { count: 0, minLat: ll.lat, minLng: ll.lng, maxLat: ll.lat, maxLng: ll.lng };
-                }
-                e.count++;
-                e.minLat = Math.min(e.minLat, ll.lat); e.maxLat = Math.max(e.maxLat, ll.lat);
-                e.minLng = Math.min(e.minLng, ll.lng); e.maxLng = Math.max(e.maxLng, ll.lng);
-            });
-            
-            renderPanelBody();
         }
 
         var treeCounter = 0;
@@ -1037,14 +1005,6 @@
                     return `<button class="chip ${selectedSpeciesFilter === sp ? 'active' : ''}" onclick="selectTreeSpecies('${sp}')"><span style="width:8px; height:8px; border-radius:50%; background:${v.color}; display:inline-block;"></span>${sp} (${speciesCounts[sp].toLocaleString()})</button>`;
                 }).join('');
 
-                var sortedLocations = Object.keys(locationCounts).sort((a, b) => locationCounts[b] - locationCounts[a]).slice(0, 10);
-                var topLocsHtml = sortedLocations.length > 0 ? sortedLocations.map(loc => `
-                    <div class="ranking-item" onclick="flyToLocation('${loc}')">
-                        <span>📍 ${escapeHtml(loc)}</span>
-                        <span style="font-weight:600; color:var(--primary-color);">${locationCounts[loc].toLocaleString()} 棵</span>
-                    </div>
-                `).join('') : '<div style="font-size:12px; color:var(--text-sub); padding:10px; text-align:center;">正在計算地點排行...</div>';
-
                 var currentMonthText = activeSliderMonth === 'ALL' ? '全部月份（常年模式）' : activeSliderMonth + '月當造';
 
                 body.innerHTML = `
@@ -1082,9 +1042,6 @@
                         <button class="chip ${selectedSpeciesFilter === 'ALL' ? 'active' : ''}" onclick="selectTreeSpecies('ALL')">全部</button>
                         ${topSpeciesChipsHtml}
                     </div>
-
-                    <div class="section-label">📍 全港樹木最多地點 Top 10 (點擊定位)：</div>
-                    <div class="ranking-card">${topLocsHtml}</div>
                 `;
             } else if (activeTab === 'sunset') {
                 var todaySunsetRange = getSolarTimes(new Date());
@@ -1187,15 +1144,6 @@
             }
             
             updateMapMarkers();
-        }
-
-        function flyToLocation(locName) {
-            var e = locationIndex[locName];
-            if (e) {
-                map.fitBounds([[e.minLat, e.minLng], [e.maxLat, e.maxLng]], { padding: [60, 60], maxZoom: 17, animate: false });
-                L.popup(getPopupOptions()).setLatLng([(e.minLat + e.maxLat) / 2, (e.minLng + e.maxLng) / 2])
-                    .setContent('<b>📍 ' + locName + '</b><br>已收錄 ' + e.count + ' 個樹木記錄').openOn(map);
-            }
         }
 
         function flyToFav(favId, lat, lng) {
