@@ -581,6 +581,16 @@
         var locationIndex = {};
         var favorites = JSON.parse(localStorage.getItem('hk_tree_map_favs') || '[]');
 
+        /* 景點分類 Emoji 匹配函式 */
+        function getSeasonalCategoryEmoji(categoryName) {
+            var cat = (categoryName || '').trim();
+            if (cat.includes("榕樹")) return "🌳";
+            if (cat.includes("紅葉")) return "🍁";
+            if (cat.includes("賞花")) return "🌸";
+            if (cat.includes("自然生態")) return "🍃";
+            return "🌸";
+        }
+
         /* 日落分類名稱映射表：轉換為簡短標題與 Emoji */
         function getSunsetCategoryDisplay(rawCat) {
             var cat = (rawCat || '').trim();
@@ -883,10 +893,10 @@
                     var favId = 'seasonal-' + index + '-' + lat.toFixed(5) + '-' + lng.toFixed(5);
                     var isFav = favorites.some(f => f.id === favId);
 
-                    let emoji = "🌸", styleClass = "seasonal-emoji-flower";
-                    if (category.includes("榕樹")) { emoji = "🌳"; styleClass = "seasonal-emoji-nature"; }
-                    else if (category.includes("紅葉")) { emoji = "🍁"; styleClass = "seasonal-emoji-maple"; }
-                    else if (category.includes("自然生態")) { emoji = "🍃"; styleClass = "seasonal-emoji-nature"; }
+                    let emoji = getSeasonalCategoryEmoji(category);
+                    let styleClass = "seasonal-emoji-flower";
+                    if (emoji === "🌳" || emoji === "🍃") styleClass = "seasonal-emoji-nature";
+                    else if (emoji === "🍁") styleClass = "seasonal-emoji-maple";
 
                     var icon = L.divIcon({
                         className: 'custom-seasonal-div-icon',
@@ -1193,7 +1203,9 @@
                 var accordionHtml = '';
                 Object.keys(catMap).forEach((cat, cIdx) => {
                     var speciesObj = catMap[cat];
+                    var catEmoji = getSeasonalCategoryEmoji(cat);
                     var speciesItemsHtml = '';
+
                     Object.keys(speciesObj).forEach((sp, sIdx) => {
                         var locs = speciesObj[sp];
                         var locsHtml = locs.map(l => `
@@ -1205,7 +1217,7 @@
                         speciesItemsHtml += `
                             <div style="margin-bottom: 4px;">
                                 <div class="accordion-species-item" onclick="toggleAccordionSpecies(this)">
-                                    <span>🌿 ${sp} (${locs.length})</span>
+                                    <span>${catEmoji} ${sp} (${locs.length})</span>
                                     <span class="arrow-icon">▶</span>
                                 </div>
                                 <div class="accordion-locations-list">${locsHtml}</div>
@@ -1216,7 +1228,7 @@
                     accordionHtml += `
                         <div class="accordion-category">
                             <div class="accordion-cat-header" onclick="toggleAccordionCategory(this)">
-                                <span>🌸 ${cat}</span>
+                                <span>${catEmoji} ${cat}</span>
                                 <span class="arrow-icon">▶</span>
                             </div>
                             <div class="accordion-species-list">${speciesItemsHtml}</div>
