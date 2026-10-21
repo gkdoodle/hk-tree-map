@@ -467,7 +467,6 @@
             style: 'https://tiles.openfreemap.org/styles/positron'
         }).addTo(map);
 
-        // 設定 disableClusteringAtZoom 為 18，確保放大到街道層級時完全解散叢集，看到獨立樹木
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true, 
             disableClusteringAtZoom: 18,
@@ -670,6 +669,7 @@
             return { color: '#2e7d32', radius: 6.5 };
         }
 
+        /* 🚀 速度極快：使用 complete 批次解析 CSV，秒開不卡頓 */
         Papa.parse('tree_species.csv', {
             download: true, header: true, skipEmptyLines: true,
             complete: function(res) {
@@ -694,13 +694,22 @@
         });
 
         function loadSeasonalSpots() {
-            Papa.parse('seasonal_spots.csv', {
+            Papa.parse('seasonal_spots_2.csv', {
                 download: true, header: true, skipEmptyLines: true,
                 complete: function(res) {
                     if (res && res.data && res.data.length > 0) seasonalData = res.data;
                     loadSunsetSpots();
                 },
-                error: loadSunsetSpots
+                error: function() {
+                    Papa.parse('seasonal_spots.csv', {
+                        download: true, header: true, skipEmptyLines: true,
+                        complete: function(res2) {
+                            if (res2 && res2.data && res2.data.length > 0) seasonalData = res2.data;
+                            loadSunsetSpots();
+                        },
+                        error: loadSunsetSpots
+                    });
+                }
             });
         }
 
