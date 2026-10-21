@@ -164,7 +164,7 @@
         .float-expand-btn:hover { background: #f4f5f4; transform: scale(1.08); }
 
         .panel-header { padding: 16px 20px 12px 20px; border-bottom: 1px solid #f0f0f0; background: #fff; position: relative; }
-        .panel-title-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .panel-title-group { display: flex; justify-space-between; align-items: center; margin-bottom: 12px; }
         .panel-title-left { display: flex; align-items: center; gap: 8px; }
         .panel-title { font-size: 17px; font-weight: 700; color: var(--primary-color); letter-spacing: -0.3px; }
         .panel-actions-right { display: flex; align-items: center; gap: 8px; }
@@ -550,6 +550,17 @@
         var labelsEnabled = false, isMinimized = false;
         var locationIndex = {};
         var favorites = JSON.parse(localStorage.getItem('hk_tree_map_favs') || '[]');
+
+        /* 日落分類名稱映射表：轉換為圖二中的標題與 Emoji */
+        function getSunsetCategoryDisplay(rawCat) {
+            var cat = (rawCat || '').trim();
+            if (cat.includes('海旁') || cat.includes('海濱')) return { name: '海旁海濱', emoji: '🌊' };
+            if (cat.includes('山頂') || cat.includes('觀景')) return { name: '山頂觀景', emoji: '⛰️' };
+            if (cat.includes('公園') || cat.includes('主題')) return { name: '公園場地', emoji: '🌳' };
+            if (cat.includes('天橋') || cat.includes('街道')) return { name: '天橋街道', emoji: '🌉' };
+            if (cat.includes('沙灘') || cat.includes('石灘') || cat.includes('泥灘')) return { name: '沙灘石灘', emoji: '🏖️' };
+            return { name: cat || '其他景點', emoji: '🌅' };
+        }
 
         function getSpeciesColor(speciesName) {
             let hash = 0;
@@ -1071,7 +1082,6 @@
             updateMapMarkers();
         }
 
-        /* 渲染地圖 Marker 邏輯修復：切換至 fav (收藏) 時渲染全地圖所有類別 Marker */
         function updateMapMarkers() {
             markersCluster.clearLayers();
             var combined = [];
@@ -1096,7 +1106,6 @@
                     if (matchMonth) combined.push(m);
                 });
             } else if (activeTab === 'fav') {
-                /* 切換至收藏頁面，顯示全部樹木、景點與日落，確保點擊必能開啟 */
                 combined = allGovTreeMarkers.concat(allSeasonalMarkers, allSunsetMarkers);
             }
 
@@ -1192,24 +1201,26 @@
             } else if (activeTab === 'sunset') {
                 var sunsetCatMap = {};
                 allSunsetMarkers.forEach(m => {
-                    var cat = m.category || '海旁／海濱長廊';
-                    if (!sunsetCatMap[cat]) sunsetCatMap[cat] = [];
-                    sunsetCatMap[cat].push({ title: m.spotTitle, lat: m.getLatLng().lat, lng: m.getLatLng().lng });
+                    var rawCat = m.category || '海旁／海濱長廊';
+                    if (!sunsetCatMap[rawCat]) sunsetCatMap[rawCat] = [];
+                    sunsetCatMap[rawCat].push({ title: m.spotTitle, lat: m.getLatLng().lat, lng: m.getLatLng().lng });
                 });
 
                 var sunsetAccordionHtml = '';
-                Object.keys(sunsetCatMap).forEach(cat => {
-                    var locs = sunsetCatMap[cat];
+                Object.keys(sunsetCatMap).forEach(rawCat => {
+                    var locs = sunsetCatMap[rawCat];
+                    var catInfo = getSunsetCategoryDisplay(rawCat);
                     var locsHtml = locs.map(l => `
                         <div class="accordion-location-row" onclick="flyToSunsetSpot(${l.lat}, ${l.lng}, '${l.title.replace(/'/g, "\\'")}')">
                             📍 ${l.title}
                         </div>
                     `).join('');
 
+                    /* 套用圖二專屬簡化命名與 Emoji 圖標 */
                     sunsetAccordionHtml += `
                         <div class="accordion-category">
                             <div class="accordion-cat-header" onclick="toggleAccordionCategory(this)">
-                                <span>🌅 ${cat} (${locs.length})</span>
+                                <span>${catInfo.emoji} ${catInfo.name} (${locs.length})</span>
                                 <span class="arrow-icon">▶</span>
                             </div>
                             <div class="accordion-locations-list" style="padding-left: 6px; display: none;">${locsHtml}</div>
@@ -1327,7 +1338,6 @@
             }
         }
 
-        /* 收藏跳轉終極修復：保證自動拉近、展開 Cluster 並打開 Popup */
         function flyToFav(favId, lat, lng) {
             if (!isNaN(lat) && !isNaN(lng)) {
                 var allMarkers = allGovTreeMarkers.concat(allSeasonalMarkers, allSunsetMarkers);
