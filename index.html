@@ -1071,6 +1071,7 @@
             updateMapMarkers();
         }
 
+        /* 渲染地圖 Marker 邏輯修復：切換至 fav (收藏) 時渲染全地圖所有類別 Marker */
         function updateMapMarkers() {
             markersCluster.clearLayers();
             var combined = [];
@@ -1094,6 +1095,9 @@
                     var matchMonth = matchExactMonth(m.sunsetMonth, globalMonthFilter);
                     if (matchMonth) combined.push(m);
                 });
+            } else if (activeTab === 'fav') {
+                /* 切換至收藏頁面，顯示全部樹木、景點與日落，確保點擊必能開啟 */
+                combined = allGovTreeMarkers.concat(allSeasonalMarkers, allSunsetMarkers);
             }
 
             markersCluster.addLayers(combined);
@@ -1159,7 +1163,6 @@
                             </div>
                         `).join('');
 
-                        /* 未展開時預設顯示 ▶ */
                         speciesItemsHtml += `
                             <div style="margin-bottom: 4px;">
                                 <div class="accordion-species-item" onclick="toggleAccordionSpecies(this)">
@@ -1171,7 +1174,6 @@
                         `;
                     });
 
-                    /* 未展開時預設顯示 ▶ */
                     accordionHtml += `
                         <div class="accordion-category">
                             <div class="accordion-cat-header" onclick="toggleAccordionCategory(this)">
@@ -1204,7 +1206,6 @@
                         </div>
                     `).join('');
 
-                    /* 未展開時預設顯示 ▶ */
                     sunsetAccordionHtml += `
                         <div class="accordion-category">
                             <div class="accordion-cat-header" onclick="toggleAccordionCategory(this)">
@@ -1284,7 +1285,6 @@
             }
         }
 
-        /* 折疊動態切換：未展開為 ▶，展開後切換為 ▼ */
         function toggleAccordionCategory(headerEl) {
             var nextEl = headerEl.nextElementSibling;
             var arrowEl = headerEl.querySelector('.arrow-icon');
@@ -1327,6 +1327,7 @@
             }
         }
 
+        /* 收藏跳轉終極修復：保證自動拉近、展開 Cluster 並打開 Popup */
         function flyToFav(favId, lat, lng) {
             if (!isNaN(lat) && !isNaN(lng)) {
                 var allMarkers = allGovTreeMarkers.concat(allSeasonalMarkers, allSunsetMarkers);
@@ -1335,7 +1336,14 @@
                     target = allMarkers.find(m => Math.abs(m.getLatLng().lat - lat) < 0.0001 && Math.abs(m.getLatLng().lng - lng) < 0.0001);
                 }
                 if (target) {
-                    markersCluster.zoomToShowLayer(target, function() { target.openPopup(); });
+                    if (markersCluster.hasLayer(target)) {
+                        markersCluster.zoomToShowLayer(target, function() {
+                            target.openPopup();
+                        });
+                    } else {
+                        map.setView([lat, lng], 18);
+                        target.openPopup();
+                    }
                 } else {
                     map.setView([lat, lng], 18);
                 }
