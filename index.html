@@ -72,23 +72,6 @@
         body.dark-mode .source-item { background-color: #0f172a !important; }
         body.dark-mode .info-card-box { background-color: #0f172a !important; border-color: #334155 !important; color: #cbd5e1 !important; }
         body.dark-mode .disclaimer-box { background-color: #2c221e !important; border-color: #442c20 !important; color: #d7ccc8 !important; }
-        
-        body.dark-mode .sunset-info-card { 
-            background: linear-gradient(135deg, #331e14 0%, #20120a 100%) !important; 
-            border: 1px solid #7c2d12 !important; 
-        }
-        body.dark-mode .sunset-title-main { color: #ffb74d !important; }
-        body.dark-mode .sunset-range-val { color: #ff8a65 !important; }
-        body.dark-mode .sunset-tip-text { color: #ffcc80 !important; }
-        
-        body.dark-mode .weather-box { background-color: #1e293b !important; border-color: #334155 !important; }
-        body.dark-mode .weather-title { color: #ffb74d !important; }
-        body.dark-mode .weather-item { background-color: #0f172a !important; color: #e2e8f0 !important; }
-        body.dark-mode .weather-item-label { color: #cbd5e1 !important; }
-        body.dark-mode .weather-item-val { color: #ff8a65 !important; }
-        body.dark-mode .forecast-desc-text { color: #cbd5e1 !important; } 
-        body.dark-mode .forecast-temp-text { color: #ff8a65 !important; }
-        body.dark-mode .data-source-footnote { color: #cbd5e1 !important; border-top-color: #334155 !important; }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -484,10 +467,10 @@
             style: 'https://tiles.openfreemap.org/styles/positron'
         }).addTo(map);
 
-        // 設定 disableClusteringAtZoom 為 15，確保放大就能看到個別樹木
+        // 設定 disableClusteringAtZoom 為 18，確保放大到街道層級時完全解散叢集，看到獨立樹木
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true, 
-            disableClusteringAtZoom: 15,
+            disableClusteringAtZoom: 18,
             showCoverageOnHover: false,
             spiderfyOnMaxZoom: false
         });
@@ -979,6 +962,12 @@
                     var matchCat = (activeSunsetCategory === 'ALL' || m.category === activeSunsetCategory);
                     var matchMonth = matchExactMonth(m.sunsetMonth, activeSliderMonth);
                     if (matchCat && matchMonth) combined.push(m);
+                });
+            } else if (activeTab === 'fav') {
+                var favIds = favorites.map(f => f.id);
+                var allMarkers = allGovTreeMarkers.concat(allSunsetMarkers);
+                allMarkers.forEach(function(m) {
+                    if (favIds.includes(m.favId)) combined.push(m);
                 });
             }
 
