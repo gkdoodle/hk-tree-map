@@ -28,7 +28,6 @@
             --border-radius: 16px;
         }
 
-        /* 🌙 夜間模式樣式調優 */
         body.dark-mode {
             --primary-color: #81c784;
             --primary-light: #1b381e;
@@ -53,7 +52,6 @@
             border-color: #334155 !important;
         }
 
-        /* 夜間模式：日落時間卡片（精準還原圖二配色） */
         body.dark-mode .sunset-info-card {
             background: #231815 !important;
             border: 1px solid #5e2d1d !important;
@@ -63,7 +61,6 @@
         body.dark-mode .sunset-range-val { color: #ff8a65 !important; }
         body.dark-mode .sunset-tip-text { color: #d7ccc8 !important; }
 
-        /* 夜間模式：即時天氣與未來預報卡片 */
         body.dark-mode .weather-box {
             background-color: #182232 !important;
             border: 1px solid #2a384c !important;
@@ -287,7 +284,6 @@
         }
         .icon-map-btn:hover { background: #f4f4f4; transform: scale(1.05); }
 
-        /* 📍 右上角彈窗卡片（修正 top: 20px 與左上角卡片頂部完全對齊平排） */
         .slider-dropdown-card, .layer-dropdown-card {
             position: absolute; top: 20px; right: 68px; width: 320px; background: white; border-radius: 16px;
             box-shadow: 0 15px 40px rgba(0,0,0,0.15); padding: 18px; z-index: 2000; display: none; border: 1px solid #e2e8f0;
@@ -399,7 +395,7 @@
         <button class="icon-map-btn" id="toggleLabelBtn" onclick="toggleLabels()" style="opacity: 0.5;" title="隱藏/顯示標籤">🏷️</button>
         <button class="icon-map-btn" id="locateBtn" onclick="toggleLocation()" title="我的位置">📍</button>
 
-        <!-- 📅 月份篩選彈窗 (對齊 top: 20px) -->
+        <!-- 📅 月份篩選彈窗 -->
         <div class="slider-dropdown-card" id="sliderDropdown">
             <div class="dropdown-header">
                 <div class="dropdown-title">🌸 統一月份篩選</div>
@@ -413,7 +409,7 @@
             <input type="range" min="0" max="12" value="0" class="month-slider" id="globalMonthSlider" oninput="onGlobalMonthSliderChange(this.value)">
         </div>
 
-        <!-- 🗺️ 圖層篩選彈窗 (對齊 top: 20px) -->
+        <!-- 🗺️ 圖層篩選彈窗 -->
         <div class="layer-dropdown-card" id="layerDropdown">
             <div class="dropdown-header">
                 <div class="dropdown-title">🗺️ 地圖圖層篩選</div>
@@ -1011,6 +1007,7 @@
             }
         }
 
+        /* 實時計算視野範圍內的品種列表、顏色及數量（會同步套用當前篩選條件） */
         function updateRegionStats() {
             if (activeTab !== 'trees') return;
             var bounds = map.getBounds();
@@ -1019,9 +1016,16 @@
 
             allGovTreeMarkers.forEach(m => {
                 if (bounds.contains(m.getLatLng())) {
-                    countInBounds++;
-                    var sp = m.speciesName;
-                    spMap[sp] = (spMap[sp] || 0) + 1;
+                    var matchType = (activeTypeFilter === 'ALL' || m.categoryType === activeTypeFilter || (activeTypeFilter === 'OVT' && m.categoryType.includes('OVT')) || (activeTypeFilter === 'SWT' && m.categoryType.includes('SWT')));
+                    var matchSpecies = (selectedSpeciesFilter === 'ALL' || m.speciesName === selectedSpeciesFilter);
+                    var matchMonth = matchExactMonth(m.floweringPeriod, globalMonthFilter);
+                    var matchOrigin = (activeOriginFilter === 'ALL' || m.originStatus === activeOriginFilter);
+
+                    if (matchType && matchSpecies && matchMonth && matchOrigin) {
+                        countInBounds++;
+                        var sp = m.speciesName;
+                        spMap[sp] = (spMap[sp] || 0) + 1;
+                    }
                 }
             });
 
@@ -1036,7 +1040,7 @@
                         <span style="font-weight:700; color:var(--primary-color);">${spMap[sp]} 棵</span>
                     </div>
                 `;
-            }).join('') : '<div style="font-size:12px; color:var(--text-sub); text-align:center; padding: 6px;">此範圍暫無樹木記錄</div>';
+            }).join('') : '<div style="font-size:12px; color:var(--text-sub); text-align:center; padding: 6px;">此範圍暫無符合條件的樹木</div>';
 
             var statsEl = document.getElementById('regionStatsContent');
             if (statsEl) {
