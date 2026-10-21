@@ -164,7 +164,7 @@
         .float-expand-btn:hover { background: #f4f5f4; transform: scale(1.08); }
 
         .panel-header { padding: 16px 20px 12px 20px; border-bottom: 1px solid #f0f0f0; background: #fff; position: relative; }
-        .panel-title-group { display: flex; justify-space-between; align-items: center; margin-bottom: 12px; }
+        .panel-title-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .panel-title-left { display: flex; align-items: center; gap: 8px; }
         .panel-title { font-size: 17px; font-weight: 700; color: var(--primary-color); letter-spacing: -0.3px; }
         .panel-actions-right { display: flex; align-items: center; gap: 8px; }
@@ -551,7 +551,7 @@
         var locationIndex = {};
         var favorites = JSON.parse(localStorage.getItem('hk_tree_map_favs') || '[]');
 
-        /* 日落分類名稱映射表：轉換為圖二中的標題與 Emoji */
+        /* 日落分類名稱映射表：轉換為簡短標題與 Emoji */
         function getSunsetCategoryDisplay(rawCat) {
             var cat = (rawCat || '').trim();
             if (cat.includes('海旁') || cat.includes('海濱')) return { name: '海旁海濱', emoji: '🌊' };
@@ -1216,7 +1216,6 @@
                         </div>
                     `).join('');
 
-                    /* 套用圖二專屬簡化命名與 Emoji 圖標 */
                     sunsetAccordionHtml += `
                         <div class="accordion-category">
                             <div class="accordion-cat-header" onclick="toggleAccordionCategory(this)">
