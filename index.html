@@ -469,15 +469,14 @@
 
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true, 
-            disableClusteringAtZoom: 18,
+            disableClusteringAtZoom: 17, // 修正：降低到 17 級就展開，避免過近時樹點消失
             showCoverageOnHover: false,
             spiderfyOnMaxZoom: false
         });
         map.addLayer(markersCluster);
 
-        var speciesDict = {}, seasonalData = [], sunsetData = [];
+        var speciesDict = {}, rawSpeciesCounts = {}, speciesCounts = {}, seasonalData = [], sunsetData = [];
         var allGovTreeMarkers = [], allSunsetMarkers = [];
-        var speciesCounts = {}; 
         var typeCounts = { ALL: 0, OVT: 0, SWT: 0, OVT_SWT: 0 };
         
         var activeTab = 'trees', activeTypeFilter = 'ALL', selectedSpeciesFilter = 'ALL';
@@ -563,7 +562,7 @@
                         }
                         if (activeTab === 'sunset') renderPanelBody();
                     }
-                }).catch(err => console.log('HKO rhrread error:', err));
+                }).catch(err => {});
 
             fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=flw&lang=tc')
                 .then(res => res.json())
@@ -602,7 +601,7 @@
                         });
                         if (activeTab === 'sunset') renderPanelBody();
                     }
-                }).catch(err => console.log('HKO fnd error:', err));
+                }).catch(err => {});
         }
 
         fetchHKOWeatherData();
@@ -759,7 +758,7 @@
             });
         }
 
-        /* 🚀 使用 step 逐行讀取政總大數據，確保 100% 完整不漏所有樹木 */
+        /* 🚀 使用 step 逐行讀取政總大數據 */
         function loadGovTrees() {
             Papa.parse('csdi_gov_trees_named.csv', {
                 download: true, header: true, skipEmptyLines: true,
@@ -797,7 +796,7 @@
                     var months = (item.觀賞月份 || '').trim();
                     var desc = item.說明 || '';
 
-                    speciesCounts[treeName] = (speciesCounts[treeName] || 0) + 1;
+                    rawSpeciesCounts[treeName] = (rawSpeciesCounts[treeName] || 0) + 1;
                     typeCounts.ALL++;
 
                     let emoji = "🌸", styleClass = "seasonal-emoji-flower";
@@ -849,6 +848,14 @@
         }
 
         function finalizeLoading() {
+            // 修正：正規化並合併相似樹種計數（例如「榕樹」與「榕樹(細葉榕)」統一），修復按鈕點擊無反應問題
+            speciesCounts = {};
+            for (var key in rawSpeciesCounts) {
+                var cleanKey = key.replace(/（[^）]+）/g, '').trim();
+                if (cleanKey.includes('榕')) cleanKey = '榕樹(細葉榕)';
+                speciesCounts[cleanKey] = (speciesCounts[cleanKey] || 0) + rawSpeciesCounts[key];
+            }
+
             var loadingEl = document.getElementById('loading');
             if (loadingEl) loadingEl.style.display = 'none';
             
@@ -864,7 +871,7 @@
                 var treeName = (row.Chinese_Name || '未命名樹木').trim();
                 var treeType = (row.Type || '').trim();
 
-                speciesCounts[treeName] = (speciesCounts[treeName] || 0) + 1;
+                rawSpeciesCounts[treeName] = (rawSpeciesCounts[treeName] || 0) + 1;
                 typeCounts.ALL++;
                 if (treeType === 'OVT') typeCounts.OVT++;
                 else if (treeType === 'SWT') typeCounts.SWT++;
@@ -946,7 +953,7 @@
             if (activeTab === 'trees') {
                 allGovTreeMarkers.forEach(function(m) {
                     var matchType = (activeTypeFilter === 'ALL' || (activeTypeFilter === 'HOTSPOT' && m.isHotspot) || m.categoryType === activeTypeFilter || (activeTypeFilter === 'OVT' && m.categoryType === 'OVT_SWT') || (activeTypeFilter === 'SWT' && m.categoryType === 'OVT_SWT'));
-                    var matchSpecies = (selectedSpeciesFilter === 'ALL' || m.speciesName === selectedSpeciesFilter);
+                    var matchSpecies = (selectedSpeciesFilter === 'ALL' || m.speciesName.includes(selectedSpeciesFilter.replace('榕樹(細葉榕)', '榕')));
                     var matchMonth = matchStrictMonth(m.floweringPeriod, activeSliderMonth);
                     var matchOrigin = (activeOriginFilter === 'ALL' || m.originStatus === activeOriginFilter);
                     var matchDual = !dualPurposeFilter || isDualPurposePoint(m.getLatLng().lat, m.getLatLng().lng);
@@ -1150,7 +1157,7 @@
             updateMapMarkers(); 
             renderPanelBody();
             if (sp !== 'ALL') {
-                var matched = allGovTreeMarkers.filter(m => m.speciesName === sp);
+                var matched = allGovTreeMarkers.filter(m => m.speciesName.includes(sp.replace('榕樹(細葉榕)', '榕')));
                 if (matched.length > 0) {
                     var group = new L.featureGroup(matched);
                     map.panTo(group.getBounds().getCenter());
@@ -1161,7 +1168,16 @@
         function filterByOrigin(o) { activeOriginFilter = o; updateMapMarkers(); renderPanelBody(); }
         function toggleDualPurposeFilter() { dualPurposeFilter = !dualPurposeFilter; updateMapMarkers(); renderPanelBody(); }
 
-        function filterSunsetCategory(cat) { activeSunsetCategory = cat; updateMapMarkers(); renderPanelBody(); }
+        // 修正：點擊日落分類時，自動切換至日落分頁，解決圖二看不到日落頁面的問題
+        function filterSunsetCategory(cat) {
+            activeTab = 'sunset';
+            activeSunsetCategory = cat;
+            document.getElementById('tabTrees').classList.remove('active');
+            document.getElementById('tabSunset').classList.add('active');
+            document.getElementById('tabFav').classList.remove('active');
+            updateMapMarkers();
+            renderPanelBody();
+        }
 
         function escapeHtml(s) {
             var entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
