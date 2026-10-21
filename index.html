@@ -329,7 +329,7 @@
     <div id="map"></div>
 
     <div id="loading" class="loading-overlay">
-        <span>🌱 正在極速加載香港樹木與日落數據...</span>
+        <span>🌱 正在極速載入香港樹木與日落數據...</span>
     </div>
 
     <div class="sidebar-panel" id="sidebarPanel">
@@ -494,9 +494,10 @@
             style: 'https://tiles.openfreemap.org/styles/positron'
         }).addTo(map);
 
+        // 調整 disableClusteringAtZoom 為 16，確保稍微放大就能看到個別樹木
         var markersCluster = L.markerClusterGroup({ 
             chunkedLoading: true, 
-            disableClusteringAtZoom: 17,
+            disableClusteringAtZoom: 16,
             showCoverageOnHover: false,
             spiderfyOnMaxZoom: false
         });
@@ -905,7 +906,6 @@
                 e.minLng = Math.min(e.minLng, ll.lng); e.maxLng = Math.max(e.maxLng, ll.lng);
             });
             
-            // Re-render panel body to populate location ranking correctly now that counts are ready
             renderPanelBody();
         }
 
