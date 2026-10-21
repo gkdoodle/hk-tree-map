@@ -302,7 +302,7 @@
     <div id="map"></div>
 
     <div id="loading" class="loading-overlay">
-        <span>🌱 正在秒速載入香港樹木與日落數據...</span>
+        <span>🌱 正在逐行載入香港全港樹木與日落數據...</span>
     </div>
 
     <div class="sidebar-panel" id="sidebarPanel">
@@ -669,7 +669,7 @@
             return { color: '#2e7d32', radius: 6.5 };
         }
 
-        /* 🚀 速度極快：使用 complete 批次解析 CSV，秒開不卡頓 */
+        /* 🚀 讀取品種 CSV */
         Papa.parse('tree_species.csv', {
             download: true, header: true, skipEmptyLines: true,
             complete: function(res) {
@@ -694,22 +694,13 @@
         });
 
         function loadSeasonalSpots() {
-            Papa.parse('seasonal_spots_2.csv', {
+            Papa.parse('seasonal_spots.csv', {
                 download: true, header: true, skipEmptyLines: true,
                 complete: function(res) {
                     if (res && res.data && res.data.length > 0) seasonalData = res.data;
                     loadSunsetSpots();
                 },
-                error: function() {
-                    Papa.parse('seasonal_spots.csv', {
-                        download: true, header: true, skipEmptyLines: true,
-                        complete: function(res2) {
-                            if (res2 && res2.data && res2.data.length > 0) seasonalData = res2.data;
-                            loadSunsetSpots();
-                        },
-                        error: loadSunsetSpots
-                    });
-                }
+                error: loadSunsetSpots
             });
         }
 
@@ -773,13 +764,14 @@
             });
         }
 
+        /* 🚀 使用 step 逐行讀取政總大數據，確保 100% 完整不漏所有樹木 */
         function loadGovTrees() {
             Papa.parse('csdi_gov_trees_named.csv', {
                 download: true, header: true, skipEmptyLines: true,
-                complete: function(res) {
-                    if (res && res.data) {
-                        res.data.forEach(row => processTreeRow(row));
-                    }
+                step: function(results) {
+                    if (results && results.data) processTreeRow(results.data);
+                },
+                complete: function() {
                     loadOtherTrees();
                 },
                 error: function() { loadOtherTrees(); }
@@ -789,10 +781,10 @@
         function loadOtherTrees() {
             Papa.parse('other_trees_location.csv', {
                 download: true, header: true, skipEmptyLines: true,
-                complete: function(res) {
-                    if (res && res.data) {
-                        res.data.forEach(row => processTreeRow(row));
-                    }
+                step: function(results) {
+                    if (results && results.data) processTreeRow(results.data);
+                },
+                complete: function() {
                     loadSeasonalSpotsIntoTrees();
                 },
                 error: function() { loadSeasonalSpotsIntoTrees(); }
